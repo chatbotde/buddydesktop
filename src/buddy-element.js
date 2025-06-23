@@ -793,7 +793,8 @@ class BuddyApp extends LitElement {
         
 
         .chat-container {
-            height: 300px;
+            flex: 1;
+            min-height: 0;
             overflow-y: auto;
             padding: 16px;
             display: flex;
