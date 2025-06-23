@@ -744,12 +744,56 @@ class BuddyApp extends LitElement {
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
+        .history-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .history-item {
+            background: var(--main-content-background);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .history-item:hover {
+            background: var(--button-background);
+            transform: translateY(-2px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .history-item-model {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .history-item-time {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .history-item-preview {
+            font-size: 13px;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
         
 
         
 
         .chat-container {
-            flex-grow: 1;
+            height: 300px;
             overflow-y: auto;
             padding: 16px;
             display: flex;
@@ -757,7 +801,6 @@ class BuddyApp extends LitElement {
             gap: 12px;
             margin-bottom: 10px;
             scroll-behavior: smooth;
-            scroll-padding: 100px;
         }
 
         .message-wrapper {
@@ -1391,6 +1434,7 @@ class BuddyApp extends LitElement {
         chatMessages: { type: Array },
         messageTransparency: { type: Boolean, reflect: true },
         selectedModel: { type: String },
+        history: { type: Array },
     };
 
     constructor() {
@@ -1414,6 +1458,47 @@ class BuddyApp extends LitElement {
         this.chatMessages = [];
         this.messageTransparency = false;
         this.selectedModel = localStorage.getItem('selectedModel') || '';
+        this.history = JSON.parse(localStorage.getItem('chatHistory')) || [];
+    }
+
+    saveHistory() {
+        if (this.chatMessages.length > 1) { // Don't save empty or welcome-only chats
+            const newHistory = [...this.history];
+            
+            // Add current session to the start of history
+            newHistory.unshift({
+                messages: this.chatMessages,
+                timestamp: new Date().toISOString(),
+                provider: this.selectedProvider,
+                model: this.selectedModel,
+            });
+
+            // Keep only the last 5 sessions
+            if (newHistory.length > 5) {
+                newHistory.length = 5;
+            }
+            
+            this.history = newHistory;
+            localStorage.setItem('chatHistory', JSON.stringify(this.history));
+        }
+    }
+    
+    loadSessionFromHistory(index) {
+        const session = this.history[index];
+        if (session) {
+            this.chatMessages = session.messages;
+            this.selectedProvider = session.provider;
+            this.selectedModel = session.model;
+            
+            // We are not in an active session, so set these to false
+            this.sessionActive = false;
+            this.isAudioActive = false;
+            this.isScreenActive = false;
+            this.startTime = null;
+            this.statusText = 'Viewing history';
+            
+            this.currentView = 'assistant';
+        }
     }
 
     async handleWindowClose() {
@@ -1465,7 +1550,7 @@ class BuddyApp extends LitElement {
                     // Update existing streaming message
                     lastMessage.text = responseText;
                     this.requestUpdate();
-                    this.scrollToBottom();
+                    this.scrollToBottom(false);
                     return;
                 }
             }
@@ -1485,7 +1570,7 @@ class BuddyApp extends LitElement {
                     this.isStreamingActive = false;
                     this.streamingResponseText = '';
                     this.requestUpdate();
-                    this.scrollToBottom();
+                    this.scrollToBottom(false);
                     return;
                 }
             }
@@ -1505,7 +1590,7 @@ class BuddyApp extends LitElement {
 
         this.requestUpdate();
         if (this.currentView === 'assistant') {
-            this.scrollToBottom();
+            this.scrollToBottom(false);
         }
     }
 
@@ -1526,21 +1611,20 @@ class BuddyApp extends LitElement {
         }
         
         this.requestUpdate();
-        this.scrollToBottom(); // This now scrolls to top with our new implementation
+        this.scrollToBottom(sender === 'user');
     }
 
-    scrollToBottom() {
+    scrollToBottom(force = false) {
         requestAnimationFrame(() => {
             const container = this.shadowRoot.querySelector('.chat-container');
             if (container) {
-                // For AI responses, scroll less to keep more context visible
-                const scrollTarget = container.scrollHeight - container.clientHeight * 0.7;
-                setTimeout(() => {
-                    container.scrollTo({
-                        top: scrollTarget,
-                        behavior: 'smooth'
-                    });
-                }, 50);
+                const lastMessage = container.querySelector('.message-wrapper:last-child');
+                if (lastMessage) {
+                    const isUserScrolledUp = container.scrollTop + container.clientHeight < container.scrollHeight - 150;
+                    if (force || !isUserScrolledUp) {
+                        lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                    }
+                }
             }
         });
     }
@@ -1551,6 +1635,9 @@ class BuddyApp extends LitElement {
         const { ipcRenderer } = window.require('electron');
         ipcRenderer.removeAllListeners('update-response');
         ipcRenderer.removeAllListeners('update-status');
+        if (this.currentView === 'assistant') {
+            this.scrollToBottom(false);
+        }
     }
 
     handleInput(e, property) {
@@ -1587,6 +1674,7 @@ class BuddyApp extends LitElement {
 
     async handleEndSession() {
         if (this.sessionActive) {
+            this.saveHistory();
             buddy.stopCapture();
             const { ipcRenderer } = window.require('electron');
             await ipcRenderer.invoke('close-session');
@@ -1617,7 +1705,7 @@ class BuddyApp extends LitElement {
     }
 
     async handleClose() {
-        if (this.currentView === 'customize' || this.currentView === 'help') {
+        if (this.currentView === 'customize' || this.currentView === 'help' || this.currentView === 'history') {
             this.currentView = 'main';
         } else if (this.currentView === 'assistant') {
             if (this.sessionActive) {
@@ -1633,6 +1721,7 @@ class BuddyApp extends LitElement {
 
     async handleRestart() {
         if (this.sessionActive) {
+            this.saveHistory();
             buddy.stopCapture();
             const { ipcRenderer } = window.require('electron');
             await ipcRenderer.invoke('close-session');
@@ -1694,22 +1783,6 @@ class BuddyApp extends LitElement {
         this.requestUpdate();
     }
 
-    scrollToBottom() {
-        requestAnimationFrame(() => {
-            const container = this.shadowRoot.querySelector('.chat-container');
-            if (container) {
-                // For AI responses, scroll less to keep more context visible
-                const scrollTarget = container.scrollHeight - container.clientHeight * 0.7;
-                setTimeout(() => {
-                    container.scrollTo({
-                        top: scrollTarget,
-                        behavior: 'smooth'
-                    });
-                }, 50);
-            }
-        });
-    }
-
     updated(changedProperties) {
         super.updated(changedProperties);
         
@@ -1720,7 +1793,7 @@ class BuddyApp extends LitElement {
             
             // If we're entering the chat view, scroll to the bottom
             if (this.currentView === 'assistant') {
-                this.scrollToBottom();
+                this.scrollToBottom(true);
             }
         }
     }
@@ -1916,6 +1989,9 @@ class BuddyApp extends LitElement {
                         : ''}
                     ${this.currentView === 'main'
                         ? html`
+                              <button class="icon-button" @click=${() => (this.currentView = 'history')}>
+                                  <?xml version="1.0" encoding="UTF-8"?><svg width="24px" height="24px" stroke-width="1.7" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M12 6v6h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22a9.99999 9.99999 0 0 1-9.42-7.11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21.5492 14.3313A9.99999 9.99999 0 0 1 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2c5.4578 0 9.8787 4.3676 9.9958 9.794" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                              </button>
                               <button class="icon-button" @click=${() => (this.currentView = 'customize')}>
                                   <?xml version="1.0" encoding="UTF-8"?><svg
                                       width="24px"
@@ -2709,11 +2785,39 @@ class BuddyApp extends LitElement {
         localStorage.setItem('selectedModel', this.selectedModel);
     }
 
+    renderHistoryView() {
+        if (!this.history || this.history.length === 0) {
+            return html`
+                <div class="welcome-message">
+                    <p>No chat history yet.</p>
+                    <p>Your past conversations will appear here.</p>
+                </div>
+            `;
+        }
+
+        return html`
+            <div class="history-container">
+                ${this.history.map((session, index) => html`
+                    <div class="history-item" @click=${() => this.loadSessionFromHistory(index)}>
+                        <div class="history-item-header">
+                            <span class="history-item-model">${session.model} (${session.provider})</span>
+                            <span class="history-item-time">${new Date(session.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div class="history-item-preview">
+                            ${session.messages[1] ? session.messages[1].text.substring(0, 100) + '...' : 'No messages'}
+                        </div>
+                    </div>
+                `)}
+            </div>
+        `;
+    }
+
     render() {
         const views = {
             main: this.renderMainView(),
             customize: this.renderCustomizeView(),
             help: this.renderHelpView(),
+            history: this.renderHistoryView(),
             assistant: this.renderAssistantView(),
         };
 
