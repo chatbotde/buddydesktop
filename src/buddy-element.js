@@ -1510,6 +1510,23 @@ class BuddyApp extends LitElement {
     connectedCallback() {
         super.connectedCallback();
         this.setAttribute('theme', this.currentTheme);
+        // Add event listener for link clicks to open in external browser
+        this._linkClickHandler = (event) => {
+            // Only handle left-clicks, no modifier keys
+            if (event.target && event.target.tagName === 'A' && !event.defaultPrevented && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+                const href = event.target.getAttribute('href');
+                if (href && href.startsWith('http')) {
+                    event.preventDefault();
+                    try {
+                        const { shell } = window.require('electron');
+                        shell.openExternal(href);
+                    } catch (err) {
+                        window.open(href, '_blank'); // fallback
+                    }
+                }
+            }
+        };
+        this.shadowRoot.addEventListener('click', this._linkClickHandler);
     }
 
     setStatus(t) {
@@ -1638,6 +1655,10 @@ class BuddyApp extends LitElement {
         ipcRenderer.removeAllListeners('update-status');
         if (this.currentView === 'assistant') {
             this.scrollToBottom(false);
+        }
+        // Remove the link click handler
+        if (this._linkClickHandler) {
+            this.shadowRoot.removeEventListener('click', this._linkClickHandler);
         }
     }
 
