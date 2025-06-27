@@ -1,21 +1,7 @@
 const models = [
     // Google Models
-    {
-        id: 'gemini-2.0-pro',
-        name: 'Gemini 2.0 Pro',
-        provider: 'google',
-        type: 'llm',
-        live: false,
-        capabilities: {
-            text: true,
-            image: true,
-            audio: false,
-            video: false,
-            realtime: false
-        },
-        description: 'Gemini 2.0 Pro is a large language model developed by Google with text and image capabilities.',
-        url: 'https://gemini.google.com/models/gemini-2.0-pro',
-    },
+    
+    
     {
         id: 'gemini-2.5-pro',
         name: 'Gemini 2.5 Pro',
@@ -29,41 +15,10 @@ const models = [
             video: false,
             realtime: false
         },
-        description: 'Gemini 2.5 Pro is a large language model developed by Google with text and image capabilities.',
-        url: 'https://gemini.google.com/models/gemini-2.5-pro',
-    },
-    {
-        id: 'gemini-2.5-pro-preview-05-06',
-        name: 'Gemini 2.5 Pro Preview 05-06',
-        provider: 'google',
-        type: 'llm',
-        live: false,
-        capabilities: {
-            text: true,
-            image: true,
-            audio: false,
-            video: false,
-            realtime: false
-        },
         description: 'Gemini 2.5 Pro Preview with enhanced capabilities.',
         url: 'https://gemini.google.com/models/gemini-2.5-pro-preview-05-06',
     },
-    {
-        id: 'gemini-2.0-flash',
-        name: 'Gemini 2.0 Flash',
-        provider: 'google',
-        type: 'llm',
-        live: false,
-        capabilities: {
-            text: true,
-            image: true,
-            audio: false,
-            video: false,
-            realtime: false
-        },
-        description: 'Gemini 2.0 Flash is a fast, efficient model with text and image capabilities.',
-        url: 'https://gemini.google.com/models/gemini-2.0-flash',
-    },
+    
     {
         id: 'gemini-2.5-flash',
         name: 'Gemini 2.5 Flash',
@@ -80,22 +35,7 @@ const models = [
         description: 'Gemini 2.5 Flash is a fast, efficient model with text and image capabilities.',
         url: 'https://gemini.google.com/models/gemini-2.5-flash',
     },
-    {
-        id: 'gemini-2.5-flash-preview-04-17',
-        name: 'Gemini 2.5 Flash Preview 04-17',
-        provider: 'google',
-        type: 'llm',
-        live: false,
-        capabilities: {
-            text: true,
-            image: true,
-            audio: false,
-            video: false,
-            realtime: false
-        },
-        description: 'Gemini 2.5 Flash Preview with text and image capabilities.',
-        url: 'https://gemini.google.com/models/gemini-2.5-flash-preview-04-17',
-    },
+    
     {
         id: 'gemini-2.5-flash-lite-preview-06-17',
         name: 'Gemini 2.5 Flash Lite Preview 06-17',
@@ -112,27 +52,12 @@ const models = [
         description: 'Lightweight Gemini model with text and image capabilities.',
         url: 'https://gemini.google.com/models/gemini-2.5-flash-lite-preview-06-17',
     },
-    {
-        id: 'gemini-2.0-flash-live-001',
-        name: 'Gemini 2.0 Flash Live 001',
-        provider: 'google',
-        type: 'llm',
-        live: true,
-        capabilities: {
-            text: true,
-            image: true,
-            audio: true,
-            video: true,
-            realtime: true
-        },
-        description: 'Gemini 2.0 Flash with live streaming capabilities for real-time audio and video.',
-        url: 'https://gemini.google.com/models/gemini-2.0-flash-live-001',
-    },
+    
 
     // OpenAI Models
     {
-        id: 'gpt-4',
-        name: 'GPT-4',
+        id: 'gpt-4.1-2025-04-14',
+        name: 'GPT-4.1',
         provider: 'openai',
         type: 'llm',
         live: false,
@@ -143,12 +68,12 @@ const models = [
             video: false,
             realtime: false
         },
-        description: 'GPT-4 is OpenAI\'s most capable model with text and image understanding.',
-        url: 'https://openai.com/models/gpt-4',
+        description: 'GPT-4.1 is OpenAI\'s most capable model with text and image understanding.',
+        url: 'https://openai.com/models/gpt-4.1-2025-04-14',
     },
     {
-        id: 'gpt-4-turbo',
-        name: 'GPT-4 Turbo',
+        id: 'o4-mini-2025-04-16',
+        name: 'O4 Mini',
         provider: 'openai',
         type: 'llm',
         live: false,
@@ -159,8 +84,24 @@ const models = [
             video: false,
             realtime: false
         },
-        description: 'GPT-4 Turbo is a faster, more efficient version of GPT-4 with text and image capabilities.',
-        url: 'https://openai.com/models/gpt-4-turbo',
+        description: 'O4 Mini is a faster, more efficient version of GPT-4 with text and image capabilities.',
+        url: 'https://openai.com/models/o4-mini-2025-04-16',
+    },
+    {
+        id: 'o3-2025-04-16',
+        name: 'O3',
+        provider: 'openai',
+        type: 'llm',
+        live: false,
+        capabilities: {
+            text: true,
+            image: true,
+            audio: false,
+            video: false,
+            realtime: false
+        },
+        description: 'O3 is a faster, more efficient version of GPT-4 with text and image capabilities.',
+        url: 'https://openai.com/models/o3-2025-04-16',
     },
 
     // Anthropic Models
