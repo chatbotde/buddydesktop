@@ -1,0 +1,333 @@
+import { html, css, LitElement } from '../lit-core-2.7.4.min.js';
+
+class BuddyHeader extends LitElement {
+    static properties = {
+        currentView: { type: String },
+        selectedModel: { type: String },
+        selectedProvider: { type: String },
+        sessionActive: { type: Boolean },
+        statusText: { type: String },
+        startTime: { type: Number },
+        isAudioActive: { type: Boolean },
+        isScreenActive: { type: Boolean },
+        modelsByProvider: { type: Object },
+    };
+
+    static styles = css`
+        .header {
+            -webkit-app-region: drag;
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            border: var(--glass-border);
+            background: var(--header-background);
+            border-radius: 16px 16px 0 0;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+        }
+        .header-title {
+            flex: 1;
+            font-size: 16px;
+            font-weight: 600;
+            -webkit-app-region: drag;
+        }
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            -webkit-app-region: no-drag;
+        }
+        .header-actions span {
+            font-size: 13px;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+        .status-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .status-live {
+            background-color: #4ade80;
+            box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+        }
+        .status-idle {
+            background-color: #fbbf24;
+            box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+        }
+        .button, .session-button {
+            background: var(--button-background);
+            color: var(--text-color);
+            border: var(--glass-border);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        .button:hover, .session-button:hover {
+            background: var(--button-background);
+            border-color: var(--button-border);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        .session-button.start, .session-button.end {
+            background: var(--button-background);
+            color: var(--text-color);
+            border: var(--glass-border);
+        }
+        .icon-button {
+            background: var(--button-background);
+            color: var(--text-color);
+            border: var(--glass-border);
+            padding: 8px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        .icon-button:hover {
+            background: var(--button-background);
+            color: var(--text-color);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        button:disabled {
+            opacity: 0.5;
+            transform: none;
+        }
+    `;
+
+    _handleModelSelect(e) {
+        this.dispatchEvent(new CustomEvent('model-select', { detail: { model: e.target.value }, bubbles: true, composed: true }));
+    }
+    _handleEndSession() {
+        this.dispatchEvent(new CustomEvent('end-session', { bubbles: true, composed: true }));
+    }
+    _handleStartSession() {
+        this.dispatchEvent(new CustomEvent('start-session', { bubbles: true, composed: true }));
+    }
+    _handleToggleAudio() {
+        this.dispatchEvent(new CustomEvent('toggle-audio', { bubbles: true, composed: true }));
+    }
+    _handleToggleScreen() {
+        this.dispatchEvent(new CustomEvent('toggle-screen', { bubbles: true, composed: true }));
+    }
+    _handleClose() {
+        this.dispatchEvent(new CustomEvent('close', { bubbles: true, composed: true }));
+    }
+    _handleNav(e) {
+        this.dispatchEvent(new CustomEvent('navigate', { detail: { view: e }, bubbles: true, composed: true }));
+    }
+
+    render() {
+        const titles = {
+            main: 'Buddy',
+            customize: 'Customize',
+            help: 'Help & Shortcuts',
+            assistant: 'Buddy',
+        };
+        let elapsedTime = '';
+        if (this.currentView === 'assistant' && this.startTime) {
+            const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+            elapsedTime = `${elapsed}s`;
+        }
+        const isLive = this.sessionActive && (this.statusText?.includes('Listening') || this.statusText?.includes('Processing'));
+        const statusIndicator = isLive ? 'status-live' : 'status-idle';
+        const modelsByProvider = this.modelsByProvider || {};
+        let allModels = Object.entries(modelsByProvider).flatMap(([provider, models]) =>
+            models.map(model => ({ provider, model }))
+        );
+        const currentProviderModels = allModels.filter(m => m.provider === this.selectedProvider);
+        const otherProviderModels = allModels.filter(m => m.provider !== this.selectedProvider);
+        const groupedModels = [...currentProviderModels, ...otherProviderModels];
+        return html`
+            <div class="header">
+                <div class="header-title" style="display: flex; align-items: center; gap: 8px; -webkit-app-region: drag;">
+                    ${titles[this.currentView]}
+                    <select 
+                        title="Change AI model" 
+                        style="
+                            -webkit-app-region: no-drag;
+                            margin-left: 6px; 
+                            min-width: 120px; 
+                            max-width: 180px; 
+                            font-size: 13px; 
+                            padding: 4px 8px; 
+                            border-radius: 6px; 
+                            background: oklch(14.7% 0.004 49.25); 
+                            color: var(--text-color); 
+                            border: var(--glass-border);
+                            cursor: pointer;
+                            z-index: 1000;
+                            backdrop-filter: blur(10px);
+                            -webkit-backdrop-filter: blur(10px);
+                            max-height: 220px;
+                            overflow-y: auto;
+                        " 
+                        .value=${this.selectedModel} 
+                        @change=${this._handleModelSelect}
+                        @click=${(e) => e.stopPropagation()}
+                    >
+                        ${Object.entries(modelsByProvider).map(([provider, models]) => [
+                            html`<optgroup label="${provider.charAt(0).toUpperCase() + provider.slice(1)}">`,
+                            models.map(model => html`<option value=${model} ?selected=${this.selectedModel === model}>${model}</option>`),
+                            html`</optgroup>`
+                        ])}
+                    </select>
+                </div>
+                <div class="header-actions">
+                    ${this.currentView === 'assistant'
+                        ? html`
+                              <span>${elapsedTime}</span>
+                              <div class="status-container">
+                                  <span class="status-indicator ${statusIndicator}"></span>
+                                  ${this.sessionActive
+                                      ? html`
+                                            <button class="session-button end" @click=${this._handleEndSession} title="End Session">
+                                                ■ End
+                                            </button>
+                                            <button 
+                                                class="icon-button" 
+                                                @click=${this._handleToggleAudio} 
+                                                title=${this.isAudioActive ? 'Pause Audio Listening' : 'Resume Audio Listening'}
+                                                style="color: ${this.isAudioActive ? 'var(--text-color)' : '#f36a6a'}; font-size: 16px; font-weight: bold;"
+                                            >
+                                                A
+                                            </button>
+                                            <button 
+                                                class="icon-button" 
+                                                @click=${this._handleToggleScreen} 
+                                                title=${this.isScreenActive ? 'Pause Screen Viewing' : 'Resume Screen Viewing'}
+                                                style="color: ${this.isScreenActive ? 'var(--text-color)' : '#f36a6a'}; font-size: 16px; font-weight: bold;"
+                                            >
+                                                I
+                                            </button>
+                                        `
+                                      : html`
+                                            <button class="session-button start" @click=${this._handleStartSession} title="Start Session">
+                                                ▶ Start
+                                            </button>
+                                        `}
+                              </div>
+                              <span style="min-width: 50px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.statusText}</span>
+                          `
+                        : ''}
+                    ${this.currentView === 'main'
+                        ? html`
+                              <button class="icon-button" @click=${() => this._handleNav('history')}>
+                                  <svg width="24px" height="24px" stroke-width="1.7" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M12 6v6h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22a9.99999 9.99999 0 0 1-9.42-7.11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21.5492 14.3313A9.99999 9.99999 0 0 1 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2c5.4578 0 9.8787 4.3676 9.9958 9.794" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                              </button>
+                              <button class="icon-button" @click=${() => this._handleNav('customize')}>
+                                  <svg
+                                      width="24px"
+                                      height="24px"
+                                      stroke-width="1.7"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      color="currentColor"
+                                  >
+                                      <path
+                                          d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                      ></path>
+                                      <path
+                                          d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                      ></path>
+                                  </svg>
+                              </button>
+                              <button class="icon-button" @click=${() => this._handleNav('help')}>
+                                  <svg
+                                      width="24px"
+                                      height="24px"
+                                      stroke-width="1.7"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      color="currentColor"
+                                  >
+                                      <path
+                                          d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                      ></path>
+                                      <path
+                                          d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                      ></path>
+                                      <path
+                                          d="M12 18.01L12.01 17.9989"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                      ></path>
+                                  </svg>
+                              </button>
+                          `
+                        : ''}
+                    ${this.currentView === 'assistant'
+                        ? html`
+                              <button @click=${this._handleClose} class="button window-close">
+                                  Back
+                              </button>
+                             
+                          `
+                        : html`
+                              <button @click=${this._handleClose} class="icon-button window-close">
+                                  <svg
+                                      width="24px"
+                                      height="24px"
+                                      stroke-width="1.7"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      color="currentColor"
+                                  >
+                                      <path
+                                          d="M6.75827 17.2426L12.0009 12M17.2435 6.75736L12.0009 12M12.0009 12L6.75827 6.75736M12.0009 12L17.2435 17.2426"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                      ></path>
+                                  </svg>
+                              </button>
+                          `}
+                </div>
+            </div>
+        `;
+    }
+}
+
+customElements.define('buddy-header', BuddyHeader); 

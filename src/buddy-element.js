@@ -1,5 +1,11 @@
 import { html, css, LitElement } from './lit-core-2.7.4.min.js';
 import './marked.min.js';
+import './components/buddy-header.js';
+import './components/buddy-main-view.js';
+import './components/buddy-customize-view.js';
+import './components/buddy-help-view.js';
+import './components/buddy-history-view.js';
+import './components/buddy-assistant-view.js';
 
 
 class BuddyApp extends LitElement {
@@ -28,21 +34,21 @@ class BuddyApp extends LitElement {
             --header-background: rgba(0, 0, 0, 0.2);
             --main-content-background: rgba(0, 0, 0, 0.15);
             --text-color: rgba(255, 255, 255, 0.95);
-            --border-color: rgba(255, 255, 255, 0.2);
+            --border-color: oklch(98.5% 0.001 106.423);
             --input-background: rgba(255, 255, 255, 0.05);
-            --input-border: rgba(255, 255, 255, 0.3);
+            --input-border: oklch(98.5% 0.001 106.423);
             --button-background: rgba(255, 255, 255, 0.1);
-            --button-border: rgba(255, 255, 255, 0.3);
+            --button-border: oklch(98.5% 0.001 106.423);
             --placeholder-color: rgba(255, 255, 255, 0.6);
             --code-background: rgba(255, 255, 255, 0.1);
             --pre-background: rgba(0, 0, 0, 0.3);
             --blockquote-background: rgba(255, 255, 255, 0.05);
-            --table-border: rgba(255, 255, 255, 0.2);
+            --table-border: oklch(98.5% 0.001 106.423);
             --table-header-background: rgba(255, 255, 255, 0.1);
             --scrollbar-track: rgba(255, 255, 255, 0.1);
             --scrollbar-thumb: rgba(255, 255, 255, 0.3);
             --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            --glass-border: 1px solid rgba(255, 255, 255, 0.18);
+            --glass-border: 1px solid oklch(98.5% 0.001 106.423);
             --user-message-bg: rgba(0, 122, 255, 0.2);
             --user-message-border: rgba(0, 122, 255, 0.3);
             --assistant-message-bg: rgba(255, 255, 255, 0.1);
@@ -929,14 +935,6 @@ class BuddyApp extends LitElement {
             }
         }
 
-        .welcome-message {
-            text-align: center;
-            padding: 20px;
-            opacity: 0.8;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
         /* Enhanced code block styling */
         .message-content pre {
             background: #1e1e1e;
@@ -1156,8 +1154,8 @@ class BuddyApp extends LitElement {
         }
 
         .content-section.code-section {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: transparent;
+            padding: 0;
         }
 
         .content-section.math-section {
@@ -1436,6 +1434,7 @@ class BuddyApp extends LitElement {
         messageTransparency: { type: Boolean, reflect: true },
         selectedModel: { type: String },
         history: { type: Array },
+        providers: { type: Array },
     };
 
     constructor() {
@@ -1460,6 +1459,105 @@ class BuddyApp extends LitElement {
         this.messageTransparency = false;
         this.selectedModel = localStorage.getItem('selectedModel') || '';
         this.history = JSON.parse(localStorage.getItem('chatHistory')) || [];
+        this.providers = [
+            { value: 'google', name: 'Google Gemini', keyLabel: 'Gemini API Key' },
+            { value: 'openai', name: 'OpenAI', keyLabel: 'OpenAI API Key' },
+            { value: 'anthropic', name: 'Anthropic Claude', keyLabel: 'Anthropic API Key' },
+            { value: 'deepseek', name: 'DeepSeek', keyLabel: 'DeepSeek API Key' },
+            { value: 'openrouter', name: 'OpenRouter', keyLabel: 'OpenRouter API Key' },
+        ];
+    }
+
+    get mainViewModels() {
+        try {
+            return require('./models.js')[this.selectedProvider] || [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    get mainViewApiKey() {
+        return localStorage.getItem(`apiKey_${this.selectedProvider}`) || '';
+    }
+
+    get mainViewKeyLabel() {
+        const provider = this.providers.find(p => p.value === this.selectedProvider);
+        return provider ? provider.keyLabel : 'API Key';
+    }
+
+    get customizeViewCustomPrompt() {
+        return localStorage.getItem('customPrompt') || '';
+    }
+
+    firstUpdated() {
+        this.addEventListener('provider-select', (e) => {
+            this.selectedProvider = e.detail.provider;
+            localStorage.setItem('selectedProvider', this.selectedProvider);
+            // Reset model when provider changes
+            this.selectedModel = '';
+            localStorage.setItem('selectedModel', '');
+            this.requestUpdate();
+        });
+        this.addEventListener('model-select', (e) => {
+            this.selectedModel = e.detail.model;
+            localStorage.setItem('selectedModel', this.selectedModel);
+            this.requestUpdate();
+        });
+        this.addEventListener('api-key-input', (e) => {
+            localStorage.setItem(`apiKey_${this.selectedProvider}`, e.detail.apiKey);
+            this.requestUpdate();
+        });
+        this.addEventListener('start-session', async () => {
+            await this.handleStart();
+        });
+        this.addEventListener('profile-select', (e) => {
+            this.selectedProfile = e.detail.profile;
+            localStorage.setItem('selectedProfile', this.selectedProfile);
+            this.requestUpdate();
+        });
+        this.addEventListener('language-select', (e) => {
+            this.selectedLanguage = e.detail.language;
+            localStorage.setItem('selectedLanguage', this.selectedLanguage);
+            this.requestUpdate();
+        });
+        this.addEventListener('custom-prompt-input', (e) => {
+            localStorage.setItem('customPrompt', e.detail.prompt);
+            this.requestUpdate();
+        });
+        this.addEventListener('load-session', (e) => {
+            this.loadSessionFromHistory(e.detail.index);
+        });
+        this.addEventListener('send-message', async (e) => {
+            const message = e.detail.text;
+            this.addChatMessage(message, 'user');
+            await this.scrollToUserMessage();
+            const result = await buddy.sendTextMessage(message);
+            if (!result.success) {
+                this.setStatus('Error sending message: ' + result.error);
+                this.addChatMessage(' error sending your message.', 'assistant');
+            } else {
+                this.setStatus('sending...');
+            }
+        });
+        this.addEventListener('delete-message', (e) => {
+            if (e.detail.id) {
+                this.deleteMessage(e.detail.id);
+            }
+        });
+        this.addEventListener('toggle-transparency', (e) => {
+            if (e.detail.id) {
+                this.toggleMessageTransparency(e.detail.id);
+            }
+        });
+        this.addEventListener('close', async () => {
+            await this.handleClose();
+        });
+        this.addEventListener('navigate', (e) => {
+            this.currentView = e.detail.view;
+        });
+        this.addEventListener('end-session', async () => {
+            await this.handleEndSession();
+        });
     }
 
     saveHistory() {
@@ -1487,17 +1585,19 @@ class BuddyApp extends LitElement {
     loadSessionFromHistory(index) {
         const session = this.history[index];
         if (session) {
-            this.chatMessages = session.messages;
+            // Ensure every message has a unique id and boolean transparency property
+            this.chatMessages = session.messages.map(msg => ({
+                ...msg,
+                id: msg.id || (Date.now().toString(36) + Math.random().toString(36).slice(2)),
+                transparency: typeof msg.transparency === 'boolean' ? msg.transparency : false
+            }));
             this.selectedProvider = session.provider;
             this.selectedModel = session.model;
-            
-            // We are not in an active session, so set these to false
             this.sessionActive = false;
             this.isAudioActive = false;
             this.isScreenActive = false;
             this.startTime = null;
             this.statusText = 'Viewing history';
-            
             this.currentView = 'assistant';
         }
     }
@@ -1614,20 +1714,22 @@ class BuddyApp extends LitElement {
 
     addChatMessage(text, sender, isStreaming = false) {
         const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        
-        // With column-reverse, new messages appear at the top
-        this.chatMessages = [...this.chatMessages, {
-            text,
-            sender,
-            timestamp,
-            isStreaming
-        }];
-        
+        const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
+        this.chatMessages = [
+            ...this.chatMessages,
+            {
+                id,
+                text,
+                sender,
+                timestamp,
+                isStreaming,
+                transparency: false
+            }
+        ];
         if (isStreaming) {
             this.isStreamingActive = true;
             this.streamingResponseText = text;
         }
-        
         this.requestUpdate();
         this.scrollToBottom(sender === 'user');
     }
@@ -1888,969 +1990,77 @@ class BuddyApp extends LitElement {
         }
     }
 
-    renderHeader() {
-        const titles = {
-            main: 'Buddy',
-            customize: 'Customize',
-            help: 'Help & Shortcuts',
-            assistant: 'Buddy',
-        };
-
-        let elapsedTime = '';
-        if (this.currentView === 'assistant' && this.startTime) {
-            const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
-            elapsedTime = `${elapsed}s`;
-        }
-
-        const isLive = this.sessionActive && (this.statusText.includes('Listening') || this.statusText.includes('Processing'));
-        const statusIndicator = isLive ? 'status-live' : 'status-idle';
-
-        // Model dropdown for header
-        let allModels = [];
-        let modelsByProvider = BuddyApp.modelsByProvider;
-        allModels = Object.entries(modelsByProvider).flatMap(([provider, models]) =>
-            models.map(model => ({ provider, model }))
-        );
-        const currentProviderModels = allModels.filter(m => m.provider === this.selectedProvider);
-        const otherProviderModels = allModels.filter(m => m.provider !== this.selectedProvider);
-        const groupedModels = [...currentProviderModels, ...otherProviderModels];
-        if (!this.selectedModel && groupedModels.length > 0) {
-            this.selectedModel = groupedModels[0].model;
-            this.selectedProvider = groupedModels[0].provider;
-            localStorage.setItem('selectedModel', this.selectedModel);
-            localStorage.setItem('selectedProvider', this.selectedProvider);
-        }
-
-        // Handler for model select in header
-        const handleHeaderModelSelect = (e) => {
-            const selected = e.target.value;
-            const found = allModels.find(m => m.model === selected);
-            if (found) {
-                this.selectedModel = found.model;
-                this.selectedProvider = found.provider;
-                localStorage.setItem('selectedModel', this.selectedModel);
-                localStorage.setItem('selectedProvider', this.selectedProvider);
-                this.requestUpdate();
-            }
-        };
-
-        return html`
-            <div class="header">
-                <div class="header-title" style="display: flex; align-items: center; gap: 8px; -webkit-app-region: drag;">
-                    ${titles[this.currentView]}
-                    <select 
-                        title="Change AI model" 
-                        style="
-                            -webkit-app-region: no-drag;
-                            margin-left: 6px; 
-                            min-width: 120px; 
-                            max-width: 180px; 
-                            font-size: 13px; 
-                            padding: 4px 8px; 
-                            border-radius: 6px; 
-                            background: oklch(14.7% 0.004 49.25); 
-                            color: var(--text-color); 
-                            border: var(--glass-border);
-                            cursor: pointer;
-                            z-index: 1000;
-                            backdrop-filter: blur(10px);
-                            -webkit-backdrop-filter: blur(10px);
-                            max-height: 220px;
-                            overflow-y: auto;
-                        " 
-                        .value=${this.selectedModel} 
-                        @change=${handleHeaderModelSelect}
-                        @click=${(e) => {
-                            e.stopPropagation();
-                            console.log('Dropdown clicked');
-                        }}
-                    >
-                        ${Object.entries(modelsByProvider).map(([provider, models]) => [
-                            html`<optgroup label="${provider.charAt(0).toUpperCase() + provider.slice(1)}">`,
-                            models.map(model => html`<option value=${model} ?selected=${this.selectedModel === model}>${model}</option>`),
-                            html`</optgroup>`
-                        ])}
-                    </select>
-                </div>
-                <div class="header-actions">
-                    ${this.currentView === 'assistant'
-                        ? html`
-                              <span>${elapsedTime}</span>
-                              <div class="status-container">
-                                  <span class="status-indicator ${statusIndicator}"></span>
-                                  ${this.sessionActive
-                                      ? html`
-                                            <button class="session-button end" @click=${this.handleEndSession} title="End Session">
-                                                ■ End
-                                            </button>
-                                            <button 
-                                                class="icon-button" 
-                                                @click=${this.toggleAudioCapture} 
-                                                title=${this.isAudioActive ? 'Pause Audio Listening' : 'Resume Audio Listening'}
-                                                style="color: ${this.isAudioActive ? 'var(--text-color)' : '#f36a6a'}; font-size: 16px; font-weight: bold;"
-                                            >
-                                                A
-                                            </button>
-                                            <button 
-                                                class="icon-button" 
-                                                @click=${this.toggleScreenCapture} 
-                                                title=${this.isScreenActive ? 'Pause Screen Viewing' : 'Resume Screen Viewing'}
-                                                style="color: ${this.isScreenActive ? 'var(--text-color)' : '#f36a6a'}; font-size: 16px; font-weight: bold;"
-                                            >
-                                                I
-                                            </button>
-                                        `
-                                      : html`
-                                            <button class="session-button start" @click=${this.handleStartSession} title="Start Session">
-                                                ▶ Start
-                                            </button>
-                                        `}
-                              </div>
-                              <span style="min-width: 50px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.statusText}</span>
-                          `
-                        : ''}
-                    ${this.currentView === 'main'
-                        ? html`
-                              <button class="icon-button" @click=${() => (this.currentView = 'history')}>
-                                  <?xml version="1.0" encoding="UTF-8"?><svg width="24px" height="24px" stroke-width="1.7" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M12 6v6h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22a9.99999 9.99999 0 0 1-9.42-7.11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21.5492 14.3313A9.99999 9.99999 0 0 1 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2c5.4578 0 9.8787 4.3676 9.9958 9.794" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                              </button>
-                              <button class="icon-button" @click=${() => (this.currentView = 'customize')}>
-                                  <?xml version="1.0" encoding="UTF-8"?><svg
-                                      width="24px"
-                                      height="24px"
-                                      stroke-width="1.7"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      color="currentColor"
-                                  >
-                                      <path
-                                          d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                      <path
-                                          d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                  </svg>
-                              </button>
-                              <button class="icon-button" @click=${()=>(this.currentView = 'help')}>
-                                  <?xml version="1.0" encoding="UTF-8"?><svg
-                                      width="24px"
-                                      height="24px"
-                                      stroke-width="1.7"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      color="currentColor"
-                                  >
-                                      <path
-                                          d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                      <path
-                                          d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                      <path
-                                          d="M12 18.01L12.01 17.9989"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                  </svg>
-                              </button>
-                          `
-                        : ''}
-                    ${this.currentView === 'assistant'
-                        ? html`
-                              <button @click=${this.handleClose} class="button window-close">
-                                  Back
-                              </button>
-                             
-                          `
-                        : html`
-                              <button @click=${this.handleClose} class="icon-button window-close">
-                                  <?xml version="1.0" encoding="UTF-8"?><svg
-                                      width="24px"
-                                      height="24px"
-                                      stroke-width="1.7"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      color="currentColor"
-                                  >
-                                      <path
-                                          d="M6.75827 17.2426L12.0009 12M17.2435 6.75736L12.0009 12M12.0009 12L6.75827 6.75736M12.0009 12L17.2435 17.2426"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                  </svg>
-                              </button>
-                          `}
-                </div>
-            </div>
-        `;
+    get isMacOS() {
+        return typeof buddy !== 'undefined' && buddy.isMacOS !== undefined
+            ? buddy.isMacOS
+            : navigator.platform.toLowerCase().includes('mac');
     }
-
-    renderMainView() {
-        const providers = [
-            { value: 'google', name: 'Google Gemini', keyLabel: 'Gemini API Key' },
-            { value: 'openai', name: 'OpenAI', keyLabel: 'OpenAI API Key' },
-            { value: 'anthropic', name: 'Anthropic Claude', keyLabel: 'Anthropic API Key' },
-            { value: 'deepseek', name: 'DeepSeek', keyLabel: 'DeepSeek API Key' },
-            { value: 'openrouter', name: 'OpenRouter', keyLabel: 'OpenRouter API Key' },
-        ];
-        const currentProvider = providers.find(p => p.value === this.selectedProvider);
-        let models = [];
-        try {
-            models = require('./models.js')[this.selectedProvider] || [];
-        } catch (e) {
-            models = [];
-        }
-        // If no model selected, pick the first as default
-        if (!this.selectedModel && models.length > 0) {
-            this.selectedModel = models[0];
-            localStorage.setItem('selectedModel', this.selectedModel);
-        }
-        return html`
-            <div class="main-view-container">
-                <div class="welcome">Welcome to Buddy</div>
-                <div class="option-group" >
-                    <label class="option-label">Select AI Provider</label>
-                    <select .value=${this.selectedProvider} @change=${this.handleProviderSelect} >
-                        ${providers.map(
-                            provider => html`
-                                <option value=${provider.value} ?selected=${this.selectedProvider === provider.value}>${provider.name}</option>
-                            `
-                        )}
-                    </select>
-                    <div class="provider-help-text">Choose your preferred AI service provider</div>
-                </div>
-                <div class="option-group">
-                    <label class="option-label">Select Model</label>
-                    <select .value=${this.selectedModel} @change=${this.handleModelSelect}>
-                        ${models.map(
-                            model => html`
-                                <option value=${model} ?selected=${this.selectedModel === model}>${model}</option>
-                            `
-                        )}
-                    </select>
-                    <div class="provider-help-text">Choose a model for the selected provider</div>
-                </div>
-                <div class="api-input-section">
-                    <div class="option-group">
-                        <label class="option-label">${currentProvider?.keyLabel || 'API Key'}</label>
-                        <div class="input-group">
-                            <input
-                                type="password"
-                                placeholder="Enter your ${currentProvider?.keyLabel || 'API Key'}"
-                                .value=${localStorage.getItem(`apiKey_${this.selectedProvider}`) || ''}
-                                @input=${e => this.handleInput(e, `apiKey_${this.selectedProvider}`)}
-                            />
-                            <button @click=${this.handleStart} class="button start-button" style="font-size: 15px">Start Session</button>
-                        </div>
-                        <div class="description">
-                            Don't have an API key? Go to <a href="https://aistudio.google.com" target="_blank">Google AI Studio</a>.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    renderCustomizeView() {
-        const profiles = [
-            {
-                value: 'general',
-                name: 'General Assistant',
-                description: 'Ask anything - general knowledge, problem solving, creative tasks, and more',
-            },
-            {
-                value: 'interview',
-                name: 'Job Interview',
-                description: 'Get help with answering interview questions',
-            },
-            {
-                value: 'sales',
-                name: 'Sales Call',
-                description: 'Assist with sales conversations and objection handling',
-            },
-            {
-                value: 'meeting',
-                name: 'Business Meeting',
-                description: 'Support for professional meetings and discussions',
-            },
-            {
-                value: 'presentation',
-                name: 'Presentation',
-                description: 'Help with presentations and public speaking',
-            },
-            {
-                value: 'negotiation',
-                name: 'Negotiation',
-                description: 'Guidance for business negotiations and deals',
-            },
-            {
-                value: 'teacher',
-                name: 'JEE Advanced Teacher',
-                description: 'Educational explanations and teaching for JEE Advanced topics',
-            },
-        ];
-
-        const languages = [
-            { value: 'en-US', name: 'English (US)' },
-            { value: 'en-GB', name: 'English (UK)' },
-            { value: 'en-AU', name: 'English (Australia)' },
-            { value: 'en-IN', name: 'English (India)' },
-            { value: 'de-DE', name: 'German (Germany)' },
-            { value: 'es-US', name: 'Spanish (United States)' },
-            { value: 'es-ES', name: 'Spanish (Spain)' },
-            { value: 'fr-FR', name: 'French (France)' },
-            { value: 'fr-CA', name: 'French (Canada)' },
-            { value: 'hi-IN', name: 'Hindi (India)' },
-            { value: 'pt-BR', name: 'Portuguese (Brazil)' },
-            { value: 'ar-XA', name: 'Arabic (Generic)' },
-            { value: 'id-ID', name: 'Indonesian (Indonesia)' },
-            { value: 'it-IT', name: 'Italian (Italy)' },
-            { value: 'ja-JP', name: 'Japanese (Japan)' },
-            { value: 'tr-TR', name: 'Turkish (Turkey)' },
-            { value: 'vi-VN', name: 'Vietnamese (Vietnam)' },
-            { value: 'bn-IN', name: 'Bengali (India)' },
-            { value: 'gu-IN', name: 'Gujarati (India)' },
-            { value: 'kn-IN', name: 'Kannada (India)' },
-            { value: 'ml-IN', name: 'Malayalam (India)' },
-            { value: 'mr-IN', name: 'Marathi (India)' },
-            { value: 'ta-IN', name: 'Tamil (India)' },
-            { value: 'te-IN', name: 'Telugu (India)' },
-            { value: 'nl-NL', name: 'Dutch (Netherlands)' },
-            { value: 'ko-KR', name: 'Korean (South Korea)' },
-            { value: 'cmn-CN', name: 'Mandarin Chinese (China)' },
-            { value: 'pl-PL', name: 'Polish (Poland)' },
-            { value: 'ru-RU', name: 'Russian (Russia)' },
-            { value: 'th-TH', name: 'Thai (Thailand)' },
-        ];
-
-        const profileNames = {
-            general: 'General Assistant',
-            interview: 'Job Interview',
-            sales: 'Sales Call',
-            meeting: 'Business Meeting',
-            presentation: 'Presentation',
-            negotiation: 'Negotiation',
-            teacher: 'JEE Advanced Teacher',
-        };
-
-        return html`
-            <div>
-                <div class="option-group">
-                    <label class="option-label">Select Profile</label>
-                    <select .value=${this.selectedProfile} @change=${this.handleProfileSelect}>
-                        ${profiles.map(
-                            profile => html`
-                                <option value=${profile.value} ?selected=${this.selectedProfile === profile.value}>${profile.name}</option>
-                            `
-                        )}
-                    </select>
-                    <div class="description">${profiles.find(p => p.value === this.selectedProfile)?.description || ''}</div>
-                </div>
-
-                <div class="option-group">
-                    <label class="option-label">Select Language</label>
-                    <select .value=${this.selectedLanguage} @change=${this.handleLanguageSelect}>
-                        ${languages.map(
-                            language => html`
-                                <option value=${language.value} ?selected=${this.selectedLanguage === language.value}>${language.name}</option>
-                            `
-                        )}
-                    </select>
-                    <div class="description">Choose the language for speech recognition and AI responses.</div>
-                </div>
-
-                <div class="option-group">
-                    <span class="option-label">AI Behavior for ${profileNames[this.selectedProfile] || 'Selected Profile'}</span>
-                    <textarea
-                        placeholder="Describe how you want the AI to behave..."
-                        .value=${localStorage.getItem('customPrompt') || ''}
-                        class="custom-prompt-textarea"
-                        rows="4"
-                        @input=${e => this.handleInput(e, 'customPrompt')}
-                    ></textarea>
-                    <div class="description">
-                        This custom prompt will be added to the ${profileNames[this.selectedProfile] || 'selected profile'} instructions to
-                        personalize the AI's behavior.
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    renderHelpView() {
-        return html`
-            <div>
-                <div class="option-group">
-                    <span class="option-label">Community & Support</span>
-                </div>
-
-                <div class="option-group">
-                    <span class="option-label">Keyboard Shortcuts</span>
-                    <div class="description">
-                        <strong>Window Movement:</strong><br />
-                        <span class="key">${buddy.isMacOS ? 'Option' : 'Ctrl'}</span> + Arrow Keys - Move the window in 45px increments<br /><br />
-
-                        <strong>Window Control:</strong><br />
-                        <span class="key">${buddy.isMacOS ? 'Cmd' : 'Ctrl'}</span> + <span class="key">M</span> - Toggle mouse events (click-through
-                        mode)<br />
-                        <span class="key">${buddy.isMacOS ? 'Cmd' : 'Ctrl'}</span> + <span class="key">&bsol;</span> - Close window or go back<br /><br />
-
-                        <strong>Text Input:</strong><br />
-                        <span class="key">Enter</span> - Send text message to AI<br />
-                        <span class="key">Shift</span> + <span class="key">Enter</span> - New line in text input
-                    </div>
-                </div>
-
-                <div class="option-group">
-                    <span class="option-label">How to Use</span>
-                    <div class="description">
-                        1. <strong>Start a Session:</strong> Enter your Gemini API key and click "Start Session"<br />
-                        2. <strong>Customize:</strong> Choose your profile and language in the settings<br />
-                        3. <strong>Position Window:</strong> Use keyboard shortcuts to move the window to your desired location<br />
-                        4. <strong>Click-through Mode:</strong> Use <span class="key">${buddy.isMacOS ? 'Cmd' : 'Ctrl'}</span> +
-                        <span class="key">M</span> to make the window click-through<br />
-                        5. <strong>Get AI Help:</strong> The AI will analyze your screen and audio to provide assistance<br />
-                        6. <strong>Text Messages:</strong> Type questions or requests to the AI using the text input
-                    </div>
-                </div>
-
-                <div class="option-group">
-                    <span class="option-label">Supported Profiles</span>
-                    <div class="description">
-                        <strong>General Assistant:</strong> Ask anything - general knowledge, problem solving, creative tasks<br />
-                        <strong>Job Interview:</strong> Get help with interview questions and responses<br />
-                        <strong>Sales Call:</strong> Assistance with sales conversations and objection handling<br />
-                        <strong>Business Meeting:</strong> Support for professional meetings and discussions<br />
-                        <strong>Presentation:</strong> Help with presentations and public speaking<br />
-                        <strong>Negotiation:</strong> Guidance for business negotiations and deals<br />
-                        <strong>JEE Advanced Teacher:</strong> Educational explanations and teaching for JEE Advanced topics
-                    </div>
-                </div>
-
-                <div class="option-group">
-                    <span class="option-label">Audio Input</span>
-                    <div class="description">
-                        ${buddy.isMacOS 
-                            ? html`<strong>macOS:</strong> Uses SystemAudioDump for system audio capture`
-                            : buddy.isLinux
-                              ? html`<strong>Linux:</strong> Uses microphone input`
-                              : html`<strong>Windows:</strong> Uses loopback audio capture`}<br />
-                        The AI listens to conversations and provides contextual assistance based on what it hears.
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    renderAssistantView() {
-        return html`
-            <div style="height: 100%; display: flex; flex-direction: column;">
-                <div class="chat-container">
-                    ${this.chatMessages.length === 0 
-                        ? html`
-                            <div class="welcome-message">
-                                <p>Welcome! Start a session to begin chatting with your AI assistant.</p>
-                            </div>
-                          `
-                        : this.chatMessages.map((message, idx) => html`
-                            <div class="message-wrapper ${message.sender} ${this.messageTransparency ? 'transparent' : ''}">
-                                <div class="message-bubble ${message.sender}">
-                                    <div class="message-content">
-                                        ${message.sender === 'assistant' 
-                                            ? html`<div .innerHTML="${this.renderMarkdown(message.text)}"></div>`
-                                            : html`<div>${message.text}</div>`
-                                        }
-                                        ${message.isStreaming ? html`
-                                            <div class="typing-indicator">
-                                                <div class="typing-dot"></div>
-                                                <div class="typing-dot"></div>
-                                                <div class="typing-dot"></div>
-                                            </div>
-                                        ` : ''}
-                                    </div>
-                                    <div class="message-time">
-                                        ${message.isStreaming ? 'typing...' : message.timestamp}
-                                        <button 
-                                            class="transparency-toggle"
-                                            @click=${this.toggleMessageTransparency}
-                                            title=${this.messageTransparency ? 'Make messages opaque' : 'Make messages transparent'}
-                                        >
-                                            ${this.messageTransparency ? '🔲' : '🔳'}
-                                        </button>
-                                        <button 
-                                            class="delete-button"
-                                            @click=${() => this.deleteMessage(idx)}
-                                            title="Delete message"
-                                            style="background: transparent; border: none; color: var(--text-color); opacity: 0.6; cursor: pointer; padding: 2px 4px; border-radius: 4px; margin-left: 4px;"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path></svg>
-                                        </button>
-                                        <button 
-                                            class="copy-button"
-                                            @click=${() => this.copyMessageText(message)}
-                                            title="Copy message"
-                                            style="background: transparent; border: none; color: var(--text-color); opacity: 0.6; cursor: pointer; padding: 2px 4px; border-radius: 4px; margin-left: 4px;"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                          `)
-                    }
-                </div>
-
-                <div class="text-input-container">
-                    <textarea
-                        id="textInput"
-                        rows="1"
-                        placeholder="Ask me anything..."
-                        @keydown=${this.handleTextKeydown}
-                        @input=${this.handleTextInputResize}
-                    ></textarea>
-                    <button
-                        class="send-btn"
-                        @click=${this.handleSendText}
-                        title="Send message"
-                        ?disabled=${this.isStreamingActive}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 18v-6H5l7-7 7 7h-4v6H9z"/></svg>
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    renderMarkdown(text) {
-        if (!text) return '';
-        
-        try {
-            // Enhanced markdown processing for Google LLM output
-            let processedText = text;
-            
-            // Handle Google LLM specific patterns - but be more careful about what we process
-            // Only process actual markdown patterns, not regular text
-            
-            // Handle numbered lists that might not be properly formatted
-            processedText = processedText.replace(/^(\d+)\.\s+(.+)$/gm, '$1. $2');
-            
-            // Handle bullet points that might use different characters
-            processedText = processedText.replace(/^[•·▪▫‣⁃]\s+(.+)$/gm, '- $1');
-            
-            // Handle math equations (LaTeX style)
-            // Block math equations: $$...$$
-            processedText = processedText.replace(/\$\$([\s\S]*?)\$\$/g, (match, equation) => {
-                const formattedEquation = this.formatMathEquation(equation.trim());
-                return `<div class="math-equation">${formattedEquation}</div>`;
-            });
-            
-            // Inline math equations: $...$
-            processedText = processedText.replace(/\$([^$\n]+?)\$/g, (match, equation) => {
-                const formattedEquation = this.formatMathEquation(equation.trim());
-                return `<span class="math-equation inline">${formattedEquation}</span>`;
-            });
-            
-            // Enhanced code block processing
-            processedText = processedText.replace(/```(\w+)?\n?([\s\S]*?)```/g, (match, language, code) => {
-                const lang = language || 'text';
-                return `
-                    <div class="code-block-container">
-                        <div class="code-language-label">${lang}</div>
-                        <pre><code class="language-${lang}">${this.escapeHtml(code.trim())}</code></pre>
-                    </div>
-                `;
-            });
-            
-            // Configure marked.js with more careful highlighting
-            if (window.marked && window.hljs) {
-                window.marked.setOptions({
-                    highlight: function(code, lang) {
-                        // Only highlight if we have a specific language or if it looks like code
-                        if (lang && window.hljs.getLanguage(lang)) {
-                            try {
-                                return window.hljs.highlight(code, { language: lang }).value;
-                            } catch (err) {
-                                console.warn('Highlight.js error:', err);
-                                return code;
-                            }
-                        }
-                        // Don't auto-highlight everything - only if it really looks like code
-                        if (this.looksLikeCode(code)) {
-                            try {
-                                return window.hljs.highlightAuto(code).value;
-                            } catch (err) {
-                                return code;
-                            }
-                        }
-                        return code;
-                    }.bind(this),
-                    breaks: true,
-                    gfm: true,
-                    sanitize: false
-                });
-            }
-            
-            // Use marked.js to parse the remaining markdown
-            const html = window.marked.parse(processedText);
-            
-            // Post-process the HTML to add additional enhancements
-            const enhancedHtml = this.enhanceRenderedContent(html);
-            
-            // Apply final content organization
-            return this.organizeContent(enhancedHtml);
-            
-        } catch (error) {
-            console.error('Error parsing markdown:', error);
-            // Fallback to plain text with line breaks
-            return text.replace(/\n/g, '<br>');
-        }
-    }
-
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    looksLikeCode(text) {
-        // More intelligent code detection
-        const codeIndicators = [
-            /function\s*\(/,           // function declarations
-            /\w+\s*=\s*\w+/,          // assignments
-            /import\s+\w+/,           // imports
-            /from\s+['"][^'"]+['"]/,  // from imports
-            /class\s+\w+/,            // class declarations
-            /def\s+\w+\(/,            // Python functions
-            /console\.(log|error)/,   // console statements
-            /\w+\.\w+\(/,             // method calls
-            /if\s*\(/,                // if statements
-            /for\s*\(/,               // for loops
-            /while\s*\(/,             // while loops
-            /\{[\s\S]*\}/,            // code blocks with braces
-            /\w+\[\d+\]/,             // array access
-            /\/\*[\s\S]*?\*\//,       // block comments
-            /\/\/.*$/m,               // line comments
-            /#.*$/m,                  // Python/shell comments
-            /\$\w+/,                  // variables with $
-            /<\w+[^>]*>/,             // HTML tags
-            /\w+:\s*\w+/,             // key-value pairs
-        ];
-        
-        // Check if text has multiple code indicators
-        const matches = codeIndicators.filter(pattern => pattern.test(text));
-        
-        // Also check for common code patterns
-        const hasCodeStructure = (
-            text.includes(';') && text.includes('(') && text.includes(')') ||
-            text.includes('{') && text.includes('}') ||
-            text.includes('[') && text.includes(']') ||
-            text.split('\n').length > 3 && /^\s+/.test(text) // indented multi-line
-        );
-        
-        // Don't treat regular sentences as code
-        const looksLikeNaturalLanguage = (
-            /^[A-Z][a-z\s,.'!?]+[.!?]$/.test(text.trim()) ||
-            text.split(' ').length > 10 && !/[{}();]/.test(text)
-        );
-        
-        return (matches.length >= 2 || hasCodeStructure) && !looksLikeNaturalLanguage;
-    }
-    
-    formatMathEquation(equation) {
-        // Basic LaTeX-like formatting for common mathematical expressions
-        let formatted = equation;
-        
-        // Replace common LaTeX commands with HTML/Unicode equivalents
-        const replacements = {
-            // Greek letters
-            '\\alpha': 'α', '\\beta': 'β', '\\gamma': 'γ', '\\delta': 'δ',
-            '\\epsilon': 'ε', '\\theta': 'θ', '\\lambda': 'λ', '\\mu': 'μ',
-            '\\pi': 'π', '\\sigma': 'σ', '\\phi': 'φ', '\\omega': 'ω',
-            '\\Gamma': 'Γ', '\\Delta': 'Δ', '\\Theta': 'Θ', '\\Lambda': 'Λ',
-            '\\Pi': 'Π', '\\Sigma': 'Σ', '\\Phi': 'Φ', '\\Omega': 'Ω',
-            
-            // Mathematical operators
-            '\\pm': '±', '\\mp': '∓', '\\times': '×', '\\div': '÷',
-            '\\cdot': '·', '\\ast': '∗', '\\star': '⋆',
-            '\\leq': '≤', '\\geq': '≥', '\\neq': '≠', '\\approx': '≈',
-            '\\equiv': '≡', '\\sim': '∼', '\\propto': '∝',
-            '\\infty': '∞', '\\partial': '∂', '\\nabla': '∇',
-            '\\sum': '∑', '\\prod': '∏', '\\int': '∫',
-            '\\sqrt': '√', '\\angle': '∠', '\\degree': '°',
-            
-            // Arrows
-            '\\rightarrow': '→', '\\leftarrow': '←', '\\leftrightarrow': '↔',
-            '\\Rightarrow': '⇒', '\\Leftarrow': '⇐', '\\Leftrightarrow': '⇔',
-            
-            // Set theory
-            '\\in': '∈', '\\notin': '∉', '\\subset': '⊂', '\\supset': '⊃',
-            '\\subseteq': '⊆', '\\supseteq': '⊇', '\\cup': '∪', '\\cap': '∩',
-            '\\emptyset': '∅', '\\forall': '∀', '\\exists': '∃',
-        };
-        
-        // Apply replacements
-        for (const [latex, unicode] of Object.entries(replacements)) {
-            formatted = formatted.replace(new RegExp(latex.replace('\\', '\\\\'), 'g'), unicode);
-        }
-        
-        // Handle fractions: \frac{a}{b} -> a/b with styling
-        formatted = formatted.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, 
-            '<span class="fraction"><span class="numerator">$1</span><span class="fraction-bar">/</span><span class="denominator">$2</span></span>');
-        
-        // Handle superscripts: ^{...} or ^x
-        formatted = formatted.replace(/\^(\{[^}]+\}|\w)/g, (match, exp) => {
-            const cleanExp = exp.replace(/[{}]/g, '');
-            return `<sup>${cleanExp}</sup>`;
-        });
-        
-        // Handle subscripts: _{...} or _x
-        formatted = formatted.replace(/_(\{[^}]+\}|\w)/g, (match, sub) => {
-            const cleanSub = sub.replace(/[{}]/g, '');
-            return `<sub>${cleanSub}</sub>`;
-        });
-        
-        // Handle square roots: \sqrt{...}
-        formatted = formatted.replace(/\\sqrt\{([^}]+)\}/g, '√($1)');
-        
-        return formatted;
-    }
-    
-    enhanceRenderedContent(html) {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        
-        // Process code blocks
-        const codeBlocks = tempDiv.querySelectorAll('pre code');
-        codeBlocks.forEach((codeBlock) => {
-            if (!codeBlock.id) {
-                const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
-                codeBlock.id = codeId;
-                
-                const pre = codeBlock.parentElement;
-                if (pre && !pre.parentElement.classList.contains('code-block-container')) {
-                    const container = document.createElement('div');
-                    container.className = 'code-block-container';
-                    
-                    pre.parentElement.insertBefore(container, pre);
-                    container.appendChild(pre);
-                }
-            }
-        });
-        
-        return tempDiv.innerHTML;
-    }
-    
-    organizeContent(html) {
-        // Create better organized content sections
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        
-        // Create a new organized structure
-        const organizedDiv = document.createElement('div');
-        organizedDiv.className = 'organized-content';
-        
-        const children = Array.from(tempDiv.childNodes);
-        let currentSection = null;
-        let currentSectionType = null;
-        
-        children.forEach(child => {
-            if (child.nodeType === Node.TEXT_NODE && child.textContent.trim() === '') {
-                return; // Skip empty text nodes
-            }
-            
-            let sectionType = this.determineSectionType(child);
-            
-            // If section type changed or we don't have a current section
-            if (sectionType !== currentSectionType || !currentSection) {
-                // Finish current section
-                if (currentSection) {
-                    organizedDiv.appendChild(currentSection);
-                }
-                
-                // Start new section
-                currentSection = document.createElement('div');
-                currentSection.className = `content-section ${sectionType}-section`;
-                currentSectionType = sectionType;
-                
-                // Add section header for better organization
-                if (sectionType === 'code') {
-                    const header = document.createElement('div');
-                    header.className = 'section-header';
-                    header.innerHTML = '<span class="section-title">Code</span>';
-                    currentSection.appendChild(header);
-                } else if (sectionType === 'math') {
-                    const header = document.createElement('div');
-                    header.className = 'section-header';
-                    header.innerHTML = '<span class="section-title">Mathematics</span>';
-                    currentSection.appendChild(header);
-                }
-            }
-            
-            // Add content to current section
-            if (child.nodeType === Node.ELEMENT_NODE) {
-                currentSection.appendChild(child.cloneNode(true));
-            } else if (child.nodeType === Node.TEXT_NODE && child.textContent.trim()) {
-                const textWrapper = document.createElement('div');
-                textWrapper.className = 'text-content';
-                textWrapper.textContent = child.textContent;
-                currentSection.appendChild(textWrapper);
-            }
-        });
-        
-        // Add final section
-        if (currentSection) {
-            organizedDiv.appendChild(currentSection);
-        }
-        
-        return organizedDiv.innerHTML;
-    }
-    
-    determineSectionType(element) {
-        if (!element || element.nodeType !== Node.ELEMENT_NODE) {
-            return 'text';
-        }
-        
-        // Check for code-related elements
-        if (element.classList.contains('code-block-container') || 
-            element.tagName === 'PRE' || 
-            (element.tagName === 'CODE' && element.parentElement.tagName === 'PRE')) {
-            return 'code';
-        }
-        
-        // Check for math elements
-        if (element.classList.contains('math-equation')) {
-            return 'math';
-        }
-        
-        // Check for tables
-        if (element.tagName === 'TABLE') {
-            return 'table';
-        }
-        
-        // Check for lists
-        if (element.tagName === 'UL' || element.tagName === 'OL') {
-            return 'list';
-        }
-        
-        // Check for headings
-        if (/^H[1-6]$/.test(element.tagName)) {
-            return 'heading';
-        }
-        
-        // Default to text
-        return 'text';
-    }
-
-    navigateToPreviousResponse() {
-        if (this.currentResponseIndex > 0) {
-            this.currentResponseIndex--;
-        }
-    }
-
-    navigateToNextResponse() {
-        if (this.currentResponseIndex < this.responses.length - 1) {
-            this.currentResponseIndex++;
-        }
-    }
-
-    toggleMessageTransparency() {
-        this.messageTransparency = !this.messageTransparency;
-    }
-
-    // Add this method to handle message deletion
-    deleteMessage(index) {
-        this.chatMessages = this.chatMessages.filter((_, i) => i !== index);
-        this.requestUpdate();
-    }
-
-    // Add this method to handle copying message text
-    async copyMessageText(message) {
-        let textToCopy = '';
-        if (message.sender === 'assistant') {
-            // Copy the original markdown text if available, else fallback to rendered text
-            textToCopy = message.text;
-        } else {
-            textToCopy = message.text;
-        }
-        try {
-            await navigator.clipboard.writeText(textToCopy);
-        } catch (err) {
-            alert('Failed to copy text');
-        }
-    }
-
-    handleModelSelect(e) {
-        this.selectedModel = e.target.value;
-        localStorage.setItem('selectedModel', this.selectedModel);
-    }
-
-    renderHistoryView() {
-        if (!this.history || this.history.length === 0) {
-            return html`
-                <div class="welcome-message">
-                    <p>No chat history yet.</p>
-                    <p>Your past conversations will appear here.</p>
-                </div>
-            `;
-        }
-
-        return html`
-            <div class="history-container">
-                ${this.history.map((session, index) => html`
-                    <div class="history-item" @click=${() => this.loadSessionFromHistory(index)}>
-                        <div class="history-item-header">
-                            <span class="history-item-model">${session.model} (${session.provider})</span>
-                            <span class="history-item-time">${new Date(session.timestamp).toLocaleString()}</span>
-                        </div>
-                        <div class="history-item-preview">
-                            ${session.messages[1] ? session.messages[1].text.substring(0, 100) + '...' : 'No messages'}
-                        </div>
-                    </div>
-                `)}
-            </div>
-        `;
+    get isLinux() {
+        return typeof buddy !== 'undefined' && buddy.isLinux !== undefined
+            ? buddy.isLinux
+            : navigator.platform.toLowerCase().includes('linux');
     }
 
     render() {
         const views = {
-            main: this.renderMainView(),
-            customize: this.renderCustomizeView(),
-            help: this.renderHelpView(),
-            history: this.renderHistoryView(),
-            assistant: this.renderAssistantView(),
+            main: html`<buddy-main-view
+                .selectedProvider=${this.selectedProvider}
+                .selectedModel=${this.selectedModel}
+                .providers=${this.providers}
+                .models=${this.mainViewModels}
+                .apiKey=${this.mainViewApiKey}
+                .keyLabel=${this.mainViewKeyLabel}
+            ></buddy-main-view>`,
+            customize: html`<buddy-customize-view
+                .selectedProfile=${this.selectedProfile}
+                .selectedLanguage=${this.selectedLanguage}
+                .customPrompt=${this.customizeViewCustomPrompt}
+            ></buddy-customize-view>`,
+            help: html`<buddy-help-view
+                .isMacOS=${this.isMacOS}
+                .isLinux=${this.isLinux}
+            ></buddy-help-view>`,
+            history: html`<buddy-history-view
+                .history=${this.history}
+            ></buddy-history-view>`,
+            assistant: html`<buddy-assistant-view
+                .chatMessages=${this.chatMessages}
+                .isStreamingActive=${this.isStreamingActive}
+                .messageTransparency=${this.messageTransparency}
+            ></buddy-assistant-view>`,
         };
 
         return html`
             <div class="window-container">
                 <div class="container">
-                    ${this.renderHeader()}
+                    <buddy-header
+                        .currentView=${this.currentView}
+                        .selectedModel=${this.selectedModel}
+                        .selectedProvider=${this.selectedProvider}
+                        .sessionActive=${this.sessionActive}
+                        .statusText=${this.statusText}
+                        .startTime=${this.startTime}
+                        .isAudioActive=${this.isAudioActive}
+                        .isScreenActive=${this.isScreenActive}
+                        .modelsByProvider=${BuddyApp.modelsByProvider}
+                    ></buddy-header>
                     <div class="main-content">${views[this.currentView]}</div>
                 </div>
             </div>
         `;
+    }
+
+    // Add this method to actually delete a message
+    deleteMessage(id) {
+        this.chatMessages = this.chatMessages.filter(msg => msg.id !== id);
+        this.requestUpdate();
+    }
+
+    toggleMessageTransparency(id) {
+        this.chatMessages = this.chatMessages.map(msg =>
+            msg.id === id ? { ...msg, transparency: !msg.transparency } : msg
+        );
+        this.requestUpdate();
     }
 }
 
