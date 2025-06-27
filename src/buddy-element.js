@@ -1436,6 +1436,7 @@ class BuddyApp extends LitElement {
         selectedModel: { type: String },
         history: { type: Array },
         providers: { type: Array },
+        historyLimit: { type: Number },
     };
 
     constructor() {
@@ -1459,7 +1460,7 @@ class BuddyApp extends LitElement {
         this.chatMessages = [];
         this.messageTransparency = false;
         this.selectedModel = localStorage.getItem('selectedModel') || this.getDefaultModelForProvider(this.selectedProvider);
-        this.history = JSON.parse(localStorage.getItem('chatHistory')) || [];
+        this.history = (JSON.parse(localStorage.getItem('chatHistory')) || []).slice(0, this.historyLimit);
         this.providers = [
             { value: 'google', name: 'Google Gemini', keyLabel: 'Gemini API Key' },
             { value: 'openai', name: 'OpenAI', keyLabel: 'OpenAI API Key' },
@@ -1467,6 +1468,7 @@ class BuddyApp extends LitElement {
             { value: 'deepseek', name: 'DeepSeek', keyLabel: 'DeepSeek API Key' },
             { value: 'openrouter', name: 'OpenRouter', keyLabel: 'OpenRouter API Key' },
         ];
+        this.historyLimit = parseInt(localStorage.getItem('historyLimit'), 10) || 5;
     }
 
     getDefaultModelForProvider(provider) {
@@ -1592,29 +1594,35 @@ class BuddyApp extends LitElement {
         this.addEventListener('toggle-screen', async () => {
             await this.toggleScreenCapture();
         });
+        this.addEventListener('delete-session', (e) => {
+            this.deleteSession(e.detail.index);
+        });
+        this.addEventListener('extend-history-limit', () => {
+            this.extendHistoryLimit();
+        });
+        this.addEventListener('decrease-history-limit', () => {
+            this.decreaseHistoryLimit();
+        });
     }
 
     saveHistory() {
-        if (this.chatMessages.length > 1) { // Don't save empty or welcome-only chats
+        if (this.chatMessages.length > 1) {
             const newHistory = [...this.history];
-            
-            // Add current session to the start of history
             newHistory.unshift({
                 messages: this.chatMessages,
                 timestamp: new Date().toISOString(),
                 provider: this.selectedProvider,
                 model: this.selectedModel,
             });
-
-            // Keep only the last 5 sessions
-            if (newHistory.length > 5) {
-                newHistory.length = 5;
+            // Enforce limit
+            if (newHistory.length > this.historyLimit) {
+                newHistory.length = this.historyLimit;
             }
-            
             this.history = newHistory;
             localStorage.setItem('chatHistory', JSON.stringify(this.history));
         }
     }
+    
     
     loadSessionFromHistory(index) {
         const session = this.history[index];
@@ -1856,15 +1864,14 @@ class BuddyApp extends LitElement {
         }
 
         await buddy.initializeAI(this.selectedProvider, this.selectedProfile, this.selectedLanguage, this.selectedModel);
+        this.disableAllFeatures();
         
-        // Only start capture for real-time models
         if (this.isSelectedModelRealTime) {
-            buddy.startCapture();
-            this.isAudioActive = true; // Audio starts active for real-time models
-            this.isScreenActive = true; // Screen starts active for real-time models
+            // Real-time: enable all real-time features
+            this.enableRealTimeFeatures();
         } else {
-            this.isAudioActive = false; // No audio for chat-only models
-            this.isScreenActive = false; // No screen capture for chat-only models
+            // Non-real-time: enable only supported features
+            this.enableFeaturesForCapabilities(this.selectedModelCapabilities);
         }
         
         this.responses = [];
@@ -1903,12 +1910,14 @@ class BuddyApp extends LitElement {
 
         if (this.sessionActive) {
             this.saveHistory();
-            
-            // Only stop capture if it was started
+            // Stop all features
             if (this.isSelectedModelRealTime) {
                 buddy.stopCapture();
+            } else {
+                // Add logic to stop non-real-time features if needed
+                if (buddy.disableScreenshotFeature) buddy.disableScreenshotFeature();
+                if (buddy.disableAudioInputFeature) buddy.disableAudioInputFeature();
             }
-            
             const { ipcRenderer } = window.require('electron');
             await ipcRenderer.invoke('close-session');
         }
@@ -1916,18 +1925,16 @@ class BuddyApp extends LitElement {
         this.responses = [];
         this.currentResponseIndex = -1;
         this.chatMessages = []; // Clear chat messages
-        this.sessionActive = false; // Will be set to true by startCapture logic below
-        this.isAudioActive = false; // Reset before starting
-        this.isScreenActive = false; // Reset before starting
+        this.sessionActive = false; // Will be set to true by start logic below
+        this.disableAllFeatures();
         this.statusText = 'Restarting...';
 
         await buddy.initializeAI(this.selectedProvider, this.selectedProfile, this.selectedLanguage, this.selectedModel);
         
-        // Only start capture for real-time models
         if (this.isSelectedModelRealTime) {
-            buddy.startCapture();
-            this.isAudioActive = true;
-            this.isScreenActive = true;
+            this.enableRealTimeFeatures();
+        } else {
+            this.enableFeaturesForCapabilities(this.selectedModelCapabilities);
         }
         
         this.sessionActive = true;
@@ -1952,7 +1959,7 @@ class BuddyApp extends LitElement {
     }
 
     async toggleScreenCapture() {
-        if (!this.sessionActive || !this.isSelectedModelRealTime) return;
+        if (!this.sessionActive || !this.isSelectedModelScreenshotCapable) return;
         this.isScreenActive = !this.isScreenActive;
         if (this.isScreenActive) {
             await buddy.resumeScreen();
@@ -2066,6 +2073,55 @@ class BuddyApp extends LitElement {
             : navigator.platform.toLowerCase().includes('linux');
     }
 
+    // Add method to check if selected model supports screenshot (image capability)
+    get isSelectedModelScreenshotCapable() {
+        const models = getModelsByProvider(this.selectedProvider) || [];
+        const selectedModelObj = models.find(m => m.id === this.selectedModel);
+        return selectedModelObj && selectedModelObj.capabilities && selectedModelObj.capabilities.image;
+    }
+
+    // Add method to get selected model's capabilities
+    get selectedModelCapabilities() {
+        const models = getModelsByProvider(this.selectedProvider) || [];
+        const selectedModelObj = models.find(m => m.id === this.selectedModel);
+        return selectedModelObj && selectedModelObj.capabilities ? selectedModelObj.capabilities : {};
+    }
+
+    // Helper to disable all features
+    disableAllFeatures() {
+        this.isScreenActive = false;
+        this.isAudioActive = false;
+        // Add more feature flags as needed
+    }
+
+    // Helper to enable real-time features
+    enableRealTimeFeatures() {
+        buddy.startCapture();
+        this.isScreenActive = true;
+        this.isAudioActive = true;
+        // Add more real-time features as needed
+    }
+
+    // Helper to enable features based on capabilities for non-real-time models
+    enableFeaturesForCapabilities(capabilities) {
+        // Only enable what the model supports
+        if (capabilities.image) {
+            // Enable screenshot feature (single capture, not interval)
+            if (buddy.enableScreenshotFeature) {
+                buddy.enableScreenshotFeature();
+            }
+            this.isScreenActive = true;
+        }
+        if (capabilities.audio) {
+            // Enable audio input (not real-time streaming)
+            if (buddy.enableAudioInputFeature) {
+                buddy.enableAudioInputFeature();
+            }
+            this.isAudioActive = true;
+        }
+        // Add more capabilities as needed (text, video, etc.)
+    }
+
     render() {
         const views = {
             main: html`<buddy-main-view
@@ -2088,6 +2144,7 @@ class BuddyApp extends LitElement {
             ></buddy-help-view>`,
             history: html`<buddy-history-view
                 .history=${this.history}
+                .historyLimit=${this.historyLimit}
             ></buddy-history-view>`,
             assistant: html`<buddy-assistant-view
                 .chatMessages=${this.chatMessages}
@@ -2127,6 +2184,32 @@ class BuddyApp extends LitElement {
             msg.id === id ? { ...msg, transparency: !msg.transparency } : msg
         );
         this.requestUpdate();
+    }
+
+    deleteSession(index) {
+        this.history = this.history.filter((_, i) => i !== index);
+        localStorage.setItem('chatHistory', JSON.stringify(this.history));
+        this.requestUpdate();
+    }
+
+    extendHistoryLimit() {
+        this.historyLimit += 5;
+        localStorage.setItem('historyLimit', this.historyLimit);
+        // No need to trim history, just allow more
+        this.requestUpdate();
+    }
+
+    decreaseHistoryLimit() {
+        if (this.historyLimit > 5) {
+            this.historyLimit -= 5;
+            localStorage.setItem('historyLimit', this.historyLimit);
+            // Trim history if needed
+            if (this.history.length > this.historyLimit) {
+                this.history.length = this.historyLimit;
+                localStorage.setItem('chatHistory', JSON.stringify(this.history));
+            }
+            this.requestUpdate();
+        }
     }
 }
 
