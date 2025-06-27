@@ -7,20 +7,11 @@ class BuddyAssistantView extends LitElement {
         isStreamingActive: { type: Boolean },
         messageTransparency: { type: Boolean },
         attachedScreenshots: { type: Array }, // Array of base64 screenshot data
-        autoScreenshotEnabled: { type: Boolean },
-        autoScreenshotInterval: { type: Number }, // in seconds
-        selectedModel: { type: String },
-        selectedProvider: { type: String },
-        isModelRealTime: { type: Boolean },
-        modelCapabilities: { type: Object },
     };
 
     constructor() {
         super();
         this.attachedScreenshots = [];
-        this.autoScreenshotEnabled = false;
-        this.autoScreenshotInterval = 5; // Default 5 seconds
-        this.autoScreenshotTimer = null;
     }
 
     static styles = css`
@@ -60,72 +51,6 @@ class BuddyAssistantView extends LitElement {
             bottom: 0;
             z-index: 10;
             margin: 0;
-        }
-        .auto-screenshot-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 8px;
-            font-size: 12px;
-        }
-        .auto-toggle {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-        }
-        .toggle-switch {
-            position: relative;
-            width: 32px;
-            height: 18px;
-            background: var(--button-background);
-            border-radius: 9px;
-            border: 1px solid var(--border-color);
-            transition: all 0.2s ease;
-        }
-        .toggle-switch.active {
-            background: rgba(74, 222, 128, 0.3);
-            border-color: rgba(74, 222, 128, 0.6);
-        }
-        .toggle-knob {
-            position: absolute;
-            top: 1px;
-            left: 1px;
-            width: 14px;
-            height: 14px;
-            background: var(--text-color);
-            border-radius: 50%;
-            transition: transform 0.2s ease;
-        }
-        .toggle-switch.active .toggle-knob {
-            transform: translateX(14px);
-            background: #4ade80;
-        }
-        .interval-control {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .interval-input {
-            width: 40px;
-            background: var(--input-background);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 2px 4px;
-            color: var(--text-color);
-            font-size: 11px;
-            text-align: center;
-        }
-        .auto-status {
-            color: var(--text-color);
-            opacity: 0.7;
-            font-style: italic;
-        }
-        .auto-status.active {
-            color: #4ade80;
-            opacity: 1;
         }
         .screenshots-preview {
             display: flex;
@@ -181,9 +106,6 @@ class BuddyAssistantView extends LitElement {
         .screenshot-item img:hover {
             border-color: var(--input-border);
         }
-        .screenshot-item.auto-captured img {
-            border-color: rgba(74, 222, 128, 0.6);
-        }
         .screenshot-remove {
             position: absolute;
             top: -4px;
@@ -209,10 +131,6 @@ class BuddyAssistantView extends LitElement {
             font-size: 10px;
             opacity: 0.7;
             margin-top: 2px;
-        }
-        .screenshot-item.auto-captured .screenshot-number {
-            color: #4ade80;
-            opacity: 1;
         }
         .input-row {
             display: flex;
@@ -294,124 +212,7 @@ class BuddyAssistantView extends LitElement {
             opacity: 0.5;
             cursor: not-allowed;
         }
-        .live-model-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            background: rgba(74, 222, 128, 0.1);
-            border: 1px solid rgba(74, 222, 128, 0.3);
-            border-radius: 8px;
-            margin-bottom: 8px;
-            font-size: 12px;
-            color: #4ade80;
-        }
-        .live-model-info svg {
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-        }
     `;
-
-    connectedCallback() {
-        super.connectedCallback();
-        // Start auto-screenshot if enabled
-        if (this.autoScreenshotEnabled) {
-            this._startAutoScreenshot();
-        }
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        this._stopAutoScreenshot();
-    }
-
-    // Check if screenshots should be available for this model
-    get shouldShowScreenshotFeatures() {
-        // Hide screenshots for real-time models (they already have live vision)
-        if (this.isModelRealTime) {
-            return false;
-        }
-        
-        // Show screenshots for models that support images
-        return this.modelCapabilities && this.modelCapabilities.image;
-    }
-
-    updated(changedProperties) {
-        super.updated(changedProperties);
-        
-        // If model changed to a live model, stop auto-screenshot and clear screenshots
-        if (changedProperties.has('isModelRealTime') || changedProperties.has('selectedModel')) {
-            if (this.isModelRealTime) {
-                this._stopAutoScreenshot();
-                this.autoScreenshotEnabled = false;
-                this.attachedScreenshots = [];
-                this.requestUpdate();
-            }
-        }
-    }
-
-    _toggleAutoScreenshot() {
-        this.autoScreenshotEnabled = !this.autoScreenshotEnabled;
-        
-        if (this.autoScreenshotEnabled) {
-            this._startAutoScreenshot();
-        } else {
-            this._stopAutoScreenshot();
-        }
-        
-        this.requestUpdate();
-    }
-
-    _startAutoScreenshot() {
-        this._stopAutoScreenshot(); // Clear any existing timer
-        
-        if (this.autoScreenshotInterval > 0) {
-            this.autoScreenshotTimer = setInterval(() => {
-                this._captureAutoScreenshot();
-            }, this.autoScreenshotInterval * 1000);
-        }
-    }
-
-    _stopAutoScreenshot() {
-        if (this.autoScreenshotTimer) {
-            clearInterval(this.autoScreenshotTimer);
-            this.autoScreenshotTimer = null;
-        }
-    }
-
-    async _captureAutoScreenshot() {
-        if (this.attachedScreenshots.length >= 3) {
-            // Remove oldest screenshot to make room for new one
-            this.attachedScreenshots = this.attachedScreenshots.slice(1);
-        }
-        
-        try {
-            const screenshotData = await window.buddy.captureScreenshot();
-            if (screenshotData) {
-                this.attachedScreenshots = [...this.attachedScreenshots, {
-                    data: screenshotData,
-                    auto: true,
-                    timestamp: Date.now()
-                }];
-                this.requestUpdate();
-            }
-        } catch (error) {
-            console.error('Failed to capture auto screenshot:', error);
-        }
-    }
-
-    _onIntervalChange(e) {
-        const newInterval = parseInt(e.target.value);
-        if (newInterval >= 1 && newInterval <= 60) {
-            this.autoScreenshotInterval = newInterval;
-            
-            // Restart timer with new interval if auto-screenshot is enabled
-            if (this.autoScreenshotEnabled) {
-                this._startAutoScreenshot();
-            }
-        }
-    }
 
     async _onCaptureScreenshot() {
         if (this.attachedScreenshots.length >= 3) {
@@ -420,13 +221,10 @@ class BuddyAssistantView extends LitElement {
         }
         
         try {
+            // Request screenshot from renderer
             const screenshotData = await window.buddy.captureScreenshot();
             if (screenshotData) {
-                this.attachedScreenshots = [...this.attachedScreenshots, {
-                    data: screenshotData,
-                    auto: false,
-                    timestamp: Date.now()
-                }];
+                this.attachedScreenshots = [...this.attachedScreenshots, screenshotData];
                 this.requestUpdate();
             }
         } catch (error) {
@@ -445,13 +243,13 @@ class BuddyAssistantView extends LitElement {
     }
 
     _onViewScreenshot(screenshot) {
-        const screenshotData = typeof screenshot === 'string' ? screenshot : screenshot.data;
+        // Open screenshot in a new window
         const newWindow = window.open();
         newWindow.document.write(`
             <html>
                 <head><title>Screenshot</title></head>
                 <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#000;">
-                    <img src="data:image/jpeg;base64,${screenshotData}" style="max-width:100%; max-height:100%; object-fit:contain;" />
+                    <img src="data:image/jpeg;base64,${screenshot}" style="max-width:100%; max-height:100%; object-fit:contain;" />
                 </body>
             </html>
         `);
@@ -462,15 +260,10 @@ class BuddyAssistantView extends LitElement {
         const text = textarea?.value.trim() || '';
         
         if (text || this.attachedScreenshots.length > 0) {
-            // Extract just the data from screenshots
-            const screenshotData = this.attachedScreenshots.map(s => 
-                typeof s === 'string' ? s : s.data
-            );
-            
             this.dispatchEvent(new CustomEvent('send-message', { 
                 detail: { 
                     text,
-                    screenshots: screenshotData
+                    screenshots: [...this.attachedScreenshots] // Send array of screenshots
                 }, 
                 bubbles: true, 
                 composed: true 
@@ -532,42 +325,7 @@ class BuddyAssistantView extends LitElement {
                     }
                 </div>
                 <div class="text-input-container">
-                    ${this.isModelRealTime ? html`
-                        <div class="live-model-info">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                            <span>Live vision active - No screenshots needed! This model can see your screen in real-time.</span>
-                        </div>
-                    ` : ''}
-                    ${this.shouldShowScreenshotFeatures ? html`
-                        <div class="auto-screenshot-controls">
-                            <div class="auto-toggle" @click=${this._toggleAutoScreenshot}>
-                                <div class="toggle-switch ${this.autoScreenshotEnabled ? 'active' : ''}">
-                                    <div class="toggle-knob"></div>
-                                </div>
-                                <span>Auto Screenshot</span>
-                            </div>
-                            <div class="interval-control">
-                                <span>Every</span>
-                                <input 
-                                    type="number" 
-                                    class="interval-input" 
-                                    .value=${this.autoScreenshotInterval}
-                                    min="1" 
-                                    max="60"
-                                    @input=${this._onIntervalChange}
-                                    ?disabled=${this.autoScreenshotEnabled}
-                                />
-                                <span>sec</span>
-                            </div>
-                            <div class="auto-status ${this.autoScreenshotEnabled ? 'active' : ''}">
-                                ${this.autoScreenshotEnabled ? '🟢 Active' : '⚫ Inactive'}
-                            </div>
-                        </div>
-                    ` : ''}
-                    ${this.shouldShowScreenshotFeatures && this.attachedScreenshots.length > 0 ? html`
+                    ${this.attachedScreenshots.length > 0 ? html`
                         <div class="screenshots-preview">
                             <div class="screenshots-header">
                                 <span class="screenshot-count">${this.attachedScreenshots.length}/3 screenshots</span>
@@ -576,30 +334,24 @@ class BuddyAssistantView extends LitElement {
                                 </button>
                             </div>
                             <div class="screenshots-grid">
-                                ${this.attachedScreenshots.map((screenshot, index) => {
-                                    const isAuto = typeof screenshot === 'object' && screenshot.auto;
-                                    const screenshotData = typeof screenshot === 'string' ? screenshot : screenshot.data;
-                                    return html`
-                                        <div class="screenshot-item ${isAuto ? 'auto-captured' : ''}">
-                                            <img 
-                                                src="data:image/jpeg;base64,${screenshotData}" 
-                                                alt="Screenshot ${index + 1}" 
-                                                @click=${() => this._onViewScreenshot(screenshot)}
-                                                title="Click to view full size${isAuto ? ' (Auto-captured)' : ''}"
-                                            />
-                                            <button 
-                                                class="screenshot-remove" 
-                                                @click=${() => this._onRemoveScreenshot(index)}
-                                                title="Remove screenshot"
-                                            >
-                                                ×
-                                            </button>
-                                            <div class="screenshot-number">
-                                                #${index + 1}${isAuto ? ' 🤖' : ''}
-                                            </div>
-                                        </div>
-                                    `;
-                                })}
+                                ${this.attachedScreenshots.map((screenshot, index) => html`
+                                    <div class="screenshot-item">
+                                        <img 
+                                            src="data:image/jpeg;base64,${screenshot}" 
+                                            alt="Screenshot ${index + 1}" 
+                                            @click=${() => this._onViewScreenshot(screenshot)}
+                                            title="Click to view full size"
+                                        />
+                                        <button 
+                                            class="screenshot-remove" 
+                                            @click=${() => this._onRemoveScreenshot(index)}
+                                            title="Remove screenshot"
+                                        >
+                                            ×
+                                        </button>
+                                        <div class="screenshot-number">#${index + 1}</div>
+                                    </div>
+                                `)}
                             </div>
                         </div>
                     ` : ''}
@@ -612,22 +364,20 @@ class BuddyAssistantView extends LitElement {
                             @input=${this._onResize}
                         ></textarea>
                         <div class="action-buttons">
-                            ${this.shouldShowScreenshotFeatures ? html`
-                                <button
-                                    class="action-btn ${isAtLimit ? 'at-limit' : ''}"
-                                    @click=${this._onCaptureScreenshot}
-                                    title=${isAtLimit ? 'Maximum 3 screenshots allowed' : 'Capture screenshot manually'}
-                                    ?disabled=${this.isStreamingActive || isAtLimit}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
-                                        <circle cx="12" cy="13" r="3"></circle>
-                                    </svg>
-                                    ${this.attachedScreenshots.length > 0 ? html`
-                                        <span class="screenshot-count-badge">${this.attachedScreenshots.length}</span>
-                                    ` : ''}
-                                </button>
-                            ` : ''}
+                            <button
+                                class="action-btn ${isAtLimit ? 'at-limit' : ''}"
+                                @click=${this._onCaptureScreenshot}
+                                title=${isAtLimit ? 'Maximum 3 screenshots allowed' : 'Capture screenshot'}
+                                ?disabled=${this.isStreamingActive || isAtLimit}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                                    <circle cx="12" cy="13" r="3"></circle>
+                                </svg>
+                                ${this.attachedScreenshots.length > 0 ? html`
+                                    <span class="screenshot-count-badge">${this.attachedScreenshots.length}</span>
+                                ` : ''}
+                            </button>
                             <button
                                 class="send-btn"
                                 @click=${this._onSend}

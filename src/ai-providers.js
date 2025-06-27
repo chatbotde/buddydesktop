@@ -138,11 +138,30 @@ class GoogleAIProvider extends BaseAIProvider {
             // Real-time model: use existing real-time input
             return await this.session.sendRealtimeInput(input);
         } else {
-            // Chat model: handle text messages only
-            if (input.text) {
+            // Chat model: handle text and image messages
+            if (input.text || (input.screenshots && input.screenshots.length > 0)) {
                 try {
+                    const messageParts = [];
+                    
+                    // Add text if provided
+                    if (input.text) {
+                        messageParts.push({ text: input.text });
+                    }
+                    
+                    // Add images if provided
+                    if (input.screenshots && Array.isArray(input.screenshots)) {
+                        input.screenshots.forEach(screenshot => {
+                            messageParts.push({
+                                inlineData: {
+                                    mimeType: 'image/jpeg',
+                                    data: screenshot
+                                }
+                            });
+                        });
+                    }
+                    
                     const stream = await this.session.sendMessageStream({
-                        message: input.text
+                        message: messageParts
                     });
                     
                     let fullResponse = '';
@@ -166,7 +185,6 @@ class GoogleAIProvider extends BaseAIProvider {
                     global.sendToRenderer('update-status', 'Error: ' + error.message);
                 }
             }
-            // For chat models, ignore audio/image inputs
         }
     }
 
@@ -198,8 +216,27 @@ class OpenAIProvider extends BaseAIProvider {
     }
 
     async sendRealtimeInput(input) {
-        if (input.text) {
+        if (input.text || (input.screenshots && input.screenshots.length > 0)) {
             try {
+                const userContent = [];
+                
+                // Add text if provided
+                if (input.text) {
+                    userContent.push({ type: 'text', text: input.text });
+                }
+                
+                // Add images if provided
+                if (input.screenshots && Array.isArray(input.screenshots)) {
+                    input.screenshots.forEach(screenshot => {
+                        userContent.push({
+                            type: 'image_url',
+                            image_url: {
+                                url: `data:image/jpeg;base64,${screenshot}`
+                            }
+                        });
+                    });
+                }
+                
                 const response = await fetch('https://api.openai.com/v1/chat/completions', {
                     method: 'POST',
                     headers: {
@@ -210,7 +247,7 @@ class OpenAIProvider extends BaseAIProvider {
                         model: this.model,
                         messages: [
                             { role: 'system', content: this.getSystemPrompt() },
-                            { role: 'user', content: input.text }
+                            { role: 'user', content: userContent }
                         ],
                         stream: true
                     })
@@ -284,8 +321,29 @@ class AnthropicProvider extends BaseAIProvider {
     }
 
     async sendRealtimeInput(input) {
-        if (input.text) {
+        if (input.text || (input.screenshots && input.screenshots.length > 0)) {
             try {
+                const userContent = [];
+                
+                // Add text if provided
+                if (input.text) {
+                    userContent.push({ type: 'text', text: input.text });
+                }
+                
+                // Add images if provided
+                if (input.screenshots && Array.isArray(input.screenshots)) {
+                    input.screenshots.forEach(screenshot => {
+                        userContent.push({
+                            type: 'image',
+                            source: {
+                                type: 'base64',
+                                media_type: 'image/jpeg',
+                                data: screenshot
+                            }
+                        });
+                    });
+                }
+                
                 const response = await fetch('https://api.anthropic.com/v1/messages', {
                     method: 'POST',
                     headers: {
@@ -298,7 +356,7 @@ class AnthropicProvider extends BaseAIProvider {
                         max_tokens: 4000,
                         system: this.getSystemPrompt(),
                         messages: [
-                            { role: 'user', content: input.text }
+                            { role: 'user', content: userContent }
                         ],
                         stream: true
                     })
@@ -457,8 +515,27 @@ class OpenRouterProvider extends BaseAIProvider {
     }
 
     async sendRealtimeInput(input) {
-        if (input.text) {
+        if (input.text || (input.screenshots && input.screenshots.length > 0)) {
             try {
+                const userContent = [];
+                
+                // Add text if provided
+                if (input.text) {
+                    userContent.push({ type: 'text', text: input.text });
+                }
+                
+                // Add images if provided (only if model supports it)
+                if (input.screenshots && Array.isArray(input.screenshots)) {
+                    input.screenshots.forEach(screenshot => {
+                        userContent.push({
+                            type: 'image_url',
+                            image_url: {
+                                url: `data:image/jpeg;base64,${screenshot}`
+                            }
+                        });
+                    });
+                }
+                
                 const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                     method: 'POST',
                     headers: {
@@ -471,7 +548,7 @@ class OpenRouterProvider extends BaseAIProvider {
                         model: this.model,
                         messages: [
                             { role: 'system', content: this.getSystemPrompt() },
-                            { role: 'user', content: input.text }
+                            { role: 'user', content: userContent.length === 1 && userContent[0].type === 'text' ? input.text : userContent }
                         ],
                         stream: true
                     })

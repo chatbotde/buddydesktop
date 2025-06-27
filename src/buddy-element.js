@@ -2155,10 +2155,6 @@ class BuddyApp extends LitElement {
                 .chatMessages=${this.chatMessages}
                 .isStreamingActive=${this.isStreamingActive}
                 .messageTransparency=${this.messageTransparency}
-                .selectedModel=${this.selectedModel}
-                .selectedProvider=${this.selectedProvider}
-                .isModelRealTime=${this.isSelectedModelRealTime}
-                .modelCapabilities=${this.selectedModelCapabilities}
             ></buddy-assistant-view>`,
         };
 
