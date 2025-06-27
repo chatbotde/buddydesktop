@@ -354,19 +354,44 @@ ipcMain.handle('send-image-content', async (event, { data, debug }) => {
     }
 });
 
-ipcMain.handle('send-text-message', async (event, text) => {
+ipcMain.handle('send-text-message', async (event, messageData) => {
     if (!currentAIProvider) return { success: false, error: 'No active AI session' };
 
     try {
-        if (!text || typeof text !== 'string' || text.trim().length === 0) {
-            return { success: false, error: 'Invalid text message' };
+        // Handle both old string format and new object format for backward compatibility
+        let text, screenshots;
+        if (typeof messageData === 'string') {
+            text = messageData;
+            screenshots = null;
+        } else if (typeof messageData === 'object' && messageData !== null) {
+            text = messageData.text;
+            screenshots = messageData.screenshots || (messageData.screenshot ? [messageData.screenshot] : null);
+        } else {
+            return { success: false, error: 'Invalid message format' };
         }
 
-        console.log('Sending text message:', text);
-        await currentAIProvider.sendRealtimeInput({ text: text.trim() });
+        // Validate that we have either text or screenshots
+        if ((!text || text.trim().length === 0) && (!screenshots || screenshots.length === 0)) {
+            return { success: false, error: 'Message must contain text or screenshots' };
+        }
+
+        const input = {};
+        if (text && text.trim().length > 0) {
+            input.text = text.trim();
+        }
+        if (screenshots && Array.isArray(screenshots) && screenshots.length > 0) {
+            input.screenshots = screenshots;
+        }
+
+        console.log('Sending message:', { 
+            hasText: !!input.text, 
+            hasScreenshots: !!input.screenshots, 
+            screenshotCount: input.screenshots ? input.screenshots.length : 0 
+        });
+        await currentAIProvider.sendRealtimeInput(input);
         return { success: true };
     } catch (error) {
-        console.error('Error sending text:', error);
+        console.error('Error sending message:', error);
         return { success: false, error: error.message };
     }
 });

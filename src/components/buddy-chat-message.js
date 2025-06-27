@@ -8,6 +8,7 @@ class BuddyChatMessage extends LitElement {
         timestamp: { type: String },
         isStreaming: { type: Boolean },
         messageTransparency: { type: Boolean },
+        screenshots: { type: Array }, // Array of base64 screenshot data
     };
 
     static styles = css`
@@ -54,6 +55,48 @@ class BuddyChatMessage extends LitElement {
         }
         .message-bubble.assistant.transparent {
             border: 1px solid oklch(98.5% 0.001 106.423 / 0.2);
+        }
+        .screenshots-container {
+            margin: 8px 0;
+        }
+        .screenshots-grid {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .screenshot-item {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .screenshot-image {
+            width: 120px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .screenshot-image:hover {
+            transform: scale(1.02);
+            border-color: var(--input-border);
+        }
+        .screenshot-number {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: 2px;
+            text-align: center;
+        }
+        .screenshots-caption {
+            font-size: 12px;
+            opacity: 0.7;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         .message-content {
             font-size: 14px;
@@ -149,23 +192,63 @@ class BuddyChatMessage extends LitElement {
         this.dispatchEvent(new CustomEvent('toggle-transparency', { detail: { id: this.id }, bubbles: true, composed: true }));
     }
 
+    _onScreenshotClick(screenshot) {
+        // Open screenshot in a new window or modal
+        if (screenshot) {
+            const newWindow = window.open();
+            newWindow.document.write(`
+                <html>
+                    <head><title>Screenshot</title></head>
+                    <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#000;">
+                        <img src="data:image/jpeg;base64,${screenshot}" style="max-width:100%; max-height:100%; object-fit:contain;" />
+                    </body>
+                </html>
+            `);
+        }
+    }
+
     render() {
+        const hasScreenshots = this.screenshots && Array.isArray(this.screenshots) && this.screenshots.length > 0;
+        
         return html`
             <div class="message-wrapper ${this.sender}">
                 <div class="message-bubble ${this.sender} ${this.messageTransparency ? 'transparent' : ''}">
-                    <div class="message-content">
-                        ${this.sender === 'assistant' 
-                            ? html`<div .innerHTML=${window.marked ? window.marked.parse(this.text || '') : this.text}></div>`
-                            : html`<div>${this.text}</div>`
-                        }
-                        ${this.isStreaming ? html`
-                            <div class="typing-indicator">
-                                <div class="typing-dot"></div>
-                                <div class="typing-dot"></div>
-                                <div class="typing-dot"></div>
+                    ${hasScreenshots ? html`
+                        <div class="screenshots-container">
+                            <div class="screenshots-grid">
+                                ${this.screenshots.map((screenshot, index) => html`
+                                    <div class="screenshot-item">
+                                        <img 
+                                            class="screenshot-image" 
+                                            src="data:image/jpeg;base64,${screenshot}" 
+                                            alt="Screenshot ${index + 1}" 
+                                            @click=${() => this._onScreenshotClick(screenshot)}
+                                            title="Click to view full size"
+                                        />
+                                        <div class="screenshot-number">#${index + 1}</div>
+                                    </div>
+                                `)}
                             </div>
-                        ` : ''}
-                    </div>
+                            <div class="screenshots-caption">
+                                📷 ${this.screenshots.length} screenshot${this.screenshots.length > 1 ? 's' : ''}
+                            </div>
+                        </div>
+                    ` : ''}
+                    ${this.text ? html`
+                        <div class="message-content">
+                            ${this.sender === 'assistant' 
+                                ? html`<div .innerHTML=${window.marked ? window.marked.parse(this.text || '') : this.text}></div>`
+                                : html`<div>${this.text}</div>`
+                            }
+                            ${this.isStreaming ? html`
+                                <div class="typing-indicator">
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
                     <div class="message-time">
                         ${this.isStreaming ? 'typing...' : this.timestamp}
                         <button 

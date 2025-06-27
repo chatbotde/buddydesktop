@@ -1559,9 +1559,13 @@ class BuddyApp extends LitElement {
         });
         this.addEventListener('send-message', async (e) => {
             const message = e.detail.text;
-            this.addChatMessage(message, 'user');
+            const screenshots = e.detail.screenshots;
+            
+            // Add user message with screenshots if provided
+            this.addChatMessage(message, 'user', false, screenshots);
             await this.scrollToUserMessage();
-            const result = await buddy.sendTextMessage(message);
+            
+            const result = await buddy.sendTextMessage(message, screenshots);
             if (!result.success) {
                 this.setStatus('Error sending message: ' + result.error);
                 this.addChatMessage(' error sending your message.', 'assistant');
@@ -1754,7 +1758,7 @@ class BuddyApp extends LitElement {
         }
     }
 
-    addChatMessage(text, sender, isStreaming = false) {
+    addChatMessage(text, sender, isStreaming = false, screenshots = null) {
         const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
         this.chatMessages = [
@@ -1765,7 +1769,8 @@ class BuddyApp extends LitElement {
                 sender,
                 timestamp,
                 isStreaming,
-                transparency: false
+                transparency: false,
+                screenshots
             }
         ];
         if (isStreaming) {
@@ -2150,6 +2155,10 @@ class BuddyApp extends LitElement {
                 .chatMessages=${this.chatMessages}
                 .isStreamingActive=${this.isStreamingActive}
                 .messageTransparency=${this.messageTransparency}
+                .selectedModel=${this.selectedModel}
+                .selectedProvider=${this.selectedProvider}
+                .isModelRealTime=${this.isSelectedModelRealTime}
+                .modelCapabilities=${this.selectedModelCapabilities}
             ></buddy-assistant-view>`,
         };
 

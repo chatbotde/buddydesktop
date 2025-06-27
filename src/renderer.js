@@ -390,14 +390,21 @@ function stopCapture() {
 }
 
 // Send text message to Gemini
-async function sendTextMessage(text) {
-    if (!text || text.trim().length === 0) {
-        console.warn('Cannot send empty text message');
+async function sendTextMessage(text, screenshots = null) {
+    if ((!text || text.trim().length === 0) && (!screenshots || screenshots.length === 0)) {
+        console.warn('Cannot send empty text message without screenshots');
         return { success: false, error: 'Empty message' };
     }
 
     try {
-        const result = await ipcRenderer.invoke('send-text-message', text);
+        const messageData = { text: text || '' };
+        
+        // Add screenshots if provided
+        if (screenshots && Array.isArray(screenshots) && screenshots.length > 0) {
+            messageData.screenshots = screenshots;
+        }
+        
+        const result = await ipcRenderer.invoke('send-text-message', messageData);
         if (result.success) {
             console.log('Text message sent successfully');
         } else {
@@ -410,11 +417,76 @@ async function sendTextMessage(text) {
     }
 }
 
+// Capture a single screenshot manually
+async function captureScreenshot() {
+    console.log('Capturing manual screenshot...');
+    
+    try {
+        // If we don't have an active media stream, request one for screenshot
+        let screenshotStream = mediaStream;
+        let shouldStopStream = false;
+        
+        if (!screenshotStream) {
+            screenshotStream = await navigator.mediaDevices.getDisplayMedia({
+                video: {
+                    frameRate: 1,
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 },
+                },
+                audio: false,
+            });
+            shouldStopStream = true;
+        }
+
+        // Create a temporary video element for the screenshot
+        const tempVideo = document.createElement('video');
+        tempVideo.srcObject = screenshotStream;
+        tempVideo.muted = true;
+        tempVideo.playsInline = true;
+        
+        await tempVideo.play();
+        
+        // Wait for video to be ready
+        await new Promise(resolve => {
+            if (tempVideo.readyState >= 2) return resolve();
+            tempVideo.onloadedmetadata = () => resolve();
+        });
+
+        // Create canvas for screenshot
+        const canvas = document.createElement('canvas');
+        canvas.width = tempVideo.videoWidth;
+        canvas.height = tempVideo.videoHeight;
+        const context = canvas.getContext('2d');
+        
+        // Draw the current frame
+        context.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to base64
+        const base64Data = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+        
+        // Clean up
+        tempVideo.pause();
+        tempVideo.srcObject = null;
+        
+        if (shouldStopStream) {
+            screenshotStream.getTracks().forEach(track => track.stop());
+        }
+        
+        console.log('Screenshot captured successfully');
+        return base64Data;
+        
+    } catch (error) {
+        console.error('Error capturing screenshot:', error);
+        throw error;
+    }
+}
+
 window.buddy = {
     initializeAI,
     startCapture,
     stopCapture,
     sendTextMessage,
+    captureScreenshot,
     isLinux: isLinux,
     isMacOS: isMacOS,
     e: buddyElement,
