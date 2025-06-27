@@ -1,4 +1,4 @@
-module.exports = [
+const models = [
     // Google Models
     {
         id: 'gemini-2.0-pro',
@@ -219,21 +219,24 @@ module.exports = [
 ];
 
 // Helper functions
-module.exports.getModelById = function(id) {
-    return module.exports.find(m => m.id === id);
-};
+export function getModelById(id) {
+    return models.find(m => m.id === id);
+}
 
-module.exports.getModelsByProvider = function(provider) {
-    return module.exports.filter(m => m.provider === provider);
-};
+export function getModelsByProvider(provider) {
+    return models.filter(m => m.provider === provider);
+}
 
-module.exports.getModelsWithCapability = function(capability) {
-    return module.exports.filter(m => m.capabilities && m.capabilities[capability]);
-};
+export function getModelsWithCapability(capability) {
+    return models.filter(m => m.capabilities && m.capabilities[capability]);
+}
 
 // Export models organized by provider for easy access
-module.exports.google = module.exports.filter(m => m.provider === 'google').map(m => m.id);
-module.exports.openai = module.exports.filter(m => m.provider === 'openai').map(m => m.id);
-module.exports.anthropic = module.exports.filter(m => m.provider === 'anthropic').map(m => m.id);
-module.exports.deepseek = module.exports.filter(m => m.provider === 'deepseek').map(m => m.id);
-module.exports.openrouter = module.exports.filter(m => m.provider === 'openrouter').map(m => m.id);
+export const google = models.filter(m => m.provider === 'google').map(m => m.id);
+export const openai = models.filter(m => m.provider === 'openai').map(m => m.id);
+export const anthropic = models.filter(m => m.provider === 'anthropic').map(m => m.id);
+export const deepseek = models.filter(m => m.provider === 'deepseek').map(m => m.id);
+export const openrouter = models.filter(m => m.provider === 'openrouter').map(m => m.id);
+
+// Default export
+export default models;

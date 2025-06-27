@@ -6,6 +6,7 @@ import './components/buddy-customize-view.js';
 import './components/buddy-help-view.js';
 import './components/buddy-history-view.js';
 import './components/buddy-assistant-view.js';
+import { getModelsByProvider } from './lib/models/models.js';
 
 
 class BuddyApp extends LitElement {
@@ -1457,7 +1458,7 @@ class BuddyApp extends LitElement {
         this.currentTheme = localStorage.getItem('theme') || 'dark';
         this.chatMessages = [];
         this.messageTransparency = false;
-        this.selectedModel = localStorage.getItem('selectedModel') || '';
+        this.selectedModel = localStorage.getItem('selectedModel') || this.getDefaultModelForProvider(this.selectedProvider);
         this.history = JSON.parse(localStorage.getItem('chatHistory')) || [];
         this.providers = [
             { value: 'google', name: 'Google Gemini', keyLabel: 'Gemini API Key' },
@@ -1468,12 +1469,39 @@ class BuddyApp extends LitElement {
         ];
     }
 
-    get mainViewModels() {
-        try {
-            return require('./models.js')[this.selectedProvider] || [];
-        } catch (e) {
-            return [];
+    getDefaultModelForProvider(provider) {
+        const models = getModelsByProvider(provider);
+        if (!models || models.length === 0) return '';
+        
+        // Return the first model for the provider as default
+        return models[0].id;
+    }
+
+    getAvailableModelsForCurrentMode() {
+        // Always show all models for the provider
+        return getModelsByProvider(this.selectedProvider) || [];
+    }
+
+    get disabledModelIdsForCurrentMode() {
+        // If in a session, disable models that do not have live capability
+        if (this.sessionActive) {
+            return getModelsByProvider(this.selectedProvider)
+                .filter(m => !m.live)
+                .map(m => m.id);
         }
+        // Otherwise, no models are disabled
+        return [];
+    }
+
+    get mainViewModels() {
+        return this.getAvailableModelsForCurrentMode();
+    }
+
+    // Add method to check if selected model supports real-time
+    get isSelectedModelRealTime() {
+        const models = getModelsByProvider(this.selectedProvider) || [];
+        const selectedModelObj = models.find(m => m.id === this.selectedModel);
+        return selectedModelObj ? selectedModelObj.live : false;
     }
 
     get mainViewApiKey() {
@@ -1493,9 +1521,9 @@ class BuddyApp extends LitElement {
         this.addEventListener('provider-select', (e) => {
             this.selectedProvider = e.detail.provider;
             localStorage.setItem('selectedProvider', this.selectedProvider);
-            // Reset model when provider changes
-            this.selectedModel = '';
-            localStorage.setItem('selectedModel', '');
+            // Set default model for new provider
+            this.selectedModel = this.getDefaultModelForProvider(this.selectedProvider);
+            localStorage.setItem('selectedModel', this.selectedModel);
             this.requestUpdate();
         });
         this.addEventListener('model-select', (e) => {
@@ -1557,6 +1585,12 @@ class BuddyApp extends LitElement {
         });
         this.addEventListener('end-session', async () => {
             await this.handleEndSession();
+        });
+        this.addEventListener('toggle-audio', async () => {
+            await this.toggleAudioCapture();
+        });
+        this.addEventListener('toggle-screen', async () => {
+            await this.toggleScreenCapture();
         });
     }
 
@@ -1799,7 +1833,12 @@ class BuddyApp extends LitElement {
     async handleEndSession() {
         if (this.sessionActive) {
             this.saveHistory();
-            buddy.stopCapture();
+            
+            // Only stop capture if it was started (for real-time models)
+            if (this.isSelectedModelRealTime) {
+                buddy.stopCapture();
+            }
+            
             const { ipcRenderer } = window.require('electron');
             await ipcRenderer.invoke('close-session');
             this.sessionActive = false;
@@ -1810,20 +1849,32 @@ class BuddyApp extends LitElement {
     }
 
     async handleStart() { // This is the main "Start Session" from the main view
+        // Validate that a model is selected
+        if (!this.selectedModel) {
+            this.setStatus('Error: Please select a model first');
+            return;
+        }
+
         await buddy.initializeAI(this.selectedProvider, this.selectedProfile, this.selectedLanguage, this.selectedModel);
-        buddy.startCapture();
+        
+        // Only start capture for real-time models
+        if (this.isSelectedModelRealTime) {
+            buddy.startCapture();
+            this.isAudioActive = true; // Audio starts active for real-time models
+            this.isScreenActive = true; // Screen starts active for real-time models
+        } else {
+            this.isAudioActive = false; // No audio for chat-only models
+            this.isScreenActive = false; // No screen capture for chat-only models
+        }
+        
         this.responses = [];
         this.currentResponseIndex = -1;
         this.chatMessages = []; // Clear chat messages
         this.currentView = 'assistant';
         this.sessionActive = true;
-        this.isAudioActive = true; // Audio starts active
-        this.isScreenActive = true; // Screen starts active
         this.startTime = Date.now();
         
         // Add welcome message to chat
-       
-        
         const welcomeText = `Hi, How Can I Help You`;
         this.addChatMessage(welcomeText, 'assistant');
     }
@@ -1844,9 +1895,20 @@ class BuddyApp extends LitElement {
     }
 
     async handleRestart() {
+        // Validate that a model is selected
+        if (!this.selectedModel) {
+            this.setStatus('Error: Please select a model first');
+            return;
+        }
+
         if (this.sessionActive) {
             this.saveHistory();
-            buddy.stopCapture();
+            
+            // Only stop capture if it was started
+            if (this.isSelectedModelRealTime) {
+                buddy.stopCapture();
+            }
+            
             const { ipcRenderer } = window.require('electron');
             await ipcRenderer.invoke('close-session');
         }
@@ -1859,22 +1921,25 @@ class BuddyApp extends LitElement {
         this.isScreenActive = false; // Reset before starting
         this.statusText = 'Restarting...';
 
-        await buddy.initializeAI(this.selectedProvider, this.selectedProfile, this.selectedLanguage);
-        buddy.startCapture();
+        await buddy.initializeAI(this.selectedProvider, this.selectedProfile, this.selectedLanguage, this.selectedModel);
+        
+        // Only start capture for real-time models
+        if (this.isSelectedModelRealTime) {
+            buddy.startCapture();
+            this.isAudioActive = true;
+            this.isScreenActive = true;
+        }
+        
         this.sessionActive = true;
-        this.isAudioActive = true;
-        this.isScreenActive = true;
         
         // Add welcome message to restarted chat
-       
-        
         const welcomeText = `Hi, how can I help you?`;
         this.addChatMessage(welcomeText, 'assistant');
     }
 
-    // --- New Toggle Handlers ---
+    // --- Updated Toggle Handlers for Real-time Models Only ---
     async toggleAudioCapture() {
-        if (!this.sessionActive) return;
+        if (!this.sessionActive || !this.isSelectedModelRealTime) return;
         this.isAudioActive = !this.isAudioActive;
         if (this.isAudioActive) {
             await buddy.resumeAudio();
@@ -1887,7 +1952,7 @@ class BuddyApp extends LitElement {
     }
 
     async toggleScreenCapture() {
-        if (!this.sessionActive) return;
+        if (!this.sessionActive || !this.isSelectedModelRealTime) return;
         this.isScreenActive = !this.isScreenActive;
         if (this.isScreenActive) {
             await buddy.resumeScreen();
@@ -1898,7 +1963,7 @@ class BuddyApp extends LitElement {
         }
         this.requestUpdate();
     }
-    // --- End New Toggle Handlers ---
+    // --- End Updated Toggle Handlers ---
 
     toggleTheme() {
         this.currentTheme = this.currentTheme === 'dark' ;
@@ -2010,6 +2075,7 @@ class BuddyApp extends LitElement {
                 .models=${this.mainViewModels}
                 .apiKey=${this.mainViewApiKey}
                 .keyLabel=${this.mainViewKeyLabel}
+                .disabledModelIds=${this.disabledModelIdsForCurrentMode}
             ></buddy-main-view>`,
             customize: html`<buddy-customize-view
                 .selectedProfile=${this.selectedProfile}

@@ -8,6 +8,7 @@ class BuddyMainView extends LitElement {
         models: { type: Array },
         apiKey: { type: String },
         keyLabel: { type: String },
+        disabledModelIds: { type: Array },
     };
 
     static styles = css`
@@ -150,6 +151,7 @@ class BuddyMainView extends LitElement {
 
     render() {
         const currentProvider = this.providers?.find(p => p.value === this.selectedProvider) || {};
+        const disabledModelIds = this.disabledModelIds || [];
         return html`
             <div class="main-view-container">
                 <div class="welcome">Welcome to Buddy</div>
@@ -169,7 +171,9 @@ class BuddyMainView extends LitElement {
                     <select .value=${this.selectedModel} @change=${this._onModelSelect}>
                         ${this.models?.map(
                             model => html`
-                                <option value=${model} ?selected=${this.selectedModel === model}>${model}</option>
+                                <option value=${model.id} ?selected=${this.selectedModel === model.id} ?disabled=${disabledModelIds.includes(model.id)}>
+                                    ${model.name}${disabledModelIds.includes(model.id) ? ' (Not for real-time)' : ''}
+                                </option>
                             `
                         )}
                     </select>

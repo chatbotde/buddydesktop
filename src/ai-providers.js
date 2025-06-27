@@ -19,7 +19,10 @@ class BaseAIProvider {
 
     async close() {
         if (this.session) {
-            await this.session.close();
+            // Only call close if the session has a close method
+            if (typeof this.session.close === 'function') {
+                await this.session.close();
+            }
             this.session = null;
         }
     }
@@ -28,7 +31,11 @@ class BaseAIProvider {
 class GoogleAIProvider extends BaseAIProvider {
     constructor(apiKey, profile, language, customPrompt, model) {
         super(apiKey, profile, language, customPrompt);
-        this.model = model || 'gemini-2.0-flash-live-001';
+        if (!model) {
+            throw new Error('Model must be specified for GoogleAIProvider');
+        }
+        this.model = model;
+        this.isRealTimeModel = this.model.includes('live') || this.model.includes('2.0-flash-live');
     }
 
     async initialize() {
@@ -41,66 +48,82 @@ class GoogleAIProvider extends BaseAIProvider {
         const systemPrompt = getSystemPrompt(this.profile, this.customPrompt);
 
         try {
-            const session = await client.live.connect({
-                model: this.model,
-                callbacks: {
-                    onopen: function () {
-                        global.sendToRenderer('update-status', 'Connected to Gemini - Starting recording...');
-                    },
-                    onmessage: function (message) {
-                        let newTextReceived = false;
-                        if (message.serverContent?.modelTurn?.parts) {
-                            for (const part of message.serverContent.modelTurn.parts) {
-                                if (part.text) {
-                                    global.messageBuffer += part.text;
-                                    newTextReceived = true;
+            if (this.isRealTimeModel) {
+                // Use real-time API for live models
+                const session = await client.live.connect({
+                    model: this.model,
+                    callbacks: {
+                        onopen: function () {
+                            global.sendToRenderer('update-status', 'Connected to Gemini - Starting recording...');
+                        },
+                        onmessage: function (message) {
+                            let newTextReceived = false;
+                            if (message.serverContent?.modelTurn?.parts) {
+                                for (const part of message.serverContent.modelTurn.parts) {
+                                    if (part.text) {
+                                        global.messageBuffer += part.text;
+                                        newTextReceived = true;
+                                    }
                                 }
                             }
-                        }
 
-                        if (newTextReceived && !message.serverContent?.generationComplete) {
-                            // Send current buffer as an ongoing streaming update
-                            global.sendToRenderer('update-response', {
-                                text: global.messageBuffer,
-                                isStreaming: true, // Indicates this is a partial, ongoing stream
-                                isComplete: false
-                            });
-                        }
+                            if (newTextReceived && !message.serverContent?.generationComplete) {
+                                global.sendToRenderer('update-response', {
+                                    text: global.messageBuffer,
+                                    isStreaming: true,
+                                    isComplete: false
+                                });
+                            }
 
-                        if (message.serverContent?.generationComplete) {
-                            // Send final buffer for this generation.
-                            // This is the final part of the current stream.
-                            global.sendToRenderer('update-response', {
-                                text: global.messageBuffer,
-                                isStreaming: true, // Still part of the stream concept
-                                isComplete: true   // But this is the final piece
-                            });
-                            global.messageBuffer = ''; // Clear buffer for the next AI utterance
-                        }
+                            if (message.serverContent?.generationComplete) {
+                                global.sendToRenderer('update-response', {
+                                    text: global.messageBuffer,
+                                    isStreaming: true,
+                                    isComplete: true
+                                });
+                                global.messageBuffer = '';
+                            }
 
-                        if (message.serverContent?.turnComplete) {
-                            global.sendToRenderer('update-status', 'Listening...');
-                        }
+                            if (message.serverContent?.turnComplete) {
+                                global.sendToRenderer('update-status', 'Listening...');
+                            }
+                        },
+                        onerror: function (e) {
+                            console.debug('Error:', e.message);
+                            global.sendToRenderer('update-status', 'Error: ' + e.message);
+                        },
+                        onclose: function (e) {
+                            console.debug('Session closed:', e.reason);
+                            global.sendToRenderer('update-status', 'Session closed');
+                        },
                     },
-                    onerror: function (e) {
-                        console.debug('Error:', e.message);
-                        global.sendToRenderer('update-status', 'Error: ' + e.message);
+                    config: {
+                        responseModalities: ['TEXT'],
+                        speechConfig: { languageCode: this.language },
+                        systemInstruction: {
+                            parts: [{ text: systemPrompt }],
+                        },
                     },
-                    onclose: function (e) {
-                        console.debug('Session closed:', e.reason);
-                        global.sendToRenderer('update-status', 'Session closed');
-                    },
-                },
-                config: {
-                    responseModalities: ['TEXT'],
-                    speechConfig: { languageCode: this.language },
-                    systemInstruction: {
-                        parts: [{ text: systemPrompt }],
-                    },
-                },
-            });
+                });
+                this.session = session;
+            } else {
+                // Use chat API for non-live models - create chat session
+                this.session = client.chats.create({
+                    model: this.model,
+                    history: [
+                        {
+                            role: "user",
+                            parts: [{ text: systemPrompt }],
+                        },
+                        {
+                            role: "model",
+                            parts: [{ text: "I understand. I'll follow these instructions for our conversation." }],
+                        },
+                    ],
+                });
+                global.sendToRenderer('update-status', 'Connected to Gemini Chat - Ready for messages...');
+            }
 
-            this.session = session;
             return true;
         } catch (error) {
             console.error('Failed to initialize Gemini session:', error);
@@ -110,21 +133,71 @@ class GoogleAIProvider extends BaseAIProvider {
 
     async sendRealtimeInput(input) {
         if (!this.session) throw new Error('Session not initialized');
-        return await this.session.sendRealtimeInput(input);
+        
+        if (this.isRealTimeModel) {
+            // Real-time model: use existing real-time input
+            return await this.session.sendRealtimeInput(input);
+        } else {
+            // Chat model: handle text messages only
+            if (input.text) {
+                try {
+                    const stream = await this.session.sendMessageStream({
+                        message: input.text
+                    });
+                    
+                    let fullResponse = '';
+                    for await (const chunk of stream) {
+                        const chunkText = chunk.text;
+                        fullResponse += chunkText;
+                        global.sendToRenderer('update-response', {
+                            text: fullResponse,
+                            isStreaming: true,
+                            isComplete: false
+                        });
+                    }
+                    
+                    global.sendToRenderer('update-response', {
+                        text: fullResponse,
+                        isStreaming: true,
+                        isComplete: true
+                    });
+                } catch (error) {
+                    console.error('Gemini chat error:', error);
+                    global.sendToRenderer('update-status', 'Error: ' + error.message);
+                }
+            }
+            // For chat models, ignore audio/image inputs
+        }
+    }
+
+    async close() {
+        if (this.session) {
+            // Only real-time sessions have a close method
+            if (this.isRealTimeModel && typeof this.session.close === 'function') {
+                await this.session.close();
+            }
+            // Chat sessions don't need explicit closing
+            this.session = null;
+        }
     }
 }
 
 class OpenAIProvider extends BaseAIProvider {
+    constructor(apiKey, profile, language, customPrompt, model) {
+        super(apiKey, profile, language, customPrompt);
+        if (!model) {
+            throw new Error('Model must be specified for OpenAIProvider');
+        }
+        this.model = model;
+    }
+
     async initialize() {
-        global.sendToRenderer('update-status', 'Connected to OpenAI - Starting recording...');
-        // Note: OpenAI doesn't have real-time API like Gemini, so we'll use chat completions
-        // You might want to implement a different approach for real-time features
+        global.sendToRenderer('update-status', 'Connected to OpenAI - Ready for messages...');
         this.session = { connected: true };
         return true;
     }
 
     async sendRealtimeInput(input) {
-        // For text messages, we can use OpenAI's chat completions
         if (input.text) {
             try {
                 const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -134,25 +207,59 @@ class OpenAIProvider extends BaseAIProvider {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        model: 'gpt-4',
+                        model: this.model,
                         messages: [
                             { role: 'system', content: this.getSystemPrompt() },
                             { role: 'user', content: input.text }
                         ],
-                        stream: false
+                        stream: true
                     })
                 });
 
-                const data = await response.json();
-                if (data.choices && data.choices[0]) {
-                    global.sendToRenderer('update-response', data.choices[0].message.content);
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullResponse = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            if (data === '[DONE]') continue;
+
+                            try {
+                                const parsed = JSON.parse(data);
+                                const content = parsed.choices?.[0]?.delta?.content || '';
+                                if (content) {
+                                    fullResponse += content;
+                                    global.sendToRenderer('update-response', {
+                                        text: fullResponse,
+                                        isStreaming: true,
+                                        isComplete: false
+                                    });
+                                }
+                            } catch (e) {
+                                // Skip invalid JSON chunks
+                            }
+                        }
+                    }
                 }
+
+                global.sendToRenderer('update-response', {
+                    text: fullResponse,
+                    isStreaming: true,
+                    isComplete: true
+                });
             } catch (error) {
                 console.error('OpenAI API error:', error);
                 global.sendToRenderer('update-status', 'Error: ' + error.message);
             }
         }
-        // Audio and image inputs would need different handling for OpenAI
     }
 
     getSystemPrompt() {
@@ -162,8 +269,16 @@ class OpenAIProvider extends BaseAIProvider {
 }
 
 class AnthropicProvider extends BaseAIProvider {
+    constructor(apiKey, profile, language, customPrompt, model) {
+        super(apiKey, profile, language, customPrompt);
+        if (!model) {
+            throw new Error('Model must be specified for AnthropicProvider');
+        }
+        this.model = model;
+    }
+
     async initialize() {
-        global.sendToRenderer('update-status', 'Connected to Anthropic - Starting recording...');
+        global.sendToRenderer('update-status', 'Connected to Anthropic - Ready for messages...');
         this.session = { connected: true };
         return true;
     }
@@ -179,19 +294,54 @@ class AnthropicProvider extends BaseAIProvider {
                         'anthropic-version': '2023-06-01'
                     },
                     body: JSON.stringify({
-                        model: 'claude-3-5-sonnet-20241022',
-                        max_tokens: 1000,
+                        model: this.model,
+                        max_tokens: 4000,
                         system: this.getSystemPrompt(),
                         messages: [
                             { role: 'user', content: input.text }
-                        ]
+                        ],
+                        stream: true
                     })
                 });
 
-                const data = await response.json();
-                if (data.content && data.content[0]) {
-                    global.sendToRenderer('update-response', data.content[0].text);
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullResponse = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            if (data === '[DONE]') continue;
+
+                            try {
+                                const parsed = JSON.parse(data);
+                                if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+                                    fullResponse += parsed.delta.text;
+                                    global.sendToRenderer('update-response', {
+                                        text: fullResponse,
+                                        isStreaming: true,
+                                        isComplete: false
+                                    });
+                                }
+                            } catch (e) {
+                                // Skip invalid JSON chunks
+                            }
+                        }
+                    }
                 }
+
+                global.sendToRenderer('update-response', {
+                    text: fullResponse,
+                    isStreaming: true,
+                    isComplete: true
+                });
             } catch (error) {
                 console.error('Anthropic API error:', error);
                 global.sendToRenderer('update-status', 'Error: ' + error.message);
@@ -206,8 +356,16 @@ class AnthropicProvider extends BaseAIProvider {
 }
 
 class DeepSeekProvider extends BaseAIProvider {
+    constructor(apiKey, profile, language, customPrompt, model) {
+        super(apiKey, profile, language, customPrompt);
+        if (!model) {
+            throw new Error('Model must be specified for DeepSeekProvider');
+        }
+        this.model = model;
+    }
+
     async initialize() {
-        global.sendToRenderer('update-status', 'Connected to DeepSeek - Starting recording...');
+        global.sendToRenderer('update-status', 'Connected to DeepSeek - Ready for messages...');
         this.session = { connected: true };
         return true;
     }
@@ -222,19 +380,54 @@ class DeepSeekProvider extends BaseAIProvider {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        model: 'deepseek-chat',
+                        model: this.model,
                         messages: [
                             { role: 'system', content: this.getSystemPrompt() },
                             { role: 'user', content: input.text }
                         ],
-                        stream: false
+                        stream: true
                     })
                 });
 
-                const data = await response.json();
-                if (data.choices && data.choices[0]) {
-                    global.sendToRenderer('update-response', data.choices[0].message.content);
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullResponse = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            if (data === '[DONE]') continue;
+
+                            try {
+                                const parsed = JSON.parse(data);
+                                const content = parsed.choices?.[0]?.delta?.content || '';
+                                if (content) {
+                                    fullResponse += content;
+                                    global.sendToRenderer('update-response', {
+                                        text: fullResponse,
+                                        isStreaming: true,
+                                        isComplete: false
+                                    });
+                                }
+                            } catch (e) {
+                                // Skip invalid JSON chunks
+                            }
+                        }
+                    }
                 }
+
+                global.sendToRenderer('update-response', {
+                    text: fullResponse,
+                    isStreaming: true,
+                    isComplete: true
+                });
             } catch (error) {
                 console.error('DeepSeek API error:', error);
                 global.sendToRenderer('update-status', 'Error: ' + error.message);
@@ -249,8 +442,16 @@ class DeepSeekProvider extends BaseAIProvider {
 }
 
 class OpenRouterProvider extends BaseAIProvider {
+    constructor(apiKey, profile, language, customPrompt, model) {
+        super(apiKey, profile, language, customPrompt);
+        if (!model) {
+            throw new Error('Model must be specified for OpenRouterProvider');
+        }
+        this.model = model;
+    }
+
     async initialize() {
-        global.sendToRenderer('update-status', 'Connected to OpenRouter - Starting recording...');
+        global.sendToRenderer('update-status', 'Connected to OpenRouter - Ready for messages...');
         this.session = { connected: true };
         return true;
     }
@@ -267,18 +468,54 @@ class OpenRouterProvider extends BaseAIProvider {
                         'X-Title': 'Buddy'
                     },
                     body: JSON.stringify({
-                        model: 'anthropic/claude-3.5-sonnet',
+                        model: this.model,
                         messages: [
                             { role: 'system', content: this.getSystemPrompt() },
                             { role: 'user', content: input.text }
-                        ]
+                        ],
+                        stream: true
                     })
                 });
 
-                const data = await response.json();
-                if (data.choices && data.choices[0]) {
-                    global.sendToRenderer('update-response', data.choices[0].message.content);
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullResponse = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            if (data === '[DONE]') continue;
+
+                            try {
+                                const parsed = JSON.parse(data);
+                                const content = parsed.choices?.[0]?.delta?.content || '';
+                                if (content) {
+                                    fullResponse += content;
+                                    global.sendToRenderer('update-response', {
+                                        text: fullResponse,
+                                        isStreaming: true,
+                                        isComplete: false
+                                    });
+                                }
+                            } catch (e) {
+                                // Skip invalid JSON chunks
+                            }
+                        }
+                    }
                 }
+
+                global.sendToRenderer('update-response', {
+                    text: fullResponse,
+                    isStreaming: true,
+                    isComplete: true
+                });
             } catch (error) {
                 console.error('OpenRouter API error:', error);
                 global.sendToRenderer('update-status', 'Error: ' + error.message);
@@ -297,13 +534,13 @@ function createAIProvider(provider, apiKey, profile, language, customPrompt, mod
         case 'google':
             return new GoogleAIProvider(apiKey, profile, language, customPrompt, model);
         case 'openai':
-            return new OpenAIProvider(apiKey, profile, language, customPrompt);
+            return new OpenAIProvider(apiKey, profile, language, customPrompt, model);
         case 'anthropic':
-            return new AnthropicProvider(apiKey, profile, language, customPrompt);
+            return new AnthropicProvider(apiKey, profile, language, customPrompt, model);
         case 'deepseek':
-            return new DeepSeekProvider(apiKey, profile, language, customPrompt);
+            return new DeepSeekProvider(apiKey, profile, language, customPrompt, model);
         case 'openrouter':
-            return new OpenRouterProvider(apiKey, profile, language, customPrompt);
+            return new OpenRouterProvider(apiKey, profile, language, customPrompt, model);
         default:
             throw new Error(`Unknown AI provider: ${provider}`);
     }

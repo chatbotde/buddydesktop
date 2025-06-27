@@ -17,6 +17,7 @@ let systemAudioProc = null;
 let audioIntervalTimer = null;
 let mouseEventsIgnored = false;
 let messageBuffer = '';
+let currentAIProvider = null;
 
 // Make these globally accessible for AI providers
 global.sendToRenderer = sendToRenderer;
@@ -157,9 +158,12 @@ function createWindow() {
     });
 }
 
-async function initializeAISession(provider, apiKey, customPrompt = '', profile = 'interview', language = 'en-US') {
+async function initializeAISession(provider, apiKey, customPrompt = '', profile = 'interview', language = 'en-US', model = '') {
     try {
-        currentAIProvider = createAIProvider(provider, apiKey, profile, language, customPrompt);
+        if (!model) {
+            throw new Error('Model must be specified');
+        }
+        currentAIProvider = createAIProvider(provider, apiKey, profile, language, customPrompt, model);
         const success = await currentAIProvider.initialize();
         return success;
     } catch (error) {
@@ -304,8 +308,8 @@ app.on('activate', () => {
     }
 });
 
-ipcMain.handle('initialize-ai', async (event, provider, apiKey, customPrompt, profile = 'interview', language = 'en-US') => {
-    return await initializeAISession(provider, apiKey, customPrompt, profile, language);
+ipcMain.handle('initialize-ai', async (event, provider, apiKey, customPrompt, profile = 'interview', language = 'en-US', model = '') => {
+    return await initializeAISession(provider, apiKey, customPrompt, profile, language, model);
 });
 
 ipcMain.handle('send-audio-content', async (event, { data, mimeType }) => {

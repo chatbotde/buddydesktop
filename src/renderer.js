@@ -49,10 +49,18 @@ function arrayBufferToBase64(buffer) {
     return btoa(binary);
 }
 
-async function initializeAI(provider = 'google', profile = 'interview', language = 'en-US') {
+async function initializeAI(provider = 'google', profile = 'interview', language = 'en-US', model = '') {
     const apiKey = localStorage.getItem(`apiKey_${provider}`)?.trim();
     if (apiKey) {
-        const success = await ipcRenderer.invoke('initialize-ai', provider, apiKey, localStorage.getItem('customPrompt') || '', profile, language);
+        const success = await ipcRenderer.invoke(
+            'initialize-ai',
+            provider,
+            apiKey,
+            localStorage.getItem('customPrompt') || '',
+            profile,
+            language,
+            model // Pass the model to the main process
+        );
         if (success) {
             buddy.e().setStatus('Live');
         } else {
