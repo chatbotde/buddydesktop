@@ -937,6 +937,24 @@ class BuddyAssistantView extends LitElement {
         this.requestUpdate();
     }
 
+    // Override updated to automatically clear loading state when streaming starts or messages change
+    updated(changedProperties) {
+        super.updated(changedProperties);
+        
+        // Clear loading state when streaming starts or when new messages arrive
+        if (changedProperties.has('isStreamingActive') && this.isStreamingActive) {
+            this.isWaitingForResponse = false;
+        }
+        
+        // Clear loading state when new assistant messages arrive
+        if (changedProperties.has('chatMessages') && this.chatMessages) {
+            const lastMessage = this.chatMessages[this.chatMessages.length - 1];
+            if (lastMessage && lastMessage.sender === 'assistant' && this.isWaitingForResponse) {
+                this.isWaitingForResponse = false;
+            }
+        }
+    }
+
     _toggleAutoScreenshot() {
         this.autoScreenshotEnabled = !this.autoScreenshotEnabled;
         this.requestUpdate();
