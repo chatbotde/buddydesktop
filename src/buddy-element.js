@@ -855,6 +855,7 @@ class BuddyApp extends LitElement {
             font-size: 14px;
             line-height: 1.5;
             margin-bottom: 4px;
+            font-weight: 600;
         }
 
         .message-time {
@@ -1369,32 +1370,7 @@ class BuddyApp extends LitElement {
         }
     `;
 
-    static modelsByProvider = {
-        google: [
-            'gemini-2.0-pro',
-            'gemini-2.5-pro',
-            'gemini-2.5-pro-preview-05-06',
-            'gemini-2.0-flash',
-            'gemini-2.5-flash',
-            'gemini-2.5-flash-preview-04-17',
-            'gemini-2.5-flash-lite-preview-06-17',
-            'gemini-2.0-flash-live-001',
-        ],
-        openai: [
-            
-            'gpt-4',
-            'gpt-4-turbo',
-        ],
-        anthropic: [
-            'claude-3-5-sonnet-20241022',
-        ],
-        deepseek: [
-            'deepseek-chat',
-        ],
-        openrouter: [
-            'anthropic/claude-3.5-sonnet',
-        ]
-    };
+
 
     static properties = {
         currentView: { type: String },
@@ -1458,6 +1434,15 @@ class BuddyApp extends LitElement {
         
         // Return the first model for the provider as default
         return models[0].id;
+    }
+
+    getModelsByProviderForHeader() {
+        const modelsByProvider = {};
+        this.providers.forEach(provider => {
+            const models = getModelsByProvider(provider.value);
+            modelsByProvider[provider.value] = models.map(model => model.id);
+        });
+        return modelsByProvider;
     }
 
     getAvailableModelsForCurrentMode() {
@@ -1863,7 +1848,7 @@ class BuddyApp extends LitElement {
         this.startTime = Date.now();
         
         // Add welcome message to chat
-        const welcomeText = `Hi, How Can I Help You`;
+        const welcomeText = `<div style="text-align: center"><strong>Hi, How Can I Help You?</strong></div>`;
         this.addChatMessage(welcomeText, 'assistant');
     }
 
@@ -1921,8 +1906,8 @@ class BuddyApp extends LitElement {
         this.sessionActive = true;
         
         // Add welcome message to restarted chat
-        const welcomeText = `Hi, how can I help you?`;
-        this.addChatMessage(welcomeText, 'assistant');
+            const welcomeText = `<div style="text-align: center"><strong>Hi, How Can I Help You?</strong></div>`;
+            this.addChatMessage(welcomeText, 'assistant');
     }
 
     // --- Updated Toggle Handlers for Real-time Models Only ---
@@ -2145,7 +2130,7 @@ class BuddyApp extends LitElement {
                         .startTime=${this.startTime}
                         .isAudioActive=${this.isAudioActive}
                         .isScreenActive=${this.isScreenActive}
-                        .modelsByProvider=${BuddyApp.modelsByProvider}
+                        .modelsByProvider=${this.getModelsByProviderForHeader()}
                     ></buddy-header>
                     <div class="main-content">${views[this.currentView]}</div>
                 </div>

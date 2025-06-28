@@ -8,6 +8,7 @@ class BuddyAssistantView extends LitElement {
         attachedScreenshots: { type: Array }, // Array of base64 screenshot data
         autoScreenshotEnabled: { type: Boolean }, // New property for auto screenshot
         isActionsMenuOpen: { type: Boolean },
+        isWaitingForResponse: { type: Boolean }, // New property for loading state
     };
 
     constructor() {
@@ -16,6 +17,7 @@ class BuddyAssistantView extends LitElement {
         this.autoScreenshotEnabled = true; // Enable auto screenshot by default
         this.hasTypedInCurrentSession = false; // Track if user has typed in current input session
         this.isActionsMenuOpen = false;
+        this.isWaitingForResponse = false; // Initialize loading state
         this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
     }
 
@@ -294,6 +296,31 @@ class BuddyAssistantView extends LitElement {
             max-height: 100px;
             line-height: 1.4;
             transition: all 0.2s ease;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+        
+        /* Custom scrollbar for textarea in webkit browsers */
+        .input-row textarea::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .input-row textarea::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .input-row textarea::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            transition: background 0.3s ease;
+        }
+        
+        .input-row textarea::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .input-row textarea::-webkit-scrollbar-corner {
+            background: transparent;
         }
         
         .input-row textarea::placeholder {
@@ -508,6 +535,285 @@ class BuddyAssistantView extends LitElement {
             opacity: 0.7;
             font-size: 12px;
         }
+
+        /* Loading dots animation */
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 16px 20px;
+            margin: 8px 20px;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .loading-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            animation: loadingPulse 1.4s ease-in-out infinite both;
+        }
+
+        .loading-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        .loading-dot:nth-child(3) {
+            animation-delay: 0s;
+        }
+
+        @keyframes loadingPulse {
+            0%, 80%, 100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+            40% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .text-input-container {
+                margin: 0 4px 4px;
+                padding: 8px 8px 8px 12px;
+                border-radius: 20px;
+            }
+            
+            .input-row {
+                gap: 6px;
+                padding-right: 4px;
+            }
+            
+            .input-row textarea {
+                font-size: 14px;
+                padding: 8px 0;
+            }
+            
+            .action-buttons {
+                gap: 6px;
+            }
+            
+            .action-btn {
+                width: 32px;
+                height: 32px;
+                border-radius: 12px;
+                font-size: 14px;
+            }
+            
+            .auto-screenshot-btn {
+                padding: 0 10px;
+                font-size: 10px;
+            }
+            
+            .send-btn {
+                width: 36px;
+                height: 36px;
+                border-radius: 14px;
+                font-size: 16px;
+            }
+            
+            .actions-dropdown {
+                width: 200px;
+                padding: 6px;
+                border-radius: 12px;
+                bottom: calc(100% + 6px);
+            }
+            
+            .dropdown-item {
+                padding: 8px 10px;
+                border-radius: 8px;
+                font-size: 12px;
+                gap: 10px;
+            }
+            
+            .dropdown-item svg {
+                width: 16px;
+                height: 16px;
+            }
+            
+            .dropdown-item-value {
+                font-size: 11px;
+            }
+            
+            .screenshot-count-badge {
+                width: 14px;
+                height: 14px;
+                font-size: 8px;
+                top: -2px;
+                right: -2px;
+            }
+            
+            .screenshots-preview {
+                padding: 8px 4px 10px 0;
+                gap: 8px;
+            }
+            
+            .screenshots-grid {
+                gap: 8px;
+            }
+            
+            .screenshot-item img {
+                width: 50px;
+                height: 38px;
+                border-radius: 6px;
+            }
+            
+            .screenshot-remove {
+                width: 16px;
+                height: 16px;
+                font-size: 10px;
+                top: -2px;
+                right: -2px;
+            }
+            
+            .clear-all-btn {
+                padding: 3px 8px;
+                font-size: 10px;
+                border-radius: 8px;
+            }
+            
+            .chat-container {
+                padding: 16px 12px;
+                gap: 10px;
+            }
+            
+            .welcome-message {
+                padding: 30px 16px;
+                margin: 16px;
+                border-radius: 16px;
+                font-size: 13px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .text-input-container {
+                margin: 0 2px 2px;
+                padding: 6px 6px 6px 10px;
+                border-radius: 18px;
+            }
+            
+            .input-row {
+                gap: 4px;
+                padding-right: 2px;
+            }
+            
+            .input-row textarea {
+                font-size: 13px;
+                padding: 6px 0;
+            }
+            
+            .action-buttons {
+                gap: 4px;
+            }
+            
+            .action-btn {
+                width: 28px;
+                height: 28px;
+                border-radius: 10px;
+                font-size: 12px;
+            }
+            
+            .auto-screenshot-btn {
+                padding: 0 8px;
+                font-size: 9px;
+            }
+            
+            .send-btn {
+                width: 32px;
+                height: 32px;
+                border-radius: 12px;
+                font-size: 14px;
+            }
+            
+            .actions-dropdown {
+                width: 180px;
+                padding: 4px;
+                border-radius: 10px;
+                bottom: calc(100% + 4px);
+            }
+            
+            .dropdown-item {
+                padding: 6px 8px;
+                border-radius: 6px;
+                font-size: 11px;
+                gap: 8px;
+            }
+            
+            .dropdown-item svg {
+                width: 14px;
+                height: 14px;
+            }
+            
+            .dropdown-item-value {
+                font-size: 10px;
+            }
+            
+            .screenshot-count-badge {
+                width: 12px;
+                height: 12px;
+                font-size: 7px;
+            }
+            
+            .screenshots-preview {
+                padding: 6px 2px 8px 0;
+                gap: 6px;
+            }
+            
+            .screenshots-grid {
+                gap: 6px;
+            }
+            
+            .screenshot-item img {
+                width: 45px;
+                height: 34px;
+                border-radius: 5px;
+            }
+            
+            .screenshot-remove {
+                width: 14px;
+                height: 14px;
+                font-size: 9px;
+            }
+            
+            .clear-all-btn {
+                padding: 2px 6px;
+                font-size: 9px;
+                border-radius: 6px;
+            }
+            
+            .chat-container {
+                padding: 12px 8px;
+                gap: 8px;
+            }
+            
+            .welcome-message {
+                padding: 24px 12px;
+                margin: 12px;
+                border-radius: 14px;
+                font-size: 12px;
+            }
+            
+            .loading-indicator {
+                padding: 12px 16px;
+                margin: 6px 12px;
+            }
+            
+            .loading-dot {
+                width: 5px;
+                height: 5px;
+            }
+        }
     `;
 
     async _onCaptureScreenshot() {
@@ -574,6 +880,10 @@ class BuddyAssistantView extends LitElement {
         const text = textarea?.value.trim() || '';
         
         if (text || this.attachedScreenshots.length > 0) {
+            // Set loading state
+            this.isWaitingForResponse = true;
+            this.requestUpdate();
+            
             this.dispatchEvent(new CustomEvent('send-message', { 
                 detail: { 
                     text,
@@ -619,6 +929,12 @@ class BuddyAssistantView extends LitElement {
 
     _onCopy(message) {
         this.dispatchEvent(new CustomEvent('copy-message', { detail: { message }, bubbles: true, composed: true }));
+    }
+
+    // Method to clear loading state when response starts
+    clearLoadingState() {
+        this.isWaitingForResponse = false;
+        this.requestUpdate();
     }
 
     _toggleAutoScreenshot() {
@@ -695,6 +1011,15 @@ class BuddyAssistantView extends LitElement {
                             ></buddy-chat-message>
                           `)
                     }
+                    ${this.isWaitingForResponse ? html`
+                        <div class="loading-indicator">
+                            <div class="loading-dots">
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
                 <div class="text-input-container">
                     ${this.attachedScreenshots.length > 0 ? html`
@@ -782,7 +1107,7 @@ class BuddyAssistantView extends LitElement {
                                 class="send-btn"
                                 @click=${this._onSend}
                                 title="Send message"
-                                ?disabled=${this.isStreamingActive}
+                                ?disabled=${this.isStreamingActive || this.isWaitingForResponse}
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M9 18v-6H5l7-7 7 7h-4v6H9z"/>

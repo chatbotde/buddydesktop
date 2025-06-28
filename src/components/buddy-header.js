@@ -3,14 +3,11 @@ import { html, css, LitElement } from '../lit-core-2.7.4.min.js';
 class BuddyHeader extends LitElement {
     static properties = {
         currentView: { type: String },
-        selectedModel: { type: String },
-        selectedProvider: { type: String },
         sessionActive: { type: Boolean },
         statusText: { type: String },
         startTime: { type: Number },
         isAudioActive: { type: Boolean },
         isScreenActive: { type: Boolean },
-        modelsByProvider: { type: Object },
     };
 
     static styles = css`
@@ -44,24 +41,7 @@ class BuddyHeader extends LitElement {
             text-overflow: ellipsis;
         }
         
-        .model-select {
-            -webkit-app-region: no-drag;
-            margin-left: 6px; 
-            min-width: 120px; 
-            max-width: 180px; 
-            font-size: 13px; 
-            padding: 4px 8px; 
-            border-radius: 6px; 
-            background: oklch(14.7% 0.004 49.25); 
-            color: var(--text-color); 
-            border: var(--glass-border);
-            cursor: pointer;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            max-height: 220px;
-            overflow-y: auto;
-        }
+
         
         .header-actions {
             display: flex;
@@ -346,9 +326,6 @@ class BuddyHeader extends LitElement {
         }
     `;
 
-    _handleModelSelect(e) {
-        this.dispatchEvent(new CustomEvent('model-select', { detail: { model: e.target.value }, bubbles: true, composed: true }));
-    }
     _handleEndSession() {
         this.dispatchEvent(new CustomEvent('end-session', { bubbles: true, composed: true }));
     }
@@ -382,30 +359,10 @@ class BuddyHeader extends LitElement {
         }
         const isLive = this.sessionActive && (this.statusText?.includes('Listening') || this.statusText?.includes('Processing'));
         const statusIndicator = isLive ? 'status-live' : 'status-idle';
-        const modelsByProvider = this.modelsByProvider || {};
-        let allModels = Object.entries(modelsByProvider).flatMap(([provider, models]) =>
-            models.map(model => ({ provider, model }))
-        );
-        const currentProviderModels = allModels.filter(m => m.provider === this.selectedProvider);
-        const otherProviderModels = allModels.filter(m => m.provider !== this.selectedProvider);
-        const groupedModels = [...currentProviderModels, ...otherProviderModels];
         return html`
             <div class="header">
                 <div class="header-title">
                     <span class="header-title-text">${titles[this.currentView]}</span>
-                    <select 
-                        class="model-select"
-                        title="Change AI model" 
-                        .value=${this.selectedModel} 
-                        @change=${this._handleModelSelect}
-                        @click=${(e) => e.stopPropagation()}
-                    >
-                        ${Object.entries(modelsByProvider).map(([provider, models]) => [
-                            html`<optgroup label="${provider.charAt(0).toUpperCase() + provider.slice(1)}">`,
-                            models.map(model => html`<option value=${model} ?selected=${this.selectedModel === model}>${model}</option>`),
-                            html`</optgroup>`
-                        ])}
-                    </select>
                 </div>
                 <div class="header-actions">
                     ${this.currentView === 'assistant'

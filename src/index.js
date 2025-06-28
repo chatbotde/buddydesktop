@@ -41,7 +41,7 @@ function ensureDataDirectories() {
 
 function createWindow() {
     const mainWindow = new BrowserWindow({
-        width: 900,
+        width: 600,
         height: 700,
         frame: false,
         transparent: true,

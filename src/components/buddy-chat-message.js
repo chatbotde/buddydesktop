@@ -334,6 +334,7 @@ class BuddyChatMessage extends LitElement {
             position: relative;
             user-select: text;
             -webkit-user-select: text;
+            font-weight: 600;
         }
         
         .message-content h1, .message-content h2, .message-content h3 {
