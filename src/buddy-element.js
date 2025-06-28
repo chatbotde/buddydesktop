@@ -824,26 +824,7 @@ class BuddyApp extends LitElement {
             justify-content: flex-start;
         }
 
-        .message-wrapper.transparent .message-bubble {
-            background-color: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(5px);
-        }
 
-        .transparency-toggle {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            opacity: 0.7;
-            cursor: pointer;
-            padding: 2px 4px;
-            margin-left: 8px;
-            font-size: 14px;
-            transition: opacity 0.2s;
-        }
-
-        .transparency-toggle:hover {
-            opacity: 1;
-        }
 
         .message-bubble {
             max-width: 100%;
@@ -1432,7 +1413,7 @@ class BuddyApp extends LitElement {
         isScreenActive: { type: Boolean },
         currentTheme: { type: String },
         chatMessages: { type: Array },
-        messageTransparency: { type: Boolean, reflect: true },
+
         selectedModel: { type: String },
         history: { type: Array },
         providers: { type: Array },
@@ -1458,7 +1439,7 @@ class BuddyApp extends LitElement {
         this.isScreenActive = false;
         this.currentTheme = localStorage.getItem('theme') || 'dark';
         this.chatMessages = [];
-        this.messageTransparency = false;
+
         this.selectedModel = localStorage.getItem('selectedModel') || this.getDefaultModelForProvider(this.selectedProvider);
         this.history = (JSON.parse(localStorage.getItem('chatHistory')) || []).slice(0, this.historyLimit);
         this.providers = [
@@ -1578,11 +1559,7 @@ class BuddyApp extends LitElement {
                 this.deleteMessage(e.detail.id);
             }
         });
-        this.addEventListener('toggle-transparency', (e) => {
-            if (e.detail.id) {
-                this.toggleMessageTransparency(e.detail.id);
-            }
-        });
+
         this.addEventListener('close', async () => {
             await this.handleClose();
         });
@@ -1631,11 +1608,10 @@ class BuddyApp extends LitElement {
     loadSessionFromHistory(index) {
         const session = this.history[index];
         if (session) {
-            // Ensure every message has a unique id and boolean transparency property
+            // Ensure every message has a unique id
             this.chatMessages = session.messages.map(msg => ({
                 ...msg,
-                id: msg.id || (Date.now().toString(36) + Math.random().toString(36).slice(2)),
-                transparency: typeof msg.transparency === 'boolean' ? msg.transparency : false
+                id: msg.id || (Date.now().toString(36) + Math.random().toString(36).slice(2))
             }));
             this.selectedProvider = session.provider;
             this.selectedModel = session.model;
@@ -1769,7 +1745,7 @@ class BuddyApp extends LitElement {
                 sender,
                 timestamp,
                 isStreaming,
-                transparency: false,
+
                 screenshots
             }
         ];
@@ -2154,7 +2130,6 @@ class BuddyApp extends LitElement {
             assistant: html`<buddy-assistant-view
                 .chatMessages=${this.chatMessages}
                 .isStreamingActive=${this.isStreamingActive}
-                .messageTransparency=${this.messageTransparency}
             ></buddy-assistant-view>`,
         };
 
@@ -2184,12 +2159,7 @@ class BuddyApp extends LitElement {
         this.requestUpdate();
     }
 
-    toggleMessageTransparency(id) {
-        this.chatMessages = this.chatMessages.map(msg =>
-            msg.id === id ? { ...msg, transparency: !msg.transparency } : msg
-        );
-        this.requestUpdate();
-    }
+
 
     deleteSession(index) {
         this.history = this.history.filter((_, i) => i !== index);
