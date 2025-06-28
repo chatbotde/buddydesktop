@@ -159,11 +159,49 @@ class BuddyChatMessage extends LitElement {
         const withCodeBlocks = this._formatCodeBlocks(text);
         
         // Then process with marked for other markdown
+        let processedContent;
         if (window.marked) {
-            return window.marked.parse(withCodeBlocks);
+            processedContent = window.marked.parse(withCodeBlocks);
+        } else {
+            processedContent = withCodeBlocks;
         }
         
-        return withCodeBlocks;
+        // Add event listeners to links after processing
+        setTimeout(() => this._setupLinkHandlers(), 0);
+        
+        return processedContent;
+    }
+
+    async _openExternalLink(url) {
+        try {
+            await window.buddy.openExternal(url);
+        } catch (error) {
+            console.error('Failed to open external link:', error);
+        }
+    }
+
+    _setupLinkHandlers() {
+        const messageContent = this.shadowRoot.querySelector('.message-content');
+        if (!messageContent) return;
+
+        const links = messageContent.querySelectorAll('a[href]');
+        links.forEach(link => {
+            // Remove any existing click handlers
+            link.removeEventListener('click', this._handleLinkClick);
+            
+            // Add our custom click handler
+            link.addEventListener('click', this._handleLinkClick.bind(this));
+        });
+    }
+
+    _handleLinkClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const url = e.target.href || e.target.getAttribute('href');
+        if (url) {
+            this._openExternalLink(url);
+        }
     }
 
     static styles = css`
@@ -187,7 +225,7 @@ class BuddyChatMessage extends LitElement {
         }
         
         .message-bubble {
-            max-width: 80%;
+            max-width: 100%;
             padding: 12px 16px;
             border-radius: 18px;
             word-wrap: break-word;
@@ -593,11 +631,13 @@ class BuddyChatMessage extends LitElement {
             text-decoration: none;
             border-bottom: 1px solid rgba(135, 206, 235, 0.3);
             transition: all 0.2s ease;
+            cursor: pointer;
         }
         
         .message-content a:hover {
             color: rgba(135, 206, 235, 1);
             border-bottom-color: rgba(135, 206, 235, 0.6);
+            transform: translateY(-1px);
         }
         
         /* List styling */

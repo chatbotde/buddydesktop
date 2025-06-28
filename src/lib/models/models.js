@@ -121,6 +121,39 @@ const models = [
         description: 'Claude 3.5 Sonnet is Anthropic\'s most capable model with text and image understanding.',
         url: 'https://anthropic.com/models/claude-3-5-sonnet-20241022',
     },
+    {
+        id: 'claude-sonnet-4-20250514',
+        name: 'Claude Sonnet 4',
+        provider: 'anthropic',
+        type: 'llm',
+        live: false,
+        capabilities: {
+            text: true,
+            image: true,
+            audio: false,
+            video: false,
+            realtime: false
+        },
+        description: 'Claude Sonnet 4 is Anthropic\'s most capable model with text and image understanding.',
+        url: 'https://anthropic.com/models/claude-sonnet-4-20250514',
+    },
+
+    {
+        id: 'claude-opus-4-20250514',
+        name: 'Claude Opus 4',
+        provider: 'anthropic',
+        type: 'llm',
+        live: false,
+        capabilities: {
+            text: true,
+            image: true,
+            audio: false,
+            video: false,
+            realtime: false
+        },
+        description: 'Claude Opus 4 is Anthropic\'s most capable model with text and image understanding.',
+        url: 'https://anthropic.com/models/claude-opus-4-20250514',
+    },
 
     // DeepSeek Models
     {
