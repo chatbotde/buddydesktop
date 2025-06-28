@@ -134,6 +134,24 @@ class BuddyMainView extends LitElement {
             transform: translateY(-1px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
+
+        .link-button {
+            background: transparent;
+            color: var(--link-color, #007aff);
+            border: none;
+            padding: 0;
+            font-size: inherit;
+            text-decoration: underline;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .link-button:hover {
+            color: var(--link-color, #0056b3);
+            text-decoration: none;
+            transform: none;
+            box-shadow: none;
+        }
     `;
 
     _onProviderSelect(e) {
@@ -147,6 +165,14 @@ class BuddyMainView extends LitElement {
     }
     _onStartSession() {
         this.dispatchEvent(new CustomEvent('start-session', { bubbles: true, composed: true }));
+    }
+
+    async _openExternalLink(url) {
+        try {
+            await window.buddy.openExternal(url);
+        } catch (error) {
+            console.error('Failed to open external link:', error);
+        }
     }
 
     render() {
@@ -192,7 +218,7 @@ class BuddyMainView extends LitElement {
                             <button @click=${this._onStartSession} class="button start-button" style="font-size: 15px">Start Session</button>
                         </div>
                         <div class="description">
-                            Don't have an API key? Go to <a href="https://aistudio.google.com" target="_blank">Google AI Studio</a>.
+                            Don't have an API key? <button class="link-button" @click=${() => this._openExternalLink('https://aistudio.google.com')}>Go to Google AI Studio</button>
                         </div>
                     </div>
                 </div>

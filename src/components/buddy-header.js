@@ -26,28 +26,63 @@ class BuddyHeader extends LitElement {
             -webkit-backdrop-filter: blur(20px);
             box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
         }
+        
         .header-title {
             flex: 1;
             font-size: 16px;
             font-weight: 600;
             -webkit-app-region: drag;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0; /* Allow shrinking */
         }
+        
+        .header-title-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .model-select {
+            -webkit-app-region: no-drag;
+            margin-left: 6px; 
+            min-width: 120px; 
+            max-width: 180px; 
+            font-size: 13px; 
+            padding: 4px 8px; 
+            border-radius: 6px; 
+            background: oklch(14.7% 0.004 49.25); 
+            color: var(--text-color); 
+            border: var(--glass-border);
+            cursor: pointer;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        
         .header-actions {
             display: flex;
             gap: 8px;
             align-items: center;
             -webkit-app-region: no-drag;
+            flex-shrink: 0;
         }
+        
         .header-actions span {
             font-size: 13px;
             color: var(--text-color);
             opacity: 0.8;
         }
+        
         .status-container {
             display: flex;
             align-items: center;
             gap: 5px;
         }
+        
         .status-indicator {
             display: inline-block;
             width: 8px;
@@ -55,14 +90,17 @@ class BuddyHeader extends LitElement {
             border-radius: 50%;
             margin-right: 6px;
         }
+        
         .status-live {
             background-color: #4ade80;
             box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
         }
+        
         .status-idle {
             background-color: #fbbf24;
             box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
         }
+        
         .button, .session-button {
             background: var(--button-background);
             color: var(--text-color);
@@ -76,18 +114,22 @@ class BuddyHeader extends LitElement {
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
         }
+        
         .button:hover, .session-button:hover {
             background: var(--button-background);
             border-color: var(--button-border);
             transform: translateY(-1px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
+        
         .session-button.start, .session-button.end {
             background: var(--button-background);
             color: var(--text-color);
             border: var(--glass-border);
         }
+        
         .icon-button {
             background: var(--button-background);
             color: var(--text-color);
@@ -102,16 +144,205 @@ class BuddyHeader extends LitElement {
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            min-height: 40px;
         }
+        
         .icon-button:hover {
             background: var(--button-background);
             color: var(--text-color);
             transform: translateY(-1px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
+        
         button:disabled {
             opacity: 0.5;
             transform: none;
+        }
+        
+        .status-text {
+            min-width: 50px; 
+            text-align: right; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
+        }
+        
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .header {
+                padding: 8px 12px;
+                border-radius: 12px 12px 0 0;
+            }
+            
+            .header-title {
+                font-size: 14px;
+                gap: 6px;
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .header-title-text {
+                font-size: 14px;
+            }
+            
+            .model-select {
+                min-width: 100px;
+                max-width: 140px;
+                font-size: 12px;
+                padding: 3px 6px;
+                margin-left: 4px;
+            }
+            
+            .header-actions {
+                gap: 6px;
+            }
+            
+            .header-actions span {
+                font-size: 12px;
+            }
+            
+            .status-container {
+                gap: 4px;
+            }
+            
+            .status-indicator {
+                width: 6px;
+                height: 6px;
+                margin-right: 4px;
+            }
+            
+            .button, .session-button {
+                padding: 6px 12px;
+                font-size: 12px;
+                border-radius: 10px;
+            }
+            
+            .icon-button {
+                padding: 6px;
+                border-radius: 10px;
+                min-width: 36px;
+                min-height: 36px;
+            }
+            
+            .icon-button svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .status-text {
+                min-width: 40px;
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header {
+                padding: 6px 10px;
+                border-radius: 10px 10px 0 0;
+            }
+            
+            .header-title {
+                font-size: 13px;
+                gap: 4px;
+            }
+            
+            .header-title-text {
+                font-size: 13px;
+                max-width: 80px;
+            }
+            
+            .model-select {
+                min-width: 80px;
+                max-width: 120px;
+                font-size: 11px;
+                padding: 2px 4px;
+                margin-left: 2px;
+            }
+            
+            .header-actions {
+                gap: 4px;
+            }
+            
+            .header-actions span {
+                font-size: 11px;
+            }
+            
+            .status-container {
+                gap: 3px;
+            }
+            
+            .button, .session-button {
+                padding: 5px 10px;
+                font-size: 11px;
+                border-radius: 8px;
+            }
+            
+            .icon-button {
+                padding: 5px;
+                border-radius: 8px;
+                min-width: 32px;
+                min-height: 32px;
+            }
+            
+            .icon-button svg {
+                width: 18px;
+                height: 18px;
+            }
+            
+            .status-text {
+                display: none; /* Hide status text on very small screens */
+            }
+            
+            /* Hide elapsed time on very small screens */
+            .header-actions > span:first-child {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .header {
+                padding: 5px 8px;
+            }
+            
+            .header-title-text {
+                max-width: 60px;
+            }
+            
+            .model-select {
+                min-width: 70px;
+                max-width: 100px;
+                font-size: 10px;
+            }
+            
+            .header-actions {
+                gap: 3px;
+            }
+            
+            .button, .session-button {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
+            
+            .icon-button {
+                padding: 4px;
+                min-width: 28px;
+                min-height: 28px;
+            }
+            
+            .icon-button svg {
+                width: 16px;
+                height: 16px;
+            }
+            
+            /* Further simplify on very small screens */
+            .status-indicator {
+                width: 5px;
+                height: 5px;
+                margin-right: 3px;
+            }
         }
     `;
 
@@ -160,28 +391,11 @@ class BuddyHeader extends LitElement {
         const groupedModels = [...currentProviderModels, ...otherProviderModels];
         return html`
             <div class="header">
-                <div class="header-title" style="display: flex; align-items: center; gap: 8px; -webkit-app-region: drag;">
-                    ${titles[this.currentView]}
+                <div class="header-title">
+                    <span class="header-title-text">${titles[this.currentView]}</span>
                     <select 
+                        class="model-select"
                         title="Change AI model" 
-                        style="
-                            -webkit-app-region: no-drag;
-                            margin-left: 6px; 
-                            min-width: 120px; 
-                            max-width: 180px; 
-                            font-size: 13px; 
-                            padding: 4px 8px; 
-                            border-radius: 6px; 
-                            background: oklch(14.7% 0.004 49.25); 
-                            color: var(--text-color); 
-                            border: var(--glass-border);
-                            cursor: pointer;
-                            z-index: 1000;
-                            backdrop-filter: blur(10px);
-                            -webkit-backdrop-filter: blur(10px);
-                            max-height: 220px;
-                            overflow-y: auto;
-                        " 
                         .value=${this.selectedModel} 
                         @change=${this._handleModelSelect}
                         @click=${(e) => e.stopPropagation()}
@@ -204,22 +418,6 @@ class BuddyHeader extends LitElement {
                                             <button class="session-button end" @click=${this._handleEndSession} title="End Session">
                                                 ■ End
                                             </button>
-                                            <button 
-                                                class="icon-button" 
-                                                @click=${this._handleToggleAudio} 
-                                                title=${this.isAudioActive ? 'Pause Audio Listening' : 'Resume Audio Listening'}
-                                                style="color: ${this.isAudioActive ? 'var(--text-color)' : '#f36a6a'}; font-size: 16px; font-weight: bold;"
-                                            >
-                                                A
-                                            </button>
-                                            <button 
-                                                class="icon-button" 
-                                                @click=${this._handleToggleScreen} 
-                                                title=${this.isScreenActive ? 'Pause Screen Viewing' : 'Resume Screen Viewing'}
-                                                style="color: ${this.isScreenActive ? 'var(--text-color)' : '#f36a6a'}; font-size: 16px; font-weight: bold;"
-                                            >
-                                                I
-                                            </button>
                                         `
                                       : html`
                                             <button class="session-button start" @click=${this._handleStartSession} title="Start Session">
@@ -227,7 +425,7 @@ class BuddyHeader extends LitElement {
                                             </button>
                                         `}
                               </div>
-                              <span style="min-width: 50px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.statusText}</span>
+                              <span class="status-text">${this.statusText}</span>
                           `
                         : ''}
                     ${this.currentView === 'main'

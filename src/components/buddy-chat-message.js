@@ -13,6 +13,157 @@ class BuddyChatMessage extends LitElement {
     constructor() {
         super();
         this.showCopyButton = false;
+        this._loadHighlightJS();
+    }
+
+    async _loadHighlightJS() {
+        // Load highlight.js if not already loaded
+        if (!window.hljs) {
+            try {
+                // Load highlight.js script
+                const script = document.createElement('script');
+                script.src = './highlight.min.js';
+                script.onload = () => {
+                    // Load CSS
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = './highlight.min.css';
+                    document.head.appendChild(link);
+                    this.requestUpdate();
+                };
+                document.head.appendChild(script);
+            } catch (error) {
+                console.warn('Failed to load highlight.js:', error);
+            }
+        }
+    }
+
+    _detectLanguage(code) {
+        // Simple language detection based on common patterns
+        const patterns = {
+            javascript: /(?:function|const|let|var|=>|console\.log|require|import|export)/,
+            python: /(?:def |import |from |print\(|if __name__|class |self\.)/,
+            java: /(?:public class|private |public static|System\.out)/,
+            cpp: /(?:#include|std::|cout|cin|int main)/,
+            csharp: /(?:using System|public class|private |Console\.WriteLine)/,
+            html: /(?:<html|<div|<span|<p>|<!DOCTYPE)/,
+            css: /(?:\{[\s\S]*\}|@media|@import|\.[\w-]+\s*\{)/,
+            sql: /(?:SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP)/i,
+            json: /^\s*[\{\[]/,
+            xml: /^\s*<\\?xml|<[a-zA-Z]/,
+            bash: /(?:#!\/bin\/bash|sudo |apt-get|npm |yarn |git )/,
+            php: /(?:<\\?php|\$[a-zA-Z_])/,
+            ruby: /(?:def |class |require |puts |end$)/,
+            go: /(?:package |func |import |fmt\.)/,
+            rust: /(?:fn |let |pub |use |match |impl)/,
+            swift: /(?:func |var |let |import |class |struct)/,
+            kotlin: /(?:fun |val |var |class |package |import)/,
+            typescript: /(?:interface |type |enum |namespace |declare)/
+        };
+
+        for (const [lang, pattern] of Object.entries(patterns)) {
+            if (pattern.test(code)) {
+                return lang;
+            }
+        }
+
+        return 'text';
+    }
+
+    _formatCodeBlocks(content) {
+        if (!content) return '';
+
+        // Enhanced regex to capture code blocks with optional language
+        const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g;
+        
+        return content.replace(codeBlockRegex, (match, language, code) => {
+            const trimmedCode = code.trim();
+            const detectedLang = language || this._detectLanguage(trimmedCode);
+            const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+            
+            let highlightedCode = trimmedCode;
+            
+            // Apply syntax highlighting if hljs is available
+            if (window.hljs && detectedLang !== 'text') {
+                try {
+                    if (window.hljs.getLanguage(detectedLang)) {
+                        highlightedCode = window.hljs.highlight(trimmedCode, { language: detectedLang }).value;
+                    } else {
+                        highlightedCode = window.hljs.highlightAuto(trimmedCode).value;
+                    }
+                } catch (error) {
+                    console.warn('Highlighting failed:', error);
+                    highlightedCode = this._escapeHtml(trimmedCode);
+                }
+            } else {
+                highlightedCode = this._escapeHtml(trimmedCode);
+            }
+
+            const header = `<div class="code-block-header"><span class="code-language">${detectedLang}</span></div>`;
+            const preformattedCode = `<pre class="code-block"><code id="${codeId}" class="hljs ${detectedLang}">${highlightedCode}</code></pre>`;
+            const copyButton = `<button class="code-copy-btn" onclick="this.getRootNode().host._copyCode('${codeId}')" title="Copy code">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                    Copy
+                                </button>`;
+
+            return `
+                <div class="code-block-container">
+                    ${header}
+                    ${preformattedCode}
+                    ${copyButton}
+                </div>
+            `;
+        });
+    }
+
+    _escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    _copyCode(codeId) {
+        const codeElement = this.shadowRoot.getElementById(codeId);
+        if (codeElement) {
+            const code = codeElement.textContent || codeElement.innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                // Show feedback
+                const copyBtn = this.shadowRoot.querySelector(`[onclick*="${codeId}"]`);
+                if (copyBtn) {
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = `
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20,6 9,17 4,12"></polyline>
+                        </svg>
+                        Copied!
+                    `;
+                    copyBtn.style.color = '#4ade80';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                        copyBtn.style.color = '';
+                    }, 2000);
+                }
+            }).catch(err => {
+                console.error('Failed to copy code:', err);
+            });
+        }
+    }
+
+    _processMessageContent(text) {
+        if (!text) return '';
+        
+        // First, format code blocks
+        const withCodeBlocks = this._formatCodeBlocks(text);
+        
+        // Then process with marked for other markdown
+        if (window.marked) {
+            return window.marked.parse(withCodeBlocks);
+        }
+        
+        return withCodeBlocks;
     }
 
     static styles = css`
@@ -172,6 +323,124 @@ class BuddyChatMessage extends LitElement {
             overflow-x: auto;
             border: 1px solid rgba(255, 255, 255, 0.1);
             margin: 10px 0;
+        }
+        
+        /* Enhanced code block styles */
+        .code-block-container {
+            margin: 12px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+        
+        .code-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .code-language {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .code-copy-btn {
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .code-block-container:hover .code-copy-btn {
+            opacity: 0.7;
+            pointer-events: all;
+        }
+        
+        .code-copy-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+            opacity: 1;
+            transform: translateY(-1px);
+        }
+        
+        .code-block {
+            margin: 0;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            border: none;
+        }
+        
+        .code-block code {
+            background: transparent;
+            border: none;
+            padding: 0;
+            font-size: inherit;
+            color: inherit;
+        }
+        
+        /* Syntax highlighting theme adjustments */
+        .hljs {
+            background: transparent !important;
+            color: #e6e6e6;
+        }
+        
+        .hljs-keyword {
+            color: #c792ea;
+        }
+        
+        .hljs-string {
+            color: #c3e88d;
+        }
+        
+        .hljs-number {
+            color: #f78c6c;
+        }
+        
+        .hljs-comment {
+            color: #546e7a;
+            font-style: italic;
+        }
+        
+        .hljs-function {
+            color: #82aaff;
+        }
+        
+        .hljs-variable {
+            color: #eeffff;
+        }
+        
+        .hljs-attr {
+            color: #ffcb6b;
+        }
+        
+        .hljs-tag {
+            color: #f07178;
         }
         
         .message-content blockquote {
@@ -590,7 +859,7 @@ class BuddyChatMessage extends LitElement {
                     ${this.text ? html`
                         <div class="message-content">
                             ${this.sender === 'assistant' 
-                                ? html`<div .innerHTML=${window.marked ? window.marked.parse(this.text || '') : this.text}></div>`
+                                ? html`<div .innerHTML=${this._processMessageContent(this.text)}></div>`
                                 : html`<div>${this.text}</div>`
                             }
                             ${this.isStreaming ? html`

@@ -7,6 +7,7 @@ class BuddyAssistantView extends LitElement {
         isStreamingActive: { type: Boolean },
         attachedScreenshots: { type: Array }, // Array of base64 screenshot data
         autoScreenshotEnabled: { type: Boolean }, // New property for auto screenshot
+        isActionsMenuOpen: { type: Boolean },
     };
 
     constructor() {
@@ -14,6 +15,43 @@ class BuddyAssistantView extends LitElement {
         this.attachedScreenshots = [];
         this.autoScreenshotEnabled = true; // Enable auto screenshot by default
         this.hasTypedInCurrentSession = false; // Track if user has typed in current input session
+        this.isActionsMenuOpen = false;
+        this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        document.removeEventListener('click', this.boundOutsideClickHandler);
+    }
+
+    _toggleActionsMenu() {
+        this.isActionsMenuOpen = !this.isActionsMenuOpen;
+        this.requestUpdate();
+        if (this.isActionsMenuOpen) {
+            setTimeout(() => {
+                document.addEventListener('click', this.boundOutsideClickHandler);
+            }, 0);
+        } else {
+            document.removeEventListener('click', this.boundOutsideClickHandler);
+        }
+    }
+
+    _closeActionsMenu() {
+        if (this.isActionsMenuOpen) {
+            this.isActionsMenuOpen = false;
+            document.removeEventListener('click', this.boundOutsideClickHandler);
+            this.requestUpdate();
+        }
+    }
+
+    _handleOutsideClick(e) {
+        if (!this.renderRoot.querySelector('.actions-dropdown-container')?.contains(e.target)) {
+            this._closeActionsMenu();
+        }
     }
 
     static styles = css`
@@ -54,72 +92,72 @@ class BuddyAssistantView extends LitElement {
         }
         
         .chat-container::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 2px;
             transition: background 0.3s ease;
         }
         
         .chat-container::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.5);
         }
         
         .welcome-message {
             text-align: center;
-            padding: 30px 20px;
-            opacity: 0.7;
+            padding: 40px 20px;
+            opacity: 0.8;
             font-size: 14px;
             line-height: 1.6;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            margin: 20px;
         }
         
         .text-input-container {
             display: flex;
             flex-direction: column;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 10px 10px 10px 16px;
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+                0 4px 30px rgba(0, 0, 0, 0.1),
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             position: sticky;
-            bottom: 12px;
+            bottom: 8px;
             z-index: 10;
-            margin: 0 12px 12px;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            margin: 0 8px 8px;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             transition: all 0.3s ease;
         }
         
         .text-input-container:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
             box-shadow: 
-                0 12px 40px rgba(0, 0, 0, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+                0 6px 35px rgba(0, 0, 0, 0.15),
+                inset 0 1px 1px rgba(255, 255, 255, 0.15);
         }
         
         .text-input-container:focus-within {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
             box-shadow: 
-                0 16px 48px rgba(0, 0, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2),
-                0 0 0 1px rgba(255, 255, 255, 0.1);
-            transform: translateY(-1px);
+                0 8px 40px rgba(0, 0, 0, 0.2),
+                inset 0 1px 1px rgba(255, 255, 255, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.08);
+            transform: translateY(0);
         }
         
         .screenshots-preview {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            padding: 10px 0 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            margin-bottom: 10px;
+            padding: 10px 6px 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            margin-bottom: 8px;
         }
         
         .screenshots-header {
@@ -141,6 +179,10 @@ class BuddyAssistantView extends LitElement {
         .screenshot-count::before {
             content: "📷";
             font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
         }
         
         .clear-all-btn {
@@ -159,8 +201,8 @@ class BuddyAssistantView extends LitElement {
         
         .clear-all-btn:hover {
             opacity: 1;
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
         }
         
         .screenshots-grid {
@@ -186,15 +228,15 @@ class BuddyAssistantView extends LitElement {
             height: 45px;
             object-fit: cover;
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
         
         .screenshot-item img:hover {
-            border-color: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
             transform: scale(1.05);
         }
         
@@ -235,6 +277,7 @@ class BuddyAssistantView extends LitElement {
             display: flex;
             align-items: flex-end;
             gap: 10px;
+            padding-right: 6px;
         }
         
         .input-row textarea {
@@ -264,29 +307,33 @@ class BuddyAssistantView extends LitElement {
         
         .action-buttons {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             align-items: center;
-            padding-bottom: 2px;
+            padding-bottom: 4px;
         }
         
         .action-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             color: var(--text-color);
             font-size: 16px;
             cursor: pointer;
-            border-radius: 12px;
-            padding: 8px;
+            border-radius: 14px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             transition: all 0.3s ease;
-            opacity: 0.7;
+            opacity: 0.8;
             position: relative;
             backdrop-filter: blur(10px);
         }
         
         .action-btn:hover:not(:disabled):not(.at-limit) {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.2);
             opacity: 1;
-            border-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.25);
             transform: translateY(-1px);
         }
         
@@ -298,18 +345,22 @@ class BuddyAssistantView extends LitElement {
         }
         
         .auto-screenshot-btn {
-            font-size: 18px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            width: auto;
+            padding: 0 14px;
         }
         
         .auto-screenshot-btn.active {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.25);
-            color: #4ade80;
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #fff;
         }
         
         .auto-screenshot-btn.active:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.35);
         }
         
         .screenshot-count-badge {
@@ -328,24 +379,32 @@ class BuddyAssistantView extends LitElement {
             font-size: 9px;
             font-weight: bold;
             backdrop-filter: blur(10px);
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
         }
         
         .send-btn {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            color: var(--text-color);
+            color: #fff;
             font-size: 18px;
             cursor: pointer;
-            border-radius: 14px;
-            padding: 10px;
+            border-radius: 16px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
+            opacity: 0.9;
         }
         
         .send-btn:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.3);
-            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.35);
+            transform: translateY(-1px) scale(1.05);
+            opacity: 1;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .send-btn:disabled {
@@ -353,6 +412,9 @@ class BuddyAssistantView extends LitElement {
             cursor: not-allowed;
             background: rgba(255, 255, 255, 0.05);
             transform: none;
+            border-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            box-shadow: none;
         }
         
         /* Smooth fade-in animation for messages */
@@ -377,9 +439,79 @@ class BuddyAssistantView extends LitElement {
             outline: 2px solid rgba(255, 255, 255, 0.4);
             outline-offset: 2px;
         }
+
+        .actions-dropdown-container {
+            position: relative;
+        }
+
+        .actions-dropdown {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            right: 0;
+            background: rgba(40, 40, 40, 0.85);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 20;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.15s ease-out;
+            width: 240px;
+        }
+
+        .dropdown-item {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 9px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: left;
+            width: 100%;
+        }
+
+        .dropdown-item:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .dropdown-item:disabled,
+        .dropdown-item.at-limit {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .dropdown-item svg {
+            width: 18px;
+            height: 18px;
+            opacity: 0.8;
+            stroke-width: 1.8;
+            flex-shrink: 0;
+        }
+
+        .dropdown-item-label {
+            flex-grow: 1;
+        }
+
+        .dropdown-item-value {
+            opacity: 0.7;
+            font-size: 12px;
+        }
     `;
 
     async _onCaptureScreenshot() {
+        this._closeActionsMenu();
         if (this.attachedScreenshots.length >= 3) {
             console.warn('Maximum of 3 screenshots allowed');
             return;
@@ -493,6 +625,36 @@ class BuddyAssistantView extends LitElement {
         this.autoScreenshotEnabled = !this.autoScreenshotEnabled;
         this.requestUpdate();
         console.log('Auto screenshot:', this.autoScreenshotEnabled ? 'enabled' : 'disabled');
+        this._closeActionsMenu();
+    }
+
+    _onUploadImageClick() {
+        this.renderRoot.querySelector('#fileInput').click();
+        this._closeActionsMenu();
+    }
+
+    _handleFileSelect(e) {
+        const file = e.target.files[0];
+        if (!file) {
+            return;
+        }
+
+        if (this.attachedScreenshots.length >= 3) {
+            console.warn('Maximum of 3 images allowed');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            // event.target.result is the base64-encoded string
+            const base64String = event.target.result.split(',')[1];
+            this.attachedScreenshots = [...this.attachedScreenshots, base64String];
+            this.requestUpdate();
+        };
+        reader.readAsDataURL(file);
+
+        // Reset file input to allow selecting the same file again
+        e.target.value = '';
     }
 
     render() {
@@ -500,6 +662,13 @@ class BuddyAssistantView extends LitElement {
         
         return html`
             <div class="assistant-view-root">
+                <input 
+                    type="file" 
+                    id="fileInput" 
+                    hidden 
+                    accept="image/*" 
+                    @change=${this._handleFileSelect}
+                />
                 <div class="chat-container">
                     ${!this.chatMessages || this.chatMessages.length === 0 
                         ? html`
@@ -531,8 +700,8 @@ class BuddyAssistantView extends LitElement {
                     ${this.attachedScreenshots.length > 0 ? html`
                         <div class="screenshots-preview">
                             <div class="screenshots-header">
-                                <span class="screenshot-count">${this.attachedScreenshots.length}/3 screenshots</span>
-                                <button class="clear-all-btn" @click=${this._onClearAllScreenshots} title="Clear all screenshots">
+                                <span class="screenshot-count">${this.attachedScreenshots.length}/3 images</span>
+                                <button class="clear-all-btn" @click=${this._onClearAllScreenshots} title="Clear all images">
                                     Clear all
                                 </button>
                             </div>
@@ -541,14 +710,14 @@ class BuddyAssistantView extends LitElement {
                                     <div class="screenshot-item">
                                         <img 
                                             src="data:image/jpeg;base64,${screenshot}" 
-                                            alt="Screenshot ${index + 1}" 
+                                            alt="Attached image ${index + 1}" 
                                             @click=${() => this._onViewScreenshot(screenshot)}
                                             title="Click to view full size"
                                         />
                                         <button 
                                             class="screenshot-remove" 
                                             @click=${() => this._onRemoveScreenshot(index)}
-                                            title="Remove screenshot"
+                                            title="Remove image"
                                         >
                                             ×
                                         </button>
@@ -567,27 +736,48 @@ class BuddyAssistantView extends LitElement {
                             @input=${this._onTextInput}
                         ></textarea>
                         <div class="action-buttons">
-                            <button
-                                class="action-btn auto-screenshot-btn ${this.autoScreenshotEnabled ? 'active' : ''}"
-                                @click=${this._toggleAutoScreenshot}
-                                title=${this.autoScreenshotEnabled ? 'Disable auto screenshot' : 'Enable auto screenshot'}
-                            >
-                                ${this.autoScreenshotEnabled ? '📸' : '📷'}
-                            </button>
-                            <button
-                                class="action-btn ${isAtLimit ? 'at-limit' : ''}"
-                                @click=${this._onCaptureScreenshot}
-                                title=${isAtLimit ? 'Maximum 3 screenshots allowed' : 'Capture screenshot manually'}
-                                ?disabled=${this.isStreamingActive || isAtLimit}
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
-                                    <circle cx="12" cy="13" r="3"></circle>
-                                </svg>
-                                ${this.attachedScreenshots.length > 0 ? html`
-                                    <span class="screenshot-count-badge">${this.attachedScreenshots.length}</span>
+                             <div class="actions-dropdown-container">
+                                <button 
+                                    class="action-btn"
+                                    @click=${this._toggleActionsMenu}
+                                    title="More actions"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+                                    ${this.attachedScreenshots.length > 0 ? html`
+                                        <span class="screenshot-count-badge">${this.attachedScreenshots.length}</span>
+                                    ` : ''}
+                                </button>
+
+                                ${this.isActionsMenuOpen ? html`
+                                    <div class="actions-dropdown">
+                                        <button class="dropdown-item" @click=${this._toggleAutoScreenshot}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5v3m0 9v3m4.5-10.5l-2.12 2.12M6.62 17.38l-2.12 2.12M19.5 12h-3m-9 0H4.5m10.5 2.12-2.12 2.12M6.62 6.62 4.5 4.5"/></svg>
+                                            <span class="dropdown-item-label">Auto-screenshot</span>
+                                            <span class="dropdown-item-value">${this.autoScreenshotEnabled ? 'ON' : 'OFF'}</span>
+                                        </button>
+                                        <button
+                                            class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
+                                            @click=${this._onUploadImageClick}
+                                            ?disabled=${this.isStreamingActive || isAtLimit}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                                            <span class="dropdown-item-label">Attach image</span>
+                                        </button>
+                                        <button
+                                            class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
+                                            @click=${this._onCaptureScreenshot}
+                                            ?disabled=${this.isStreamingActive || isAtLimit}
+                                        >
+                                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                                                <circle cx="12" cy="13" r="3"></circle>
+                                            </svg>
+                                            <span class="dropdown-item-label">Capture screenshot</span>
+                                        </button>
+                                    </div>
                                 ` : ''}
-                            </button>
+                            </div>
+                           
                             <button
                                 class="send-btn"
                                 @click=${this._onSend}

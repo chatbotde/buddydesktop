@@ -495,6 +495,15 @@ window.buddy = {
     resumeAudio,
     pauseScreen,
     resumeScreen,
+    openExternal: async (url) => {
+        try {
+            const result = await ipcRenderer.invoke('open-external', url);
+            return result;
+        } catch (error) {
+            console.error('Error opening external URL:', error);
+            throw error;
+        }
+    },
 };
 
 // --- New Pause/Resume Functions ---
