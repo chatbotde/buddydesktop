@@ -870,6 +870,29 @@ class BuddyChatMessage extends LitElement {
         }
     }
 
+    updated(changedProperties) {
+        super.updated(changedProperties);
+        
+        // Notify parent when assistant message starts (has content for first time)
+        if (this.sender === 'assistant' && changedProperties.has('text')) {
+            const hadContent = changedProperties.get('text');
+            const hasContentNow = !!this.text;
+            
+            // Only trigger on first content appearance (when streaming starts)
+            if (!hadContent && hasContentNow) {
+                this.dispatchEvent(new CustomEvent('message-content-updated', {
+                    detail: { 
+                        id: this.id,
+                        isStreaming: this.isStreaming,
+                        hasContent: true
+                    },
+                    bubbles: true,
+                    composed: true
+                }));
+            }
+        }
+    }
+
     render() {
         const hasScreenshots = this.screenshots && Array.isArray(this.screenshots) && this.screenshots.length > 0;
         

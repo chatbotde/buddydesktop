@@ -9,6 +9,7 @@ class BuddyAssistantView extends LitElement {
         autoScreenshotEnabled: { type: Boolean }, // New property for auto screenshot
         isActionsMenuOpen: { type: Boolean },
         isWaitingForResponse: { type: Boolean }, // New property for loading state
+
     };
 
     constructor() {
@@ -19,15 +20,22 @@ class BuddyAssistantView extends LitElement {
         this.isActionsMenuOpen = false;
         this.isWaitingForResponse = false; // Initialize loading state
         this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
+        // Simple auto-scroll for input/output visibility
+        this.isUserScrolledUp = false;
     }
 
     connectedCallback() {
         super.connectedCallback();
+        // Set up scroll listener to detect when user scrolls up
+        this.updateComplete.then(() => {
+            this._setupScrollListener();
+        });
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         document.removeEventListener('click', this.boundOutsideClickHandler);
+        this._cleanupScrollListener();
     }
 
     _toggleActionsMenu() {
@@ -54,6 +62,53 @@ class BuddyAssistantView extends LitElement {
         if (!this.renderRoot.querySelector('.actions-dropdown-container')?.contains(e.target)) {
             this._closeActionsMenu();
         }
+    }
+
+    _setupScrollListener() {
+        const chatContainer = this.renderRoot.querySelector('.chat-container');
+        if (!chatContainer) return;
+
+        this.boundScrollHandler = this._handleScroll.bind(this);
+        chatContainer.addEventListener('scroll', this.boundScrollHandler);
+    }
+
+    _cleanupScrollListener() {
+        const chatContainer = this.renderRoot.querySelector('.chat-container');
+        if (chatContainer && this.boundScrollHandler) {
+            chatContainer.removeEventListener('scroll', this.boundScrollHandler);
+        }
+    }
+
+    _handleScroll() {
+        const chatContainer = this.renderRoot.querySelector('.chat-container');
+        if (!chatContainer) return;
+
+        const scrollTop = chatContainer.scrollTop;
+        const scrollHeight = chatContainer.scrollHeight;
+        const clientHeight = chatContainer.clientHeight;
+        const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
+
+        // Consider user "scrolled up" if they're more than 50px from bottom
+        this.isUserScrolledUp = distanceFromBottom > 50;
+    }
+
+    _scrollToShowLatestMessage(force = false) {
+        // Simple scroll to show the latest message
+        const chatContainer = this.renderRoot.querySelector('.chat-container');
+        if (!chatContainer) return;
+
+        // Don't auto-scroll if user has scrolled up (unless forced)
+        if (this.isUserScrolledUp && !force) {
+            return;
+        }
+
+        // Use a slight delay to ensure DOM is updated
+        setTimeout(() => {
+            chatContainer.scrollTo({
+                top: chatContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+        }, 100);
     }
 
     static styles = css`
@@ -467,6 +522,8 @@ class BuddyAssistantView extends LitElement {
             outline-offset: 2px;
         }
 
+
+
         .actions-dropdown-container {
             position: relative;
         }
@@ -694,6 +751,8 @@ class BuddyAssistantView extends LitElement {
                 border-radius: 16px;
                 font-size: 13px;
             }
+            
+
         }
         
         @media (max-width: 480px) {
@@ -813,6 +872,8 @@ class BuddyAssistantView extends LitElement {
                 width: 5px;
                 height: 5px;
             }
+            
+
         }
     `;
 
@@ -896,6 +957,9 @@ class BuddyAssistantView extends LitElement {
             this.attachedScreenshots = [];
             this.hasTypedInCurrentSession = false; // Reset for next message
             this.requestUpdate();
+            
+            // Scroll to show the user's input message (always force for user input)
+            this._scrollToShowLatestMessage(true);
         }
     }
 
@@ -931,6 +995,13 @@ class BuddyAssistantView extends LitElement {
         this.dispatchEvent(new CustomEvent('copy-message', { detail: { message }, bubbles: true, composed: true }));
     }
 
+    _onMessageContentUpdated(e) {
+        // Scroll to show assistant response when it starts streaming (only if user hasn't scrolled up)
+        if (e.detail.isStreaming && e.detail.hasContent) {
+            this._scrollToShowLatestMessage(); // Don't force - respect user scroll position
+        }
+    }
+
     // Method to clear loading state when response starts
     clearLoadingState() {
         this.isWaitingForResponse = false;
@@ -952,6 +1023,24 @@ class BuddyAssistantView extends LitElement {
             if (lastMessage && lastMessage.sender === 'assistant' && this.isWaitingForResponse) {
                 this.isWaitingForResponse = false;
             }
+        }
+        
+        // Scroll to show new messages when they arrive
+        if (changedProperties.has('chatMessages') && this.chatMessages && this.chatMessages.length > 0) {
+            const lastMessage = this.chatMessages[this.chatMessages.length - 1];
+            // Only scroll for new assistant messages (user messages are handled in _onSend)
+            if (lastMessage && lastMessage.sender === 'assistant') {
+                this._scrollToShowLatestMessage(); // Don't force - respect user scroll position
+            }
+        }
+        
+        // Re-setup scroll listener if needed
+        if (changedProperties.has('chatMessages')) {
+            this.updateComplete.then(() => {
+                if (!this.boundScrollHandler) {
+                    this._setupScrollListener();
+                }
+            });
         }
     }
 
@@ -1026,6 +1115,7 @@ class BuddyAssistantView extends LitElement {
                                 .screenshots=${message.screenshots}
                                 @delete-message=${(e) => this._onDelete(e)}
                                 @copy-message=${() => this._onCopy(message)}
+                                @message-content-updated=${this._onMessageContentUpdated}
                             ></buddy-chat-message>
                           `)
                     }
