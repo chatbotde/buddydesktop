@@ -51,21 +51,27 @@ function arrayBufferToBase64(buffer) {
 
 async function initializeAI(provider = 'google', profile = 'interview', language = 'en-US', model = '') {
     const apiKey = localStorage.getItem(`apiKey_${provider}`)?.trim();
-    if (apiKey) {
-        const success = await ipcRenderer.invoke(
-            'initialize-ai',
-            provider,
-            apiKey,
-            localStorage.getItem('customPrompt') || '',
-            profile,
-            language,
-            model // Pass the model to the main process
-        );
-        if (success) {
-            buddy.e().setStatus('Live');
-        } else {
-            buddy.e().setStatus('error');
+    
+    // Always attempt to initialize, even without API key
+    // The main process will handle environment variables and fallbacks
+    const success = await ipcRenderer.invoke(
+        'initialize-ai',
+        provider,
+        apiKey || '', // Pass empty string if no API key
+        localStorage.getItem('customPrompt') || '',
+        profile,
+        language,
+        model // Pass the model to the main process
+    );
+    
+    if (success) {
+        buddy.e().setStatus('Live');
+        if (!apiKey) {
+            console.log('Session started without user-provided API key (using environment or demo mode)');
         }
+    } else {
+        buddy.e().setStatus('error');
+        console.error('Failed to initialize AI session');
     }
 }
 
@@ -502,6 +508,15 @@ window.buddy = {
         } catch (error) {
             console.error('Error opening external URL:', error);
             throw error;
+        }
+    },
+    checkEnvironmentKey: async (provider) => {
+        try {
+            const result = await ipcRenderer.invoke('check-environment-key', provider);
+            return result;
+        } catch (error) {
+            console.error('Error checking environment key:', error);
+            return false;
         }
     },
 };

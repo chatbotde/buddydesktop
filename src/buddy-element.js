@@ -1481,6 +1481,11 @@ class BuddyApp extends LitElement {
         return provider ? provider.keyLabel : 'API Key';
     }
 
+    get mainViewHasEnvironmentKey() {
+        // This will be updated by the component itself when provider changes
+        return false; // Default value, component will check and update
+    }
+
     get customizeViewCustomPrompt() {
         return localStorage.getItem('customPrompt') || '';
     }
@@ -2098,6 +2103,7 @@ class BuddyApp extends LitElement {
                 .apiKey=${this.mainViewApiKey}
                 .keyLabel=${this.mainViewKeyLabel}
                 .disabledModelIds=${this.disabledModelIdsForCurrentMode}
+                .hasEnvironmentKey=${this.mainViewHasEnvironmentKey}
             ></buddy-main-view>`,
             customize: html`<buddy-customize-view
                 .selectedProfile=${this.selectedProfile}

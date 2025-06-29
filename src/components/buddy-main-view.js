@@ -9,6 +9,7 @@ class BuddyMainView extends LitElement {
         apiKey: { type: String },
         keyLabel: { type: String },
         disabledModelIds: { type: Array },
+        hasEnvironmentKey: { type: Boolean },
     };
 
     static styles = css`
@@ -152,6 +153,39 @@ class BuddyMainView extends LitElement {
             transform: none;
             box-shadow: none;
         }
+
+        .env-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            margin-top: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            color: #4ade80;
+        }
+
+        .env-status.warning {
+            background: rgba(255, 165, 0, 0.1);
+            border-color: rgba(255, 165, 0, 0.3);
+            color: #fbbf24;
+        }
+
+        .env-icon {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .optional-label {
+            font-size: 12px;
+            color: var(--text-color);
+            opacity: 0.5;
+            font-style: italic;
+        }
     `;
 
     _onProviderSelect(e) {
@@ -173,6 +207,46 @@ class BuddyMainView extends LitElement {
         } catch (error) {
             console.error('Failed to open external link:', error);
         }
+    }
+
+    async _checkEnvironmentKey() {
+        try {
+            // Check if environment variable exists for current provider
+            const result = await window.buddy.checkEnvironmentKey(this.selectedProvider);
+            this.hasEnvironmentKey = result;
+            this.requestUpdate();
+        } catch (error) {
+            console.error('Failed to check environment key:', error);
+            this.hasEnvironmentKey = false;
+        }
+    }
+
+    updated(changedProperties) {
+        if (changedProperties.has('selectedProvider')) {
+            this._checkEnvironmentKey();
+        }
+    }
+
+    _getEnvironmentKeyName(provider) {
+        const envKeyMap = {
+            'google': 'GOOGLE_API_KEY or GEMINI_API_KEY',
+            'openai': 'OPENAI_API_KEY',
+            'anthropic': 'ANTHROPIC_API_KEY or CLAUDE_API_KEY',
+            'deepseek': 'DEEPSEEK_API_KEY',
+            'openrouter': 'OPENROUTER_API_KEY'
+        };
+        return envKeyMap[provider] || 'API_KEY';
+    }
+
+    _getProviderSignupUrl(provider) {
+        const urlMap = {
+            'google': 'https://aistudio.google.com',
+            'openai': 'https://platform.openai.com/api-keys',
+            'anthropic': 'https://console.anthropic.com',
+            'deepseek': 'https://platform.deepseek.com',
+            'openrouter': 'https://openrouter.ai/keys'
+        };
+        return urlMap[provider] || 'https://aistudio.google.com';
     }
 
     render() {
@@ -207,18 +281,37 @@ class BuddyMainView extends LitElement {
                 </div>
                 <div class="api-input-section">
                     <div class="option-group">
-                        <label class="option-label">${currentProvider.keyLabel || 'API Key'}</label>
+                        <label class="option-label">
+                            ${currentProvider.keyLabel || 'API Key'} 
+                            <span class="optional-label">(Optional)</span>
+                        </label>
+                        
+                        ${this.hasEnvironmentKey ? html`
+                            <div class="env-status">
+                                <div class="env-icon"></div>
+                                <span>Environment API key detected for ${currentProvider.name}</span>
+                            </div>
+                        ` : html`
+                            <div class="env-status warning">
+                                <div class="env-icon"></div>
+                                <span>No environment API key found. You can set ${this._getEnvironmentKeyName(this.selectedProvider)} or enter manually below.</span>
+                            </div>
+                        `}
+                        
                         <div class="input-group">
                             <input
                                 type="password"
-                                placeholder="Enter your ${currentProvider.keyLabel || 'API Key'}"
+                                placeholder="${this.hasEnvironmentKey ? 'Using environment key (optional override)' : `Enter your ${currentProvider.keyLabel || 'API Key'}`}"
                                 .value=${this.apiKey || ''}
                                 @input=${this._onApiKeyInput}
                             />
                             <button @click=${this._onStartSession} class="button start-button" style="font-size: 15px">Start Session</button>
                         </div>
                         <div class="description">
-                            Don't have an API key? <button class="link-button" @click=${() => this._openExternalLink('https://aistudio.google.com')}>Go to Google AI Studio</button>
+                            ${this.hasEnvironmentKey ? 
+                                'You can start chatting now with your environment API key, or enter a different key above to override.' :
+                                html`Don't have an API key? <button class="link-button" @click=${() => this._openExternalLink(this._getProviderSignupUrl(this.selectedProvider))}>Get ${currentProvider.name} API Key</button> or set environment variable ${this._getEnvironmentKeyName(this.selectedProvider)}.`
+                            }
                         </div>
                     </div>
                 </div>

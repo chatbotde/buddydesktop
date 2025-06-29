@@ -2,6 +2,9 @@ if (require('electron-squirrel-startup')) {
     process.exit(0);
 }
 
+// Load environment variables from .env file
+require('dotenv').config();
+
 const { app, BrowserWindow, desktopCapturer, globalShortcut, session, ipcMain, shell, screen } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
@@ -163,6 +166,19 @@ async function initializeAISession(provider, apiKey, customPrompt = '', profile 
         if (!model) {
             throw new Error('Model must be specified');
         }
+        
+        // If no API key provided, try to get from environment variables
+        if (!apiKey || apiKey.trim() === '') {
+            apiKey = getApiKeyFromEnvironment(provider);
+            console.log(`Using environment API key for ${provider}:`, apiKey ? 'Found' : 'Not found');
+        }
+        
+        // Allow session to start even without API key (for demo/testing purposes)
+        if (!apiKey || apiKey.trim() === '') {
+            console.warn(`No API key found for ${provider}. Session will start in demo mode.`);
+            // You can still create the provider but it might fail on actual API calls
+        }
+        
         currentAIProvider = createAIProvider(provider, apiKey, profile, language, customPrompt, model);
         const success = await currentAIProvider.initialize();
         return success;
@@ -170,6 +186,19 @@ async function initializeAISession(provider, apiKey, customPrompt = '', profile 
         console.error('Failed to initialize AI session:', error);
         return false;
     }
+}
+
+function getApiKeyFromEnvironment(provider) {
+    // Map provider names to common environment variable names
+    const envKeyMap = {
+        'google': process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY,
+        'openai': process.env.OPENAI_API_KEY,
+        'anthropic': process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY,
+        'deepseek': process.env.DEEPSEEK_API_KEY,
+        'openrouter': process.env.OPENROUTER_API_KEY
+    };
+    
+    return envKeyMap[provider] || null;
 }
 
 function sendToRenderer(channel, data) {
@@ -312,6 +341,21 @@ ipcMain.handle('initialize-ai', async (event, provider, apiKey, customPrompt, pr
     return await initializeAISession(provider, apiKey, customPrompt, profile, language, model);
 });
 
+ipcMain.handle('check-environment-key', async (event, provider) => {
+    const envKey = getApiKeyFromEnvironment(provider);
+    return envKey && envKey.trim() !== '';
+});
+
+ipcMain.handle('open-external', async (event, url) => {
+    try {
+        await shell.openExternal(url);
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to open external URL:', error);
+        return { success: false, error: error.message };
+    }
+});
+
 ipcMain.handle('send-audio-content', async (event, { data, mimeType }) => {
     if (!currentAIProvider) return { success: false, error: 'No active AI session' };
     try {
@@ -447,16 +491,6 @@ ipcMain.handle('quit-application', async event => {
         return { success: true };
     } catch (error) {
         console.error('Error quitting application:', error);
-        return { success: false, error: error.message };
-    }
-});
-
-ipcMain.handle('open-external', async (event, url) => {
-    try {
-        await shell.openExternal(url);
-        return { success: true };
-    } catch (error) {
-        console.error('Error opening external URL:', error);
         return { success: false, error: error.message };
     }
 });
