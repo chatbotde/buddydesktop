@@ -150,6 +150,21 @@ function createWindow() {
         }
     });
 
+    // Add screenshot and auto-send shortcut
+    const screenshotShortcut = 'Ctrl+Alt+N';
+    globalShortcut.register(screenshotShortcut, async () => {
+        console.log('Screenshot and auto-send shortcut triggered');
+        try {
+            // Send command to renderer to capture screenshot and send it
+            const windows = BrowserWindow.getAllWindows();
+            if (windows.length > 0) {
+                windows[0].webContents.send('capture-and-send-screenshot');
+            }
+        } catch (error) {
+            console.error('Error triggering screenshot capture:', error);
+        }
+    });
+
     ipcMain.on('view-changed', (event, view) => {
         if (view !== 'assistant') {
             mainWindow.setIgnoreMouseEvents(false);

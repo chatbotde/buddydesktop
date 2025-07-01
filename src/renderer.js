@@ -577,3 +577,54 @@ function resumeScreen() {
     console.log('Screen capture resumed');
 }
 // --- End New Pause/Resume Functions ---
+
+// Function to capture screenshot and automatically send it to AI
+async function captureAndSendScreenshot() {
+    console.log('Capturing screenshot and auto-sending to AI...');
+    
+    try {
+        // Capture the screenshot
+        const screenshotData = await captureScreenshot();
+        
+        if (!screenshotData) {
+            console.error('Failed to capture screenshot');
+            return { success: false, error: 'Failed to capture screenshot' };
+        }
+        
+        // Send the screenshot to AI with a comprehensive coding-focused prompt
+        const result = await sendTextMessage('🔧 CODE ANALYZER: Analyze this screenshot and provide comprehensive coding solutions.\n\n📋 Requirements:\n1. If you see coding errors/bugs - provide the EXACT corrected code\n2. Show MULTIPLE different approaches/methods to solve the problem\n3. Include well-written, clean, and optimized code examples\n4. Provide alternative solutions (different algorithms, patterns, or techniques)\n5. Add brief explanations for each approach\n6. Include best practices and performance considerations\n\n💻 Format your response with:\n- ✅ Direct fix for immediate problem\n- 🔄 Alternative Method 1 (with code)\n- 🔄 Alternative Method 2 (with code) \n- 🔄 Alternative Method 3 (if applicable)\n- 💡 Best practices & optimization tips\n\nBe comprehensive but concise. Focus on actionable, copy-paste ready code solutions.', [screenshotData]);
+        
+        if (result.success) {
+            console.log('Screenshot sent successfully to AI');
+            // Show a brief status message to the user
+            const buddy = window.buddy.e();
+            if (buddy && buddy.setStatus) {
+                buddy.setStatus('Screenshot captured and sent to AI');
+            }
+        } else {
+            console.error('Failed to send screenshot to AI:', result.error);
+            const buddy = window.buddy.e();
+            if (buddy && buddy.setStatus) {
+                buddy.setStatus('Failed to send screenshot to AI');
+            }
+        }
+        
+        return result;
+        
+    } catch (error) {
+        console.error('Error in captureAndSendScreenshot:', error);
+        const buddy = window.buddy.e();
+        if (buddy && buddy.setStatus) {
+            buddy.setStatus('Error capturing screenshot');
+        }
+        return { success: false, error: error.message };
+    }
+}
+
+// Listen for the screenshot shortcut command from main process
+ipcRenderer.on('capture-and-send-screenshot', async () => {
+    await captureAndSendScreenshot();
+});
+
+// Add the function to the window.buddy object so it can be called from other components
+window.buddy.captureAndSendScreenshot = captureAndSendScreenshot;
