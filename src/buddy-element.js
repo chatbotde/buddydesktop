@@ -1815,6 +1815,7 @@ class BuddyApp extends LitElement {
             
             // Only stop capture if it was started (for real-time models)
             if (this.isSelectedModelRealTime) {
+                buddy.disableRealtimeVideoStreaming(); // Disable real-time video streaming first
                 buddy.stopCapture();
             }
             
@@ -1932,12 +1933,27 @@ class BuddyApp extends LitElement {
     async toggleScreenCapture() {
         if (!this.sessionActive || !this.isSelectedModelScreenshotCapable) return;
         this.isScreenActive = !this.isScreenActive;
+        
         if (this.isScreenActive) {
             await buddy.resumeScreen();
-            this.statusText = this.statusText.replace(/Screen Paused/, 'Viewing').trim();
+            
+            // Enable real-time video streaming for Gemini 2.0 Live models
+            if (this.isSelectedModelRealTime) {
+                buddy.enableRealtimeVideoStreaming();
+                this.statusText = this.statusText.replace(/Video Paused/, 'Streaming Video').trim();
+            } else {
+                this.statusText = this.statusText.replace(/Screen Paused/, 'Viewing').trim();
+            }
         } else {
             await buddy.pauseScreen();
-            this.statusText = (this.statusText.includes('Viewing') ? this.statusText.replace(/Viewing/, 'Screen Paused') : 'Screen Paused');
+            
+            // Disable real-time video streaming for Gemini 2.0 Live models
+            if (this.isSelectedModelRealTime) {
+                buddy.disableRealtimeVideoStreaming();
+                this.statusText = (this.statusText.includes('Streaming Video') ? this.statusText.replace(/Streaming Video/, 'Video Paused') : 'Video Paused');
+            } else {
+                this.statusText = (this.statusText.includes('Viewing') ? this.statusText.replace(/Viewing/, 'Screen Paused') : 'Screen Paused');
+            }
         }
         this.requestUpdate();
     }
@@ -2070,6 +2086,12 @@ class BuddyApp extends LitElement {
         buddy.startCapture();
         this.isScreenActive = true;
         this.isAudioActive = true;
+        
+        // Enable real-time video streaming for Gemini 2.0 Live models
+        setTimeout(() => {
+            buddy.enableRealtimeVideoStreaming();
+        }, 1000); // Small delay to ensure capture is started
+        
         // Add more real-time features as needed
     }
 

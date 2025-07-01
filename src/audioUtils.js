@@ -128,8 +128,82 @@ function saveDebugAudio(buffer, type, timestamp = Date.now()) {
     return { pcmPath, wavPath, metaPath };
 }
 
+// Process audio for Gemini 2.0 realtime API
+function processRealtimeAudio(audioData, options = {}) {
+    const {
+        sampleRate = 24000,
+        channels = 1,
+        bitDepth = 16,
+        enableDebugging = false
+    } = options;
+
+    try {
+        // Validate input
+        if (!audioData || audioData.length === 0) {
+            throw new Error('Invalid audio data provided');
+        }
+
+        // Ensure audio data is in the correct format for Gemini 2.0
+        let processedBuffer;
+        
+        if (audioData instanceof Float32Array) {
+            // Convert Float32 to Int16 for PCM format
+            processedBuffer = Buffer.alloc(audioData.length * 2);
+            for (let i = 0; i < audioData.length; i++) {
+                const sample = Math.max(-1, Math.min(1, audioData[i]));
+                processedBuffer.writeInt16LE(Math.round(sample * 32767), i * 2);
+            }
+        } else if (Buffer.isBuffer(audioData)) {
+            processedBuffer = audioData;
+        } else {
+            throw new Error('Unsupported audio data format');
+        }
+
+        // Apply basic audio processing for better quality
+        if (processedBuffer.length >= 4) {
+            // Simple noise gate - remove very quiet samples
+            const threshold = 100; // Adjust based on testing
+            const int16Array = new Int16Array(processedBuffer.buffer, processedBuffer.byteOffset, processedBuffer.length / 2);
+            
+            for (let i = 0; i < int16Array.length; i++) {
+                if (Math.abs(int16Array[i]) < threshold) {
+                    int16Array[i] = 0;
+                }
+            }
+        }
+
+        // Debug logging if enabled
+        if (enableDebugging) {
+            const analysis = analyzeAudioBuffer(processedBuffer, 'realtime');
+            console.log('Realtime audio processed:', {
+                originalLength: audioData.length,
+                processedLength: processedBuffer.length,
+                sampleRate,
+                channels,
+                bitDepth,
+                rmsLevel: analysis.rmsValue,
+                silencePercentage: analysis.silencePercentage
+            });
+        }
+
+        return {
+            buffer: processedBuffer,
+            mimeType: `audio/pcm;rate=${sampleRate}`,
+            format: {
+                sampleRate,
+                channels,
+                bitDepth
+            }
+        };
+    } catch (error) {
+        console.error('Error processing realtime audio:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     pcmToWav,
     analyzeAudioBuffer,
     saveDebugAudio,
+    processRealtimeAudio,
 };

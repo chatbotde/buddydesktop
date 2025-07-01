@@ -3,6 +3,7 @@ const { ipcRenderer } = require('electron');
 
 let mediaStream = null;
 let screenshotInterval = null;
+let videoStreamInterval = null; // New interval for real-time video streaming
 let audioContext = null; // Used for Windows loopback audio
 let audioProcessor = null; // ScriptProcessorNode (Windows loopback or Linux mic)
 let micAudioProcessor = null; // This variable seems to be unused globally, setupLinuxMicProcessing assigns to global audioProcessor
@@ -10,6 +11,11 @@ let audioBuffer = []; // This is re-declared in setupLinuxMicProcessing and setu
 const SAMPLE_RATE = 24000;
 const AUDIO_CHUNK_DURATION = 0.1; // seconds
 const BUFFER_SIZE = 4096; // Increased buffer size for smoother audio
+
+// Real-time video streaming constants
+const REALTIME_VIDEO_FPS = 8; // 8 FPS for real-time streaming
+const REALTIME_VIDEO_INTERVAL = 1000 / REALTIME_VIDEO_FPS; // ~125ms
+const SCREENSHOT_INTERVAL = 1000; // 1 second for regular screenshots
 
 let hiddenVideo = null;
 let offscreenCanvas = null;
@@ -24,6 +30,7 @@ let globalLinuxMicSource = null;
 let globalLinuxMicAudioContext = null;
 let isAudioProcessingPaused = false;
 let isScreenPaused = false;
+let isRealtimeVideoEnabled = false; // New flag for real-time video streaming
 
 function buddyElement() {
     return document.getElementById('buddy');
@@ -113,10 +120,10 @@ async function startCapture() {
                 throw new Error('Failed to start macOS audio capture: ' + audioResult.error);
             }
 
-            // Get screen capture for screenshots
+            // Get screen capture for screenshots with higher frame rate for real-time streaming
             mediaStream = await navigator.mediaDevices.getDisplayMedia({
                 video: {
-                    frameRate: 1,
+                    frameRate: REALTIME_VIDEO_FPS,
                     width: { ideal: 1920 },
                     height: { ideal: 1080 },
                 },
@@ -128,7 +135,7 @@ async function startCapture() {
             // Linux - use display media for screen capture and getUserMedia for microphone
             mediaStream = await navigator.mediaDevices.getDisplayMedia({
                 video: {
-                    frameRate: 1,
+                    frameRate: REALTIME_VIDEO_FPS,
                     width: { ideal: 1920 },
                     height: { ideal: 1080 },
                 },
@@ -161,7 +168,7 @@ async function startCapture() {
             // Windows - use display media with loopback for system audio
             mediaStream = await navigator.mediaDevices.getDisplayMedia({
                 video: {
-                    frameRate: 1,
+                    frameRate: REALTIME_VIDEO_FPS,
                     width: { ideal: 1920 },
                     height: { ideal: 1080 },
                 },
@@ -184,9 +191,9 @@ async function startCapture() {
             videoTrack: mediaStream.getVideoTracks()[0]?.getSettings(),
         });
 
-        // Start capturing screenshots every second
+        // Start capturing screenshots every second for regular models
         if (screenshotInterval) clearInterval(screenshotInterval); // Clear previous interval if any
-        screenshotInterval = setInterval(captureScreenshot, 1000);
+        screenshotInterval = setInterval(captureScreenshot, SCREENSHOT_INTERVAL);
 
         // Capture first screenshot immediately
         setTimeout(captureScreenshot, 100);
@@ -271,6 +278,70 @@ function setupWindowsLoopbackProcessing() {
     audioProcessor.connect(audioContext.destination);
 }
 
+// Real-time video streaming for Gemini 2.0 Live models
+async function streamVideoFrame() {
+    if (isScreenPaused || !isRealtimeVideoEnabled) return; // Check pause state and streaming flag
+    if (!mediaStream) return;
+
+    // Lazy init of video element
+    if (!hiddenVideo) {
+        hiddenVideo = document.createElement('video');
+        hiddenVideo.srcObject = mediaStream;
+        hiddenVideo.muted = true;
+        hiddenVideo.playsInline = true;
+        await hiddenVideo.play();
+
+        await new Promise(resolve => {
+            if (hiddenVideo.readyState >= 2) return resolve();
+            hiddenVideo.onloadedmetadata = () => resolve();
+        });
+
+        // Lazy init of canvas based on video dimensions
+        offscreenCanvas = document.createElement('canvas');
+        offscreenCanvas.width = hiddenVideo.videoWidth;
+        offscreenCanvas.height = hiddenVideo.videoHeight;
+        offscreenContext = offscreenCanvas.getContext('2d');
+    }
+
+    // Check if video is ready
+    if (hiddenVideo.readyState < 2) {
+        return; // Skip silently for real-time streaming
+    }
+
+    offscreenContext.drawImage(hiddenVideo, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
+
+    // Check if image was drawn properly by sampling a pixel
+    const imageData = offscreenContext.getImageData(0, 0, 1, 1);
+    const isBlank = imageData.data.every((value, index) => {
+        // Check if all pixels are black (0,0,0) or transparent
+        return index === 3 ? true : value === 0;
+    });
+
+    if (isBlank) {
+        return; // Skip silently for real-time streaming
+    }
+
+    try {
+        // Use lower quality for real-time streaming to reduce bandwidth
+        const base64Data = offscreenCanvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+        
+        // Send video frame to AI provider
+        const result = await ipcRenderer.invoke('send-video-content', {
+            data: base64Data,
+            mimeType: 'image/jpeg',
+            isRealtime: true
+        });
+
+        if (!result.success && process.env.DEBUG_VIDEO === 'true') {
+            console.error('Failed to send video frame:', result.error);
+        }
+    } catch (error) {
+        if (process.env.DEBUG_VIDEO === 'true') {
+            console.error('Error processing video frame:', error);
+        }
+    }
+}
+
 async function captureScreenshot() {
     if (isScreenPaused) return; // Check pause state
     console.log('Capturing screenshot...');
@@ -352,6 +423,13 @@ function stopCapture() {
         clearInterval(screenshotInterval);
         screenshotInterval = null;
     }
+    
+    if (videoStreamInterval) {
+        clearInterval(videoStreamInterval);
+        videoStreamInterval = null;
+    }
+    
+    isRealtimeVideoEnabled = false;
 
     if (audioProcessor) {
         audioProcessor.disconnect();
@@ -501,6 +579,8 @@ window.buddy = {
     resumeAudio,
     pauseScreen,
     resumeScreen,
+    enableRealtimeVideoStreaming,
+    disableRealtimeVideoStreaming,
     openExternal: async (url) => {
         try {
             const result = await ipcRenderer.invoke('open-external', url);
@@ -557,24 +637,55 @@ async function resumeAudio() {
 
 function pauseScreen() {
     if (isScreenPaused) return;
-    // The isScreenPaused flag in captureScreenshot is the primary control.
-    // Clearing interval is good if we want to fully stop it.
-    // if (screenshotInterval) {
-    //     clearInterval(screenshotInterval);
-    //     screenshotInterval = null;
-    // }
     isScreenPaused = true;
     console.log('Screen capture paused');
 }
 
 function resumeScreen() {
     if (!isScreenPaused) return;
-    // if (!screenshotInterval && mediaStream && mediaStream.getVideoTracks().length > 0) {
-    //     screenshotInterval = setInterval(captureScreenshot, 1000);
-    //     setTimeout(captureScreenshot, 100); // Immediate capture
-    // }
     isScreenPaused = false;
     console.log('Screen capture resumed');
+}
+
+// Enable real-time video streaming for Gemini 2.0 Live models
+function enableRealtimeVideoStreaming() {
+    if (isRealtimeVideoEnabled) return;
+    
+    isRealtimeVideoEnabled = true;
+    
+    // Clear existing screenshot interval and start video streaming
+    if (screenshotInterval) {
+        clearInterval(screenshotInterval);
+        screenshotInterval = null;
+    }
+    
+    // Start real-time video streaming
+    if (videoStreamInterval) clearInterval(videoStreamInterval);
+    videoStreamInterval = setInterval(streamVideoFrame, REALTIME_VIDEO_INTERVAL);
+    
+    // Stream first frame immediately
+    setTimeout(streamVideoFrame, 100);
+    
+    console.log(`Real-time video streaming enabled at ${REALTIME_VIDEO_FPS} FPS`);
+}
+
+// Disable real-time video streaming and return to regular screenshots
+function disableRealtimeVideoStreaming() {
+    if (!isRealtimeVideoEnabled) return;
+    
+    isRealtimeVideoEnabled = false;
+    
+    // Clear video streaming interval
+    if (videoStreamInterval) {
+        clearInterval(videoStreamInterval);
+        videoStreamInterval = null;
+    }
+    
+    // Restart regular screenshot interval
+    if (screenshotInterval) clearInterval(screenshotInterval);
+    screenshotInterval = setInterval(captureScreenshot, SCREENSHOT_INTERVAL);
+    
+    console.log('Real-time video streaming disabled, returning to regular screenshots');
 }
 // --- End New Pause/Resume Functions ---
 

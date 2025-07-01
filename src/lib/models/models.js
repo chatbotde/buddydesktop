@@ -52,6 +52,22 @@ const models = [
         description: 'Lightweight Gemini model with text and image capabilities.',
         url: 'https://gemini.google.com/models/gemini-2.5-flash-lite-preview-06-17',
     },
+    {
+        id: 'gemini-2.0-flash-live-001',
+        name: 'Gemini 2.0 Flash Live 001',
+        provider: 'google',
+        type: 'llm',
+        live: true,
+        capabilities: {
+            text: true,
+            image: true,
+            audio: true,
+            video: true,
+            realtime: true
+        },
+        description: 'Gemini 2.0 Flash Live 001 is a fast, efficient model with text and image capabilities.',
+        url: 'https://gemini.google.com/models/gemini-2.0-flash-live-001',
+    },
     
 
     // OpenAI Models

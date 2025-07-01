@@ -137,6 +137,18 @@ class BuddyHeader extends LitElement {
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
         
+        .icon-button.active {
+            background: rgba(74, 222, 128, 0.2);
+            border-color: rgba(74, 222, 128, 0.4);
+            color: #4ade80;
+        }
+        
+        .icon-button.inactive {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #ef4444;
+        }
+        
         button:disabled {
             opacity: 0.5;
             transform: none;
@@ -216,6 +228,11 @@ class BuddyHeader extends LitElement {
                 min-width: 40px;
                 font-size: 12px;
             }
+            
+            /* Adjust status container for mobile */
+            .status-container {
+                flex-wrap: wrap;
+            }
         }
         
         @media (max-width: 480px) {
@@ -279,6 +296,12 @@ class BuddyHeader extends LitElement {
             /* Hide elapsed time on very small screens */
             .header-actions > span:first-child {
                 display: none;
+            }
+            
+            /* Stack audio/video buttons vertically on small screens */
+            .status-container {
+                flex-direction: column;
+                gap: 2px;
             }
         }
         
@@ -372,6 +395,34 @@ class BuddyHeader extends LitElement {
                                   <span class="status-indicator ${statusIndicator}"></span>
                                   ${this.sessionActive
                                       ? html`
+                                            <!-- Audio Toggle Button -->
+                                            <button 
+                                                class="icon-button ${this.isAudioActive ? 'active' : 'inactive'}" 
+                                                @click=${this._handleToggleAudio} 
+                                                title="${this.isAudioActive ? 'Disable Audio' : 'Enable Audio'}"
+                                                ?disabled=${!this.sessionActive}
+                                            >
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    ${this.isAudioActive 
+                                                        ? html`<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>`
+                                                        : html`<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>`
+                                                    }
+                                                </svg>
+                                            </button>
+                                            <!-- Video Toggle Button -->
+                                            <button 
+                                                class="icon-button ${this.isScreenActive ? 'active' : 'inactive'}" 
+                                                @click=${this._handleToggleScreen} 
+                                                title="${this.isScreenActive ? 'Disable Video' : 'Enable Video'}"
+                                                ?disabled=${!this.sessionActive}
+                                            >
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    ${this.isScreenActive 
+                                                        ? html`<polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>`
+                                                        : html`<path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"></path><line x1="1" y1="1" x2="23" y2="23"></line>`
+                                                    }
+                                                </svg>
+                                            </button>
                                             <button class="session-button end" @click=${this._handleEndSession} title="End Session">
                                                 ■ End
                                             </button>

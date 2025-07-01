@@ -10,7 +10,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('os');
 const { spawn } = require('child_process');
-const { pcmToWav, analyzeAudioBuffer, saveDebugAudio } = require('./audioUtils');
+const { pcmToWav, analyzeAudioBuffer, saveDebugAudio, processRealtimeAudio } = require('./audioUtils');
 const { getSystemPrompt } = require('./prompts');
 const { createAIProvider } = require('./ai-providers');
 
@@ -257,22 +257,34 @@ function startMacOSAudioCapture() {
     let audioBuffer = Buffer.alloc(0);
 
     // Update the audio callback to use the new system
-    systemAudioProc.stdout.on('data', data => {
-        audioBuffer = Buffer.concat([audioBuffer, data]);
+            systemAudioProc.stdout.on('data', data => {
+            audioBuffer = Buffer.concat([audioBuffer, data]);
 
-        while (audioBuffer.length >= CHUNK_SIZE) {
-            const chunk = audioBuffer.slice(0, CHUNK_SIZE);
-            audioBuffer = audioBuffer.slice(CHUNK_SIZE);
+            while (audioBuffer.length >= CHUNK_SIZE) {
+                const chunk = audioBuffer.slice(0, CHUNK_SIZE);
+                audioBuffer = audioBuffer.slice(CHUNK_SIZE);
 
-            const monoChunk = CHANNELS === 2 ? convertStereoToMono(chunk) : chunk;
-            const base64Data = monoChunk.toString('base64');
-            sendAudioToAI(base64Data);
+                const monoChunk = CHANNELS === 2 ? convertStereoToMono(chunk) : chunk;
+                
+                try {
+                    // Process audio for optimal Gemini 2.0 realtime quality
+                    const processed = processRealtimeAudio(monoChunk, {
+                        enableDebugging: !!process.env.DEBUG_AUDIO
+                    });
+                    const base64Data = processed.buffer.toString('base64');
+                    sendAudioToAI(base64Data);
+                } catch (error) {
+                    console.error('Error processing audio for realtime:', error);
+                    // Fallback to original processing
+                    const base64Data = monoChunk.toString('base64');
+                    sendAudioToAI(base64Data);
+                }
 
-            if (process.env.DEBUG_AUDIO) {
-                console.log(`Processed audio chunk: ${chunk.length} bytes`);
-                saveDebugAudio(monoChunk, 'system_audio');
+                if (process.env.DEBUG_AUDIO) {
+                    console.log(`Processed audio chunk: ${chunk.length} bytes`);
+                    saveDebugAudio(monoChunk, 'system_audio');
+                }
             }
-        }
 
         const maxBufferSize = SAMPLE_RATE * BYTES_PER_SAMPLE * 1;
         if (audioBuffer.length > maxBufferSize) {
@@ -413,6 +425,40 @@ ipcMain.handle('send-image-content', async (event, { data, debug }) => {
     }
 });
 
+ipcMain.handle('send-video-content', async (event, { data, mimeType, isRealtime }) => {
+    if (!currentAIProvider) return { success: false, error: 'No active AI session' };
+
+    try {
+        if (!data || typeof data !== 'string') {
+            console.error('Invalid video data received');
+            return { success: false, error: 'Invalid video data' };
+        }
+
+        const buffer = Buffer.from(data, 'base64');
+
+        if (buffer.length < 500) {
+            console.error(`Video buffer too small: ${buffer.length} bytes`);
+            return { success: false, error: 'Video buffer too small' };
+        }
+
+        // For real-time video streaming, use a different indicator
+        if (isRealtime) {
+            process.stdout.write('▶');
+        } else {
+            process.stdout.write('!');
+        }
+
+        await currentAIProvider.sendRealtimeInput({
+            media: { data: data, mimeType: mimeType || 'image/jpeg' },
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error sending video:', error);
+        return { success: false, error: error.message };
+    }
+});
+
 ipcMain.handle('send-text-message', async (event, messageData) => {
     if (!currentAIProvider) return { success: false, error: 'No active AI session' };
 
@@ -478,6 +524,32 @@ ipcMain.handle('stop-macos-audio', async event => {
         return { success: true };
     } catch (error) {
         console.error('Error stopping macOS audio capture:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('pause-macos-audio', async event => {
+    try {
+        if (systemAudioProc) {
+            systemAudioProc.kill('SIGSTOP'); // Pause the process
+            console.log('macOS audio capture paused');
+        }
+        return { success: true };
+    } catch (error) {
+        console.error('Error pausing macOS audio capture:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('resume-macos-audio', async event => {
+    try {
+        if (systemAudioProc) {
+            systemAudioProc.kill('SIGCONT'); // Resume the process
+            console.log('macOS audio capture resumed');
+        }
+        return { success: true };
+    } catch (error) {
+        console.error('Error resuming macOS audio capture:', error);
         return { success: false, error: error.message };
     }
 });
