@@ -8,7 +8,14 @@ class BuddyHeader extends LitElement {
         startTime: { type: Number },
         isAudioActive: { type: Boolean },
         isScreenActive: { type: Boolean },
+        isControlsMenuOpen: { type: Boolean },
     };
+
+    constructor() {
+        super();
+        this.isControlsMenuOpen = false;
+        this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
+    }
 
     static styles = css`
         .header {
@@ -22,6 +29,9 @@ class BuddyHeader extends LitElement {
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+            overflow: visible;
+            position: relative;
+            z-index: 10;
         }
         
         .header-title {
@@ -347,7 +357,209 @@ class BuddyHeader extends LitElement {
                 margin-right: 3px;
             }
         }
+
+        /* Controls dropdown styles */
+        .controls-dropdown-container {
+            position: relative;
+            z-index: 1000;
+        }
+
+        :host {
+            z-index: 1000;
+        }
+
+        .controls-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: rgba(40, 40, 40, 0.95);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 14px;
+            padding: 12px;
+            display: flex !important;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 9999 !important;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            animation: fadeInDown 0.15s ease-out;
+            width: 200px;
+            min-height: 120px;
+            max-height: 300px;
+            overflow: visible;
+        }
+
+        .dropdown-item {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 9px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: left;
+            width: 100%;
+        }
+
+        .dropdown-item:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .dropdown-item:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .dropdown-item svg {
+            width: 18px;
+            height: 18px;
+            opacity: 0.8;
+            stroke-width: 1.8;
+            flex-shrink: 0;
+        }
+
+        .dropdown-item-label {
+            flex-grow: 1;
+        }
+
+        .dropdown-item-value {
+            opacity: 0.7;
+            font-size: 12px;
+        }
+
+        .dropdown-item.active .dropdown-item-value {
+            color: #4ade80;
+            opacity: 1;
+        }
+
+        .dropdown-item.inactive .dropdown-item-value {
+            color: #ef4444;
+            opacity: 1;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Controls button styling */
+        .controls-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 12px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            opacity: 0.9;
+            position: relative;
+        }
+
+        .controls-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.35);
+            transform: translateY(-1px) scale(1.05);
+            opacity: 1;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.05);
+            transform: none;
+            border-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            box-shadow: none;
+        }
+
+        /* Status indicator on controls button */
+        .controls-status-indicator {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--header-background);
+        }
+
+        .controls-status-indicator.both-active {
+            background: #4ade80;
+        }
+
+        .controls-status-indicator.partial-active {
+            background: #fbbf24;
+        }
+
+        .controls-status-indicator.both-inactive {
+            background: #ef4444;
+        }
     `;
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        document.removeEventListener('click', this.boundOutsideClickHandler);
+    }
+
+    _toggleControlsMenu() {
+        console.log('Toggling controls menu. Current state:', this.isControlsMenuOpen);
+        this.isControlsMenuOpen = !this.isControlsMenuOpen;
+        console.log('New state:', this.isControlsMenuOpen);
+        this.requestUpdate();
+        if (this.isControlsMenuOpen) {
+            setTimeout(() => {
+                document.addEventListener('click', this.boundOutsideClickHandler);
+            }, 0);
+        } else {
+            document.removeEventListener('click', this.boundOutsideClickHandler);
+        }
+    }
+
+    _closeControlsMenu() {
+        if (this.isControlsMenuOpen) {
+            this.isControlsMenuOpen = false;
+            document.removeEventListener('click', this.boundOutsideClickHandler);
+            this.requestUpdate();
+        }
+    }
+
+    _handleOutsideClick(e) {
+        if (!this.renderRoot.querySelector('.controls-dropdown-container')?.contains(e.target)) {
+            this._closeControlsMenu();
+        }
+    }
 
     _handleEndSession() {
         this.dispatchEvent(new CustomEvent('end-session', { bubbles: true, composed: true }));
@@ -356,9 +568,11 @@ class BuddyHeader extends LitElement {
         this.dispatchEvent(new CustomEvent('start-session', { bubbles: true, composed: true }));
     }
     _handleToggleAudio() {
+        this._closeControlsMenu();
         this.dispatchEvent(new CustomEvent('toggle-audio', { bubbles: true, composed: true }));
     }
     _handleToggleScreen() {
+        this._closeControlsMenu();
         this.dispatchEvent(new CustomEvent('toggle-screen', { bubbles: true, composed: true }));
     }
     _handleClose() {
@@ -395,34 +609,56 @@ class BuddyHeader extends LitElement {
                                   <span class="status-indicator ${statusIndicator}"></span>
                                   ${this.sessionActive
                                       ? html`
-                                            <!-- Audio Toggle Button -->
+                                            <!-- Controls Dropdown -->
+                                            <div class="controls-dropdown-container">
                                             <button 
-                                                class="icon-button ${this.isAudioActive ? 'active' : 'inactive'}" 
-                                                @click=${this._handleToggleAudio} 
-                                                title="${this.isAudioActive ? 'Disable Audio' : 'Enable Audio'}"
+                                                    class="controls-btn"
+                                                    @click=${this._toggleControlsMenu}
+                                                    title="Audio & Video Controls"
                                                 ?disabled=${!this.sessionActive}
                                             >
                                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+                                                        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+                                                    </svg>
+                                                    <span class="controls-status-indicator ${
+                                                        this.isAudioActive && this.isScreenActive ? 'both-active' :
+                                                        this.isAudioActive || this.isScreenActive ? 'partial-active' :
+                                                        'both-inactive'
+                                                    }"></span>
+                                                </button>
+
+                                                ${this.isControlsMenuOpen ? html`
+                                                    <div class="controls-dropdown">
+                                                        <button 
+                                                            class="dropdown-item ${this.isAudioActive ? 'active' : 'inactive'}" 
+                                                            @click=${this._handleToggleAudio}
+                                                        >
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                     ${this.isAudioActive 
                                                         ? html`<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>`
                                                         : html`<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>`
                                                     }
                                                 </svg>
+                                                            <span class="dropdown-item-label">Audio</span>
+                                                            <span class="dropdown-item-value">${this.isAudioActive ? 'ON' : 'OFF'}</span>
                                             </button>
-                                            <!-- Video Toggle Button -->
                                             <button 
-                                                class="icon-button ${this.isScreenActive ? 'active' : 'inactive'}" 
+                                                            class="dropdown-item ${this.isScreenActive ? 'active' : 'inactive'}" 
                                                 @click=${this._handleToggleScreen} 
-                                                title="${this.isScreenActive ? 'Disable Video' : 'Enable Video'}"
-                                                ?disabled=${!this.sessionActive}
                                             >
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                     ${this.isScreenActive 
                                                         ? html`<polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>`
                                                         : html`<path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"></path><line x1="1" y1="1" x2="23" y2="23"></line>`
                                                     }
                                                 </svg>
+                                                            <span class="dropdown-item-label">Video</span>
+                                                            <span class="dropdown-item-value">${this.isScreenActive ? 'ON' : 'OFF'}</span>
                                             </button>
+                                                    </div>
+                                                ` : ''}
+                                            </div>
                                             <button class="session-button end" @click=${this._handleEndSession} title="End Session">
                                                 ■ End
                                             </button>

@@ -61,7 +61,7 @@ class BuddyApp extends LitElement {
         .window-container {
             height: 100vh;
             border-radius: 16px;
-            overflow: hidden;
+            overflow: visible;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             box-shadow: var(--glass-shadow);
@@ -72,6 +72,7 @@ class BuddyApp extends LitElement {
             display: flex;
             flex-direction: column;
             height: 100%;
+            overflow: visible;
         }
 
         .header {
@@ -79,12 +80,12 @@ class BuddyApp extends LitElement {
             display: flex;
             align-items: center;
             padding: 10px 20px;
-            border: var(--glass-border);
+            border: none;
             background: var(--header-background);
             border-radius: 16px 16px 0 0;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: none;
         }
 
         .header-title {
@@ -111,13 +112,13 @@ class BuddyApp extends LitElement {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            margin-top: 10px;
-            border: var(--glass-border);
+            margin-top: 0;
+            border: none;
             background: var(--main-content-background);
             border-radius: 0 0 16px 16px;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: none;
         }
 
         .button {
