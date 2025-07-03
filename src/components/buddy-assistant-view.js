@@ -880,7 +880,7 @@ class BuddyAssistantView extends LitElement {
     async _onCaptureScreenshot() {
         this._closeActionsMenu();
         if (this.attachedScreenshots.length >= 3) {
-            console.warn('Maximum of 3 screenshots allowed');
+            console.warn('3-max');
             return;
         }
         
@@ -906,10 +906,10 @@ class BuddyAssistantView extends LitElement {
             if (screenshotData) {
                 this.attachedScreenshots = [...this.attachedScreenshots, screenshotData];
                 this.requestUpdate();
-                console.log('Auto screenshot captured');
+                console.log('auto-screenshot');
             }
         } catch (error) {
-            console.error('Failed to capture auto screenshot:', error);
+            console.error('auto-screenshot-error');
         }
     }
 
@@ -1063,7 +1063,7 @@ class BuddyAssistantView extends LitElement {
         }
 
         if (this.attachedScreenshots.length >= 3) {
-            console.warn('Maximum of 3 images allowed');
+            console.warn('3-max');
             return;
         }
 
@@ -1099,7 +1099,7 @@ class BuddyAssistantView extends LitElement {
                                 <p>Welcome! Start a session to begin chatting with your AI assistant.</p>
                                 ${this.autoScreenshotEnabled ? html`
                                     <p style="font-size: 12px; opacity: 0.6; margin-top: 8px;">
-                                        📸 Auto-screenshot is enabled - a screenshot will be captured when you start typing
+                                        Auto-screenshot is enabled - a screenshot will be captured when you start typing
                                     </p>
                                 ` : ''}
                             </div>

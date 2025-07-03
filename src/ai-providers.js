@@ -54,7 +54,7 @@ class GoogleAIProvider extends BaseAIProvider {
                     model: this.model,
                     callbacks: {
                         onopen: function () {
-                            global.sendToRenderer('update-status', 'Connected to Gemini - Starting recording...');
+                            global.sendToRenderer('update-status', 'Connected');
                         },
                         onmessage: function (message) {
                             let newTextReceived = false;
@@ -85,7 +85,7 @@ class GoogleAIProvider extends BaseAIProvider {
                             }
 
                             if (message.serverContent?.turnComplete) {
-                                global.sendToRenderer('update-status', 'Listening...');
+                                global.sendToRenderer('update-status', 'Listening');
                             }
                         },
                         onerror: function (e) {
@@ -121,12 +121,12 @@ class GoogleAIProvider extends BaseAIProvider {
                         },
                     ],
                 });
-                global.sendToRenderer('update-status', 'Connected to Gemini Chat - Ready for messages...');
+                global.sendToRenderer('update-status', 'Connected');
             }
 
             return true;
         } catch (error) {
-            console.error('Failed to initialize Gemini session:', error);
+            console.error('Failed to initialize session:', error);
             return false;
         }
     }
@@ -181,7 +181,7 @@ class GoogleAIProvider extends BaseAIProvider {
                         isComplete: true
                     });
                 } catch (error) {
-                    console.error('Gemini chat error:', error);
+                    console.error('chat error:', error);
                     global.sendToRenderer('update-status', 'Error: ' + error.message);
                 }
             }
@@ -210,7 +210,7 @@ class OpenAIProvider extends BaseAIProvider {
     }
 
     async initialize() {
-        global.sendToRenderer('update-status', 'Connected to OpenAI - Ready for messages...');
+        global.sendToRenderer('update-status', 'Connected');
         this.session = { connected: true };
         return true;
     }
@@ -315,7 +315,7 @@ class AnthropicProvider extends BaseAIProvider {
     }
 
     async initialize() {
-        global.sendToRenderer('update-status', 'Connected to Anthropic - Ready for messages...');
+        global.sendToRenderer('update-status', 'Connected');
         this.session = { connected: true };
         return true;
     }
@@ -423,7 +423,7 @@ class DeepSeekProvider extends BaseAIProvider {
     }
 
     async initialize() {
-        global.sendToRenderer('update-status', 'Connected to DeepSeek - Ready for messages...');
+        global.sendToRenderer('update-status', 'Connected');
         this.session = { connected: true };
         return true;
     }
@@ -509,7 +509,7 @@ class OpenRouterProvider extends BaseAIProvider {
     }
 
     async initialize() {
-        global.sendToRenderer('update-status', 'Connected to OpenRouter - Ready for messages...');
+        global.sendToRenderer('update-status', 'Connected');
         this.session = { connected: true };
         return true;
     }
