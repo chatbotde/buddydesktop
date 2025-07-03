@@ -372,45 +372,72 @@ class BuddyHeader extends LitElement {
             position: absolute;
             top: calc(100% + 8px);
             right: 0;
-            background: rgba(40, 40, 40, 0.95);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            border-radius: 14px;
-            padding: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 16px;
             display: flex !important;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             z-index: 9999 !important;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-            animation: fadeInDown 0.15s ease-out;
-            width: 200px;
-            min-height: 120px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                0 8px 32px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: fadeInDown 0.2s ease-out;
+            width: 220px;
+            min-height: 140px;
             max-height: 300px;
             overflow: visible;
         }
 
         .dropdown-item {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             color: var(--text-color);
             cursor: pointer;
-            padding: 9px 12px;
-            border-radius: 10px;
+            padding: 12px 16px;
+            border-radius: 12px;
             font-size: 13px;
             font-weight: 500;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             text-align: left;
             width: 100%;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dropdown-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
         }
 
         .dropdown-item:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.25);
-            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 25px rgba(0, 0, 0, 0.15),
+                0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .dropdown-item:hover:not(:disabled)::before {
+            opacity: 1;
         }
 
         .dropdown-item:disabled {
@@ -419,11 +446,17 @@ class BuddyHeader extends LitElement {
         }
 
         .dropdown-item svg {
-            width: 18px;
-            height: 18px;
-            opacity: 0.8;
-            stroke-width: 1.8;
+            width: 20px;
+            height: 20px;
+            opacity: 0.9;
+            stroke-width: 2;
             flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-item:hover svg {
+            opacity: 1;
+            transform: scale(1.1);
         }
 
         .dropdown-item-label {
@@ -436,13 +469,25 @@ class BuddyHeader extends LitElement {
         }
 
         .dropdown-item.active .dropdown-item-value {
-            color: #4ade80;
+            color: #ffffff;
             opacity: 1;
+            font-weight: 600;
         }
 
         .dropdown-item.inactive .dropdown-item-value {
-            color: #ef4444;
-            opacity: 1;
+            color: #ffffff;
+            opacity: 0.6;
+            font-weight: 600;
+        }
+
+        .dropdown-item.active {
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .dropdown-item.inactive {
+            border-color: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         @keyframes fadeInUp {
@@ -459,11 +504,11 @@ class BuddyHeader extends LitElement {
         @keyframes fadeInDown {
             from {
                 opacity: 0;
-                transform: translateY(-10px);
+                transform: translateY(-15px) scale(0.95);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
 
@@ -516,15 +561,17 @@ class BuddyHeader extends LitElement {
         }
 
         .controls-status-indicator.both-active {
-            background: #4ade80;
+            background: #ffffff;
         }
 
         .controls-status-indicator.partial-active {
-            background: #fbbf24;
+            background: #ffffff;
+            opacity: 0.7;
         }
 
         .controls-status-indicator.both-inactive {
-            background: #ef4444;
+            background: #ffffff;
+            opacity: 0.3;
         }
     `;
 
@@ -634,12 +681,14 @@ class BuddyHeader extends LitElement {
                                                             class="dropdown-item ${this.isAudioActive ? 'active' : 'inactive'}" 
                                                             @click=${this._handleToggleAudio}
                                                         >
-                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    ${this.isAudioActive 
-                                                        ? html`<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>`
-                                                        : html`<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>`
-                                                    }
-                                                </svg>
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                                <path d="M2 10v3"/>
+                                                                <path d="M6 6v11"/>
+                                                                <path d="M10 3v18"/>
+                                                                <path d="M14 8v7"/>
+                                                                <path d="M18 5v13"/>
+                                                                <path d="M22 10v3"/>
+                                                            </svg>
                                                             <span class="dropdown-item-label">Audio</span>
                                                             <span class="dropdown-item-value">${this.isAudioActive ? 'ON' : 'OFF'}</span>
                                             </button>
@@ -647,12 +696,10 @@ class BuddyHeader extends LitElement {
                                                             class="dropdown-item ${this.isScreenActive ? 'active' : 'inactive'}" 
                                                 @click=${this._handleToggleScreen} 
                                             >
-                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    ${this.isScreenActive 
-                                                        ? html`<polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>`
-                                                        : html`<path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"></path><line x1="1" y1="1" x2="23" y2="23"></line>`
-                                                    }
-                                                </svg>
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                                <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/>
+                                                                <rect x="2" y="6" width="14" height="12" rx="2"/>
+                                                            </svg>
                                                             <span class="dropdown-item-label">Video</span>
                                                             <span class="dropdown-item-value">${this.isScreenActive ? 'ON' : 'OFF'}</span>
                                             </button>
