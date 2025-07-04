@@ -206,6 +206,38 @@ const models = [
         description: 'Claude 3.5 Sonnet via OpenRouter with text and image understanding.',
         url: 'https://openrouter.ai/models/anthropic/claude-3.5-sonnet',
     },
+    {
+       id : 'deepseek/deepseek-chat-v3-0324:free',
+       name : 'DeepSeek Chat V3',
+       provider : 'openrouter',
+       type : 'llm',
+       live : false,
+       capabilities : {
+        text : true,
+        image : false,
+        audio : false,
+        video : false,
+        realtime : false
+       },
+       description : 'DeepSeek Chat V3 via OpenRouter with text understanding.',
+       url : 'https://openrouter.ai/models/deepseek/deepseek-chat-v3-0324:free'
+    },
+    {
+        id : 'openrouter/cypher-alpha:free',
+        name : 'Cypher Alpha',
+        provider : 'openrouter',
+        type : 'llm',
+        live : false,
+        capabilities : {
+            text : true,
+            image : false,
+            audio : false,
+            video : false,
+            realtime : false
+        },
+        description : 'Cypher Alpha via OpenRouter with text understanding.',
+        url : 'https://openrouter.ai/models/openrouter/cypher-alpha:free'   
+    }
 ];
 
 // Helper functions

@@ -13,7 +13,11 @@ class BuddyMainView extends LitElement {
     };
 
     static styles = css`
-        :host { display: block; }
+        :host { 
+            display: block; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
         .main-view-container {
             height: 100%;
             display: flex;
@@ -22,136 +26,277 @@ class BuddyMainView extends LitElement {
             align-items: center;
             padding: 40px 20px;
             width: 100%;
-            max-width: 500px;
+            max-width: 450px;
             margin: 0 auto;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
+        
         .welcome {
             font-size: 28px;
-            font-weight: 600;
+            font-weight: 700;
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 32px;
             color: var(--text-color);
+            letter-spacing: -0.5px;
         }
+        
+        .welcome::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
+            background: var(--text-color);
+            margin: 12px auto 0;
+            border-radius: 2px;
+        }
+        
         .option-group {
-            margin-bottom: 24px;
-            border-color: oklch(98.5% 0.001 106.423);
+            margin-bottom: 20px;
+            width: 100%;
+            position: relative;
         }
+        
         .option-label {
             display: block;
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
             color: var(--text-color);
+            letter-spacing: 0.2px;
         }
+        
         .input-group {
             display: flex;
             gap: 12px;
             margin-bottom: 20px;
+            align-items: flex-end;
+            max-width: 350px;
+            width: 100%;
+            box-sizing: border-box;
         }
+        
         .input-group input {
             flex: 1;
+            min-width: 0;
+            max-width: 100%;
+            box-sizing: border-box;
         }
+        
         .provider-help-text {
-            font-size: 12px;
-            color: var(--text-color);
-            opacity: 0.6;
-            margin-top: 4px;
-            font-style: italic;
-        }
-        .description {
             font-size: 13px;
             color: var(--text-color);
             opacity: 0.7;
             margin-top: 8px;
+            font-style: normal;
             line-height: 1.4;
         }
-        .api-input-section {
-            width: 100%;
-            margin-top: 20px;
-        }
-        select, input[type="password"] {
-            background: oklch(26.9% 0 0);
-            color: var(--text-color);
-            border: var(--glass-border);
-            padding: 10px 14px;
-            width: 100%;
-            border-radius: 12px;
+        
+        .description {
             font-size: 14px;
-            transition: all 0.3s ease;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            color: var(--text-color);
+            opacity: 0.8;
+            margin-top: 12px;
+            line-height: 1.5;
         }
+        
+
+        
+        .api-help {
+            font-size: 13px;
+            color: var(--text-color);
+            opacity: 0.7;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        .api-card {
+            text-align: center;
+        }
+        
+        .api-card .input-group {
+            margin: 0 auto;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .api-card .option-group {
+            margin-bottom: 16px;
+        }
+        
+        select, input[type="password"] {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-color);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            padding: 14px 16px;
+            width: 100%;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
         select {
-            background-color: oklch(14.1% 0.005 285.823);
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
             appearance: none !important;
             -webkit-appearance: none !important;
             -moz-appearance: none !important;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.6)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.8)' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 16px;
-            padding-right: 40px;
+            background-position: right 16px center;
+            background-size: 18px;
+            padding-right: 48px;
             cursor: pointer;
         }
+        
+        select:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+            box-shadow: 
+                0 8px 24px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+        
         select:focus {
             outline: none;
-            border-color: var(--input-border);
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.1);
-            background: oklch(48.8% 0.243 264.376);
+            border-color: var(--text-color);
+            box-shadow: 
+                0 0 0 4px rgba(255, 255, 255, 0.2),
+                0 8px 24px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
             transform: translateY(-1px);
         }
+        
         select option {
             background-color: var(--main-content-background);
             color: var(--text-color);
-            padding: 10px 14px;
+            padding: 12px 16px;
             border: none;
             font-size: 14px;
+            font-weight: 500;
         }
+        
         select option:hover,
         select option:checked,
         select option:focus {
-            background-color: var(--button-background);
-            color: var(--text-color);
+            background: var(--text-color);
+            color: var(--main-content-background);
         }
+        
+        input[type="password"]:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+            box-shadow: 
+                0 8px 24px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+        
+        input[type="password"]:focus {
+            outline: none;
+            border-color: var(--text-color);
+            box-shadow: 
+                0 0 0 4px rgba(255, 255, 255, 0.2),
+                0 8px 24px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+        
         input::placeholder {
             color: var(--placeholder-color);
+            opacity: 0.6;
         }
+        
         .button {
-            background: var(--button-background);
-            color: var(--text-color);
-            border: var(--glass-border);
-            padding: 8px 16px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.3s ease;
+            background: var(--text-color);
+            color: var(--main-content-background);
+            border: none;
+            padding: 14px 18px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: 
+                0 8px 24px rgba(0, 0, 0, 0.3),
+                0 4px 12px rgba(0, 0, 0, 0.1);
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            min-width: 80px;
+            flex-shrink: 0;
         }
+        
         .button:hover {
-            background: var(--button-background);
-            border-color: var(--button-border);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 12px 32px rgba(0, 0, 0, 0.4),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+        
+        .button:active {
+            transform: translateY(0);
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.3),
+                0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .start-button {
+            background: var(--text-color);
+            box-shadow: 
+                0 8px 24px rgba(0, 0, 0, 0.3),
+                0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .start-button:hover {
+            box-shadow: 
+                0 12px 32px rgba(0, 0, 0, 0.4),
+                0 8px 16px rgba(0, 0, 0, 0.15);
         }
 
         .link-button {
             background: transparent;
-            color: var(--link-color, #007aff);
+            color: var(--text-color);
             border: none;
             padding: 0;
             font-size: inherit;
-            text-decoration: underline;
+            text-decoration: none;
             cursor: pointer;
             transition: all 0.2s ease;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .link-button::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--text-color);
+            transition: width 0.3s ease;
         }
 
         .link-button:hover {
-            color: var(--link-color, #0056b3);
-            text-decoration: none;
+            color: var(--text-color);
             transform: none;
             box-shadow: none;
+        }
+        
+        .link-button:hover::after {
+            width: 100%;
         }
 
         .env-status {
@@ -162,29 +307,103 @@ class BuddyMainView extends LitElement {
             margin-top: 8px;
             padding: 8px 12px;
             border-radius: 8px;
-            background: rgba(0, 255, 0, 0.1);
-            border: 1px solid rgba(0, 255, 0, 0.3);
-            color: #4ade80;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-color);
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .env-status.warning {
-            background: rgba(255, 165, 0, 0.1);
-            border-color: rgba(255, 165, 0, 0.3);
-            color: #fbbf24;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+        }
+        
+        .env-status.success {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: var(--text-color);
         }
 
         .env-icon {
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             background: currentColor;
+            position: relative;
+            flex-shrink: 0;
+        }
+        
+        .env-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 4px;
+            background: currentColor;
+            border-radius: 50%;
         }
 
         .optional-label {
             font-size: 12px;
             color: var(--text-color);
-            opacity: 0.5;
-            font-style: italic;
+            opacity: 0.6;
+            font-style: normal;
+            font-weight: 400;
+            margin-left: 8px;
+        }
+        
+        .form-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        .form-card:last-child {
+            margin-bottom: 0;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+        
+        @media (max-width: 640px) {
+            .main-view-container {
+                padding: 40px 20px;
+                max-width: 100%;
+                border-radius: 16px;
+            }
+            
+            .welcome {
+                font-size: 28px;
+                margin-bottom: 40px;
+            }
+            
+            .input-group {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .button {
+                width: 100%;
+                min-width: auto;
+            }
         }
     `;
 
@@ -255,64 +474,68 @@ class BuddyMainView extends LitElement {
         return html`
             <div class="main-view-container">
                 <div class="welcome">Welcome to Buddy</div>
-                <div class="option-group" >
-                    <label class="option-label">Select AI Provider</label>
-                    <select .value=${this.selectedProvider} @change=${this._onProviderSelect} >
-                        ${this.providers?.map(
-                            provider => html`
-                                <option value=${provider.value} ?selected=${this.selectedProvider === provider.value}>${provider.name}</option>
-                            `
-                        )}
-                    </select>
-                    <div class="provider-help-text">Choose your preferred AI service provider</div>
-                </div>
-                <div class="option-group">
-                    <label class="option-label">Select Model</label>
-                    <select .value=${this.selectedModel} @change=${this._onModelSelect}>
-                        ${this.models?.map(
-                            model => html`
-                                <option value=${model.id} ?selected=${this.selectedModel === model.id} ?disabled=${disabledModelIds.includes(model.id)}>
-                                    ${model.name}${disabledModelIds.includes(model.id) ? ' (Not for real-time)' : ''}
-                                </option>
-                            `
-                        )}
-                    </select>
-                    <div class="provider-help-text">Choose a model for the selected provider</div>
-                </div>
-                <div class="api-input-section">
+                
+                <div class="form-card">
+                    <div class="card-title">AI Provider Configuration</div>
                     <div class="option-group">
-                        <label class="option-label">
-                            ${currentProvider.keyLabel || 'API Key'} 
-                            <span class="optional-label">(Optional)</span>
-                        </label>
-                        
-                        ${this.hasEnvironmentKey ? html`
-                            <div class="env-status">
-                                <div class="env-icon"></div>
-                                <span>Environment API key detected for ${currentProvider.name}</span>
-                            </div>
-                        ` : html`
-                            <div class="env-status warning">
-                                <div class="env-icon"></div>
-                                <span>No environment API key found. You can set ${this._getEnvironmentKeyName(this.selectedProvider)} or enter manually below.</span>
-                            </div>
-                        `}
-                        
+                        <label class="option-label">Select AI Provider</label>
+                        <select .value=${this.selectedProvider} @change=${this._onProviderSelect}>
+                            ${this.providers?.map(
+                                provider => html`
+                                    <option value=${provider.value} ?selected=${this.selectedProvider === provider.value}>${provider.name}</option>
+                                `
+                            )}
+                        </select>
+                        <div class="provider-help-text">Choose your preferred AI service provider</div>
+                    </div>
+                    
+                    <div class="option-group">
+                        <label class="option-label">Select Model</label>
+                        <select .value=${this.selectedModel} @change=${this._onModelSelect}>
+                            ${this.models?.map(
+                                model => html`
+                                    <option value=${model.id} ?selected=${this.selectedModel === model.id} ?disabled=${disabledModelIds.includes(model.id)}>
+                                        ${model.name}${disabledModelIds.includes(model.id) ? ' (Not for real-time)' : ''}
+                                    </option>
+                                `
+                            )}
+                        </select>
+                        <div class="provider-help-text">Choose a model for the selected provider</div>
+                    </div>
+                </div>
+                
+                <div class="form-card api-card">
+                    <div class="card-title">API Configuration</div>
+                    
+                    ${this.hasEnvironmentKey ? html`
+                        <div class="env-status success">
+                            <div class="env-icon"></div>
+                            <span>Environment key detected for ${currentProvider.name}</span>
+                        </div>
+                    ` : html`
+                        <div class="env-status warning">
+                            <div class="env-icon"></div>
+                            <span>Set ${this._getEnvironmentKeyName(this.selectedProvider)} or enter manually</span>
+                        </div>
+                    `}
+                    
+                    <div class="option-group">
                         <div class="input-group">
                             <input
                                 type="password"
-                                placeholder="${this.hasEnvironmentKey ? 'Using environment key (optional override)' : `Enter your ${currentProvider.keyLabel || 'API Key'}`}"
+                                placeholder="${this.hasEnvironmentKey ? 'Override environment key (optional)' : `Enter ${currentProvider.keyLabel || 'API Key'}`}"
                                 .value=${this.apiKey || ''}
                                 @input=${this._onApiKeyInput}
                             />
-                            <button @click=${this._onStartSession} class="button start-button" style="font-size: 15px">Start Session</button>
+                            <button @click=${this._onStartSession} class="button start-button">Start</button>
                         </div>
-                        <div class="description">
-                            ${this.hasEnvironmentKey ? 
-                                'You can start chatting now with your environment API key, or enter a different key above to override.' :
-                                html`Don't have an API key? <button class="link-button" @click=${() => this._openExternalLink(this._getProviderSignupUrl(this.selectedProvider))}>Get ${currentProvider.name} API Key</button> or set environment variable ${this._getEnvironmentKeyName(this.selectedProvider)}.`
-                            }
-                        </div>
+                    </div>
+                    
+                    <div class="api-help">
+                        ${this.hasEnvironmentKey ? 
+                            'Ready to chat with environment key' :
+                            html`Need a key? <button class="link-button" @click=${() => this._openExternalLink(this._getProviderSignupUrl(this.selectedProvider))}>Get ${currentProvider.name} API Key</button>`
+                        }
                     </div>
                 </div>
             </div>
