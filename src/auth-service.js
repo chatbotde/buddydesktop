@@ -42,6 +42,8 @@ class AuthService {
     }
 
     async initializeDatabase() {
+        // If already connected, skip.
+        if (this.db) return;
         try {
             this.dbClient = new MongoClient(this.MONGO_URI);
             await this.dbClient.connect();
@@ -55,6 +57,13 @@ class AuthService {
             console.log('MongoDB connected and indexes created');
         } catch (error) {
             console.error('Failed to connect to MongoDB:', error);
+        }
+    }
+
+    // Helper to ensure DB is ready before performing an operation
+    async ensureDb() {
+        if (!this.db) {
+            await this.initializeDatabase();
         }
     }
 
@@ -150,6 +159,7 @@ class AuthService {
 
     async getUserById(userId) {
         try {
+            await this.ensureDb();
             return await this.db.collection('users').findOne({ _id: new ObjectId(userId) });
         } catch (error) {
             console.error('Failed to get user by ID:', error);

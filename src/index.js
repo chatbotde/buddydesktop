@@ -643,6 +643,15 @@ ipcMain.handle('verify-auth-token', async (event, token) => {
             throw new Error('Authentication service not initialized');
         }
         
+        // Ensure the database connection is established before we try to use it.
+        if (!authService.db) {
+            try {
+                await authService.initializeDatabase?.();
+            } catch (dbErr) {
+                console.error('Failed to (re)initialize database:', dbErr);
+            }
+        }
+        
         const decoded = authService.verifyJWT(token);
         if (!decoded) {
             return { success: false, error: 'Invalid token' };
