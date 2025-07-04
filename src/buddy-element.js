@@ -1,6 +1,7 @@
 import { html, css, LitElement } from './lit-core-2.7.4.min.js';
 import './marked.min.js';
 import './components/buddy-header.js';
+import './components/buddy-login-view.js';
 import './components/buddy-main-view.js';
 import './components/buddy-customize-view.js';
 import './components/buddy-help-view.js';
@@ -1390,35 +1391,34 @@ class BuddyApp extends LitElement {
         isScreenActive: { type: Boolean },
         currentTheme: { type: String },
         chatMessages: { type: Array },
-
         selectedModel: { type: String },
         history: { type: Array },
         providers: { type: Array },
         historyLimit: { type: Number },
+        user: { type: Object },
+        isAuthenticated: { type: Boolean },
+        isGuest: { type: Boolean },
     };
 
     constructor() {
         super();
-        this.currentView = 'main';
+        this.currentView = 'login'; // Start with login view
         this.statusText = '';
         this.startTime = null;
-        // this.isRecording = false; // If unused
         this.sessionActive = false;
-        this.selectedProfile = localStorage.getItem('selectedProfile') || 'interview';
-        this.selectedLanguage = localStorage.getItem('selectedLanguage') || 'en-US';
-        this.selectedProvider = localStorage.getItem('selectedProvider') || 'google';
+        this.selectedProfile = 'interview';
+        this.selectedLanguage = 'en-US';
+        this.selectedProvider = 'google';
         this.responses = [];
         this.currentResponseIndex = -1;
         this.streamingResponseText = '';
         this.isStreamingActive = false;
-        // Initialize new properties
         this.isAudioActive = false;
         this.isScreenActive = false;
-        this.currentTheme = localStorage.getItem('theme') || 'dark';
+        this.currentTheme = 'dark';
         this.chatMessages = [];
-
-        this.selectedModel = localStorage.getItem('selectedModel') || this.getDefaultModelForProvider(this.selectedProvider);
-        this.history = (JSON.parse(localStorage.getItem('chatHistory')) || []).slice(0, this.historyLimit);
+        this.selectedModel = '';
+        this.history = [];
         this.providers = [
             { value: 'google', name: 'Google Gemini', keyLabel: 'Gemini API Key' },
             { value: 'openai', name: 'OpenAI', keyLabel: 'OpenAI API Key' },
@@ -1426,7 +1426,78 @@ class BuddyApp extends LitElement {
             { value: 'deepseek', name: 'DeepSeek', keyLabel: 'DeepSeek API Key' },
             { value: 'openrouter', name: 'OpenRouter', keyLabel: 'OpenRouter API Key' },
         ];
-        this.historyLimit = parseInt(localStorage.getItem('historyLimit'), 10) || 5;
+        this.historyLimit = 5;
+        this.user = null;
+        this.isAuthenticated = false;
+        this.isGuest = false;
+        
+        this.initializeAuth();
+    }
+
+    async initializeAuth() {
+        try {
+            // Check if user has an existing auth token
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                const result = await buddy.verifyAuthToken(token);
+                if (result.success) {
+                    this.user = result.user;
+                    this.isAuthenticated = true;
+                    this.isGuest = false;
+                    
+                    // Load user preferences
+                    if (this.user.preferences) {
+                        this.selectedProfile = this.user.preferences.selectedProfile || 'interview';
+                        this.selectedLanguage = this.user.preferences.selectedLanguage || 'en-US';
+                        this.selectedProvider = this.user.preferences.selectedProvider || 'google';
+                        this.currentTheme = this.user.preferences.theme || 'dark';
+                    }
+                    
+                    this.selectedModel = this.getDefaultModelForProvider(this.selectedProvider);
+                    
+                    // Load chat history from database
+                    await this.loadChatHistory();
+                    
+                    this.currentView = 'main';
+                } else {
+                    // Invalid token, remove it
+                    localStorage.removeItem('authToken');
+                    this.currentView = 'login';
+                }
+            } else {
+                this.currentView = 'login';
+            }
+        } catch (error) {
+            console.error('Failed to initialize auth:', error);
+            this.currentView = 'login';
+        }
+    }
+
+    async loadChatHistory() {
+        try {
+            const result = await buddy.getChatHistory(this.historyLimit);
+            if (result.success) {
+                this.history = result.history;
+            }
+        } catch (error) {
+            console.error('Failed to load chat history:', error);
+        }
+    }
+
+    async saveUserPreferences() {
+        if (this.isAuthenticated && !this.isGuest) {
+            try {
+                const preferences = {
+                    selectedProfile: this.selectedProfile,
+                    selectedLanguage: this.selectedLanguage,
+                    selectedProvider: this.selectedProvider,
+                    theme: this.currentTheme
+                };
+                await buddy.updateUserPreferences(preferences);
+            } catch (error) {
+                console.error('Failed to save user preferences:', error);
+            }
+        }
     }
 
     getDefaultModelForProvider(provider) {
@@ -1492,43 +1563,109 @@ class BuddyApp extends LitElement {
     }
 
     firstUpdated() {
-        this.addEventListener('provider-select', (e) => {
+        // Login event handlers
+        this.addEventListener('login-success', async (e) => {
+            if (e.detail.isGuest) {
+                this.isGuest = true;
+                this.isAuthenticated = false;
+                this.user = null;
+                // Load local storage preferences for guest
+                this.selectedProfile = localStorage.getItem('selectedProfile') || 'interview';
+                this.selectedLanguage = localStorage.getItem('selectedLanguage') || 'en-US';
+                this.selectedProvider = localStorage.getItem('selectedProvider') || 'google';
+                this.currentTheme = localStorage.getItem('theme') || 'dark';
+                this.selectedModel = localStorage.getItem('selectedModel') || this.getDefaultModelForProvider(this.selectedProvider);
+                this.history = (JSON.parse(localStorage.getItem('chatHistory')) || []).slice(0, this.historyLimit);
+                this.historyLimit = parseInt(localStorage.getItem('historyLimit'), 10) || 5;
+            } else {
+                this.user = e.detail.user;
+                this.isAuthenticated = true;
+                this.isGuest = false;
+                
+                // Load user preferences
+                if (this.user.preferences) {
+                    this.selectedProfile = this.user.preferences.selectedProfile || 'interview';
+                    this.selectedLanguage = this.user.preferences.selectedLanguage || 'en-US';
+                    this.selectedProvider = this.user.preferences.selectedProvider || 'google';
+                    this.currentTheme = this.user.preferences.theme || 'dark';
+                }
+                
+                this.selectedModel = this.getDefaultModelForProvider(this.selectedProvider);
+                await this.loadChatHistory();
+            }
+            
+            this.currentView = 'main';
+            this.requestUpdate();
+        });
+        
+        this.addEventListener('provider-select', async (e) => {
             this.selectedProvider = e.detail.provider;
-            localStorage.setItem('selectedProvider', this.selectedProvider);
-            // Set default model for new provider
             this.selectedModel = this.getDefaultModelForProvider(this.selectedProvider);
-            localStorage.setItem('selectedModel', this.selectedModel);
+            
+            if (this.isGuest) {
+                localStorage.setItem('selectedProvider', this.selectedProvider);
+                localStorage.setItem('selectedModel', this.selectedModel);
+            } else {
+                await this.saveUserPreferences();
+            }
+            
             this.requestUpdate();
         });
-        this.addEventListener('model-select', (e) => {
+        
+        this.addEventListener('model-select', async (e) => {
             this.selectedModel = e.detail.model;
-            localStorage.setItem('selectedModel', this.selectedModel);
+            
+            if (this.isGuest) {
+                localStorage.setItem('selectedModel', this.selectedModel);
+            } else {
+                await this.saveUserPreferences();
+            }
+            
             this.requestUpdate();
         });
+        
         this.addEventListener('api-key-input', (e) => {
             localStorage.setItem(`apiKey_${this.selectedProvider}`, e.detail.apiKey);
             this.requestUpdate();
         });
+        
         this.addEventListener('start-session', async () => {
             await this.handleStart();
         });
-        this.addEventListener('profile-select', (e) => {
+        
+        this.addEventListener('profile-select', async (e) => {
             this.selectedProfile = e.detail.profile;
-            localStorage.setItem('selectedProfile', this.selectedProfile);
+            
+            if (this.isGuest) {
+                localStorage.setItem('selectedProfile', this.selectedProfile);
+            } else {
+                await this.saveUserPreferences();
+            }
+            
             this.requestUpdate();
         });
-        this.addEventListener('language-select', (e) => {
+        
+        this.addEventListener('language-select', async (e) => {
             this.selectedLanguage = e.detail.language;
-            localStorage.setItem('selectedLanguage', this.selectedLanguage);
+            
+            if (this.isGuest) {
+                localStorage.setItem('selectedLanguage', this.selectedLanguage);
+            } else {
+                await this.saveUserPreferences();
+            }
+            
             this.requestUpdate();
         });
+        
         this.addEventListener('custom-prompt-input', (e) => {
             localStorage.setItem('customPrompt', e.detail.prompt);
             this.requestUpdate();
         });
+        
         this.addEventListener('load-session', (e) => {
             this.loadSessionFromHistory(e.detail.index);
         });
+        
         this.addEventListener('send-message', async (e) => {
             const message = e.detail.text;
             const screenshots = e.detail.screenshots;
@@ -1545,12 +1682,14 @@ class BuddyApp extends LitElement {
                 this.setStatus('sending...');
             }
         });
+        
         this.addEventListener('delete-message', (e) => {
             if (e.detail.id) {
                 this.deleteMessage(e.detail.id);
             }
         });
 
+        // ...existing event handlers...
         this.addEventListener('close', async () => {
             await this.handleClose();
         });
@@ -1577,22 +1716,43 @@ class BuddyApp extends LitElement {
         });
     }
 
-    saveHistory() {
+    async saveHistory() {
         if (this.chatMessages.length > 1) {
-            const newHistory = [...this.history];
-            newHistory.unshift({
+            const sessionData = {
                 messages: this.chatMessages,
                 timestamp: new Date().toISOString(),
                 provider: this.selectedProvider,
                 model: this.selectedModel,
-            });
-            // Enforce limit
-            if (newHistory.length > this.historyLimit) {
-                newHistory.length = this.historyLimit;
+                duration: this.startTime ? Date.now() - this.startTime : 0
+            };
+            
+            if (this.isAuthenticated && !this.isGuest) {
+                // Save to database for authenticated users
+                try {
+                    await buddy.saveChatSession(sessionData);
+                    // Reload history from database
+                    await this.loadChatHistory();
+                } catch (error) {
+                    console.error('Failed to save session to database:', error);
+                    // Fallback to local storage
+                    this.saveToLocalStorage(sessionData);
+                }
+            } else {
+                // Save to local storage for guests
+                this.saveToLocalStorage(sessionData);
             }
-            this.history = newHistory;
-            localStorage.setItem('chatHistory', JSON.stringify(this.history));
         }
+    }
+    
+    saveToLocalStorage(sessionData) {
+        const newHistory = [...this.history];
+        newHistory.unshift(sessionData);
+        // Enforce limit
+        if (newHistory.length > this.historyLimit) {
+            newHistory.length = this.historyLimit;
+        }
+        this.history = newHistory;
+        localStorage.setItem('chatHistory', JSON.stringify(this.history));
     }
     
     
@@ -2118,6 +2278,10 @@ class BuddyApp extends LitElement {
 
     render() {
         const views = {
+            login: html`<buddy-login-view
+                .user=${this.user}
+                .isLoading=${false}
+            ></buddy-login-view>`,
             main: html`<buddy-main-view
                 .selectedProvider=${this.selectedProvider}
                 .selectedModel=${this.selectedModel}
@@ -2160,6 +2324,9 @@ class BuddyApp extends LitElement {
                         .isAudioActive=${this.isAudioActive}
                         .isScreenActive=${this.isScreenActive}
                         .modelsByProvider=${this.getModelsByProviderForHeader()}
+                        .user=${this.user}
+                        .isAuthenticated=${this.isAuthenticated}
+                        .isGuest=${this.isGuest}
                     ></buddy-header>
                     <div class="main-content">${views[this.currentView]}</div>
                 </div>

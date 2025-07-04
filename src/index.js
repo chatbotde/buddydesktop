@@ -13,6 +13,7 @@ const { spawn } = require('child_process');
 const { pcmToWav, analyzeAudioBuffer, saveDebugAudio, processRealtimeAudio } = require('./audioUtils');
 const { getSystemPrompt } = require('./prompts');
 const { createAIProvider } = require('./ai-providers');
+const AuthService = require('./auth-service');
 
 let geminiSession = null;
 let loopbackProc = null;
@@ -21,6 +22,8 @@ let audioIntervalTimer = null;
 let mouseEventsIgnored = false;
 let messageBuffer = '';
 let currentAIProvider = null;
+let authService = null;
+let currentUser = null;
 
 // Make these globally accessible for AI providers
 global.sendToRenderer = sendToRenderer;
@@ -43,6 +46,9 @@ function ensureDataDirectories() {
 }
 
 function createWindow() {
+    // Initialize authentication service
+    authService = new AuthService();
+    
     const mainWindow = new BrowserWindow({
         width: 600,
         height: 700,
@@ -574,10 +580,170 @@ ipcMain.handle('close-session', async event => {
 ipcMain.handle('quit-application', async event => {
     try {
         stopMacOSAudioCapture();
+        if (authService) {
+            await authService.close();
+        }
         app.quit();
         return { success: true };
     } catch (error) {
         console.error('Error quitting application:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+// Authentication handlers
+ipcMain.handle('get-google-auth-url', async (event) => {
+    try {
+        if (!authService) {
+            throw new Error('Authentication service not initialized');
+        }
+        return { success: true, url: authService.getAuthUrl() };
+    } catch (error) {
+        console.error('Failed to get Google auth URL:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('handle-google-auth-callback', async (event, code) => {
+    try {
+        if (!authService) {
+            throw new Error('Authentication service not initialized');
+        }
+        
+        const tokenResult = await authService.exchangeCodeForTokens(code);
+        if (!tokenResult.success) {
+            return { success: false, error: tokenResult.error };
+        }
+        
+        const user = await authService.createOrUpdateUser(tokenResult.userInfo);
+        const token = authService.generateJWT(user);
+        
+        // Store current user
+        currentUser = user;
+        
+        return { 
+            success: true, 
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                picture: user.picture
+            },
+            token 
+        };
+    } catch (error) {
+        console.error('Failed to handle Google auth callback:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('verify-auth-token', async (event, token) => {
+    try {
+        if (!authService) {
+            throw new Error('Authentication service not initialized');
+        }
+        
+        const decoded = authService.verifyJWT(token);
+        if (!decoded) {
+            return { success: false, error: 'Invalid token' };
+        }
+        
+        const user = await authService.getUserById(decoded.userId);
+        if (!user) {
+            return { success: false, error: 'User not found' };
+        }
+        
+        currentUser = user;
+        return { 
+            success: true, 
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                picture: user.picture,
+                preferences: user.preferences
+            }
+        };
+    } catch (error) {
+        console.error('Failed to verify auth token:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('update-user-preferences', async (event, preferences) => {
+    try {
+        if (!authService || !currentUser) {
+            return { success: false, error: 'User not authenticated' };
+        }
+        
+        const success = await authService.updateUserPreferences(currentUser._id, preferences);
+        return { success };
+    } catch (error) {
+        console.error('Failed to update user preferences:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('save-chat-session', async (event, sessionData) => {
+    try {
+        if (!authService || !currentUser) {
+            // If not authenticated, return success but don't save
+            return { success: true, message: 'Session not saved (guest mode)' };
+        }
+        
+        const sessionId = await authService.saveChatSession(currentUser._id, sessionData);
+        return { success: true, sessionId };
+    } catch (error) {
+        console.error('Failed to save chat session:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('get-chat-history', async (event, limit = 10) => {
+    try {
+        if (!authService || !currentUser) {
+            return { success: true, history: [] };
+        }
+        
+        const history = await authService.getChatHistory(currentUser._id, limit);
+        return { success: true, history };
+    } catch (error) {
+        console.error('Failed to get chat history:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('delete-chat-session', async (event, sessionId) => {
+    try {
+        if (!authService || !currentUser) {
+            return { success: false, error: 'User not authenticated' };
+        }
+        
+        const success = await authService.deleteChatSession(currentUser._id, sessionId);
+        return { success };
+    } catch (error) {
+        console.error('Failed to delete chat session:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('logout', async (event) => {
+    try {
+        currentUser = null;
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to logout:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('start-guest-session', async (event) => {
+    try {
+        // Guest mode - no authentication required
+        currentUser = null;
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to start guest session:', error);
         return { success: false, error: error.message };
     }
 });

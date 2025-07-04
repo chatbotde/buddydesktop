@@ -24,8 +24,12 @@
     "license": "MIT",
     "dependencies": {
         "@google/genai": "^1.7.0",
+        "bcryptjs": "^2.4.3",
         "dotenv": "^17.0.0",
         "electron-squirrel-startup": "^1.0.1",
+        "googleapis": "^140.0.1",
+        "jsonwebtoken": "^9.0.2",
+        "mongodb": "^6.17.0",
         "node-fetch": "^3.3.2",
         "openai": "^5.8.0"
     },

@@ -9,6 +9,9 @@ class BuddyHeader extends LitElement {
         isAudioActive: { type: Boolean },
         isScreenActive: { type: Boolean },
         isControlsMenuOpen: { type: Boolean },
+        user: { type: Object },
+        isAuthenticated: { type: Boolean },
+        isGuest: { type: Boolean },
     };
 
     constructor() {
@@ -573,6 +576,26 @@ class BuddyHeader extends LitElement {
             background: #ffffff;
             opacity: 0.3;
         }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-left: 12px;
+        }
+        
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            object-fit: cover;
+        }
+        
+        .guest-indicator {
+            margin-left: 8px;
+            opacity: 0.7;
+            font-size: 14px;
+        }
     `;
 
     disconnectedCallback() {
@@ -647,6 +670,19 @@ class BuddyHeader extends LitElement {
             <div class="header">
                 <div class="header-title">
                     <span class="header-title-text">${titles[this.currentView]}</span>
+                    ${this.isAuthenticated && this.user && this.currentView !== 'login' ? html`
+                        <div class="user-info">
+                            <img 
+                                src="${this.user.picture || '/assets/default-avatar.png'}" 
+                                alt="${this.user.name}"
+                                class="user-avatar"
+                                title="${this.user.name} (${this.user.email})"
+                            >
+                        </div>
+                    ` : ''}
+                    ${this.isGuest && this.currentView !== 'login' ? html`
+                        <span class="guest-indicator" title="Guest Mode">👤</span>
+                    ` : ''}
                 </div>
                 <div class="header-actions">
                     ${this.currentView === 'assistant'
@@ -819,4 +855,4 @@ class BuddyHeader extends LitElement {
     }
 }
 
-customElements.define('buddy-header', BuddyHeader); 
+customElements.define('buddy-header', BuddyHeader);
