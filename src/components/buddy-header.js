@@ -4,7 +4,6 @@ class BuddyHeader extends LitElement {
     static properties = {
         currentView: { type: String },
         sessionActive: { type: Boolean },
-        statusText: { type: String },
         startTime: { type: Number },
         isAudioActive: { type: Boolean },
         isScreenActive: { type: Boolean },
@@ -167,13 +166,7 @@ class BuddyHeader extends LitElement {
             transform: none;
         }
         
-        .status-text {
-            min-width: 50px; 
-            text-align: right; 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis;
-        }
+
         
         /* Mobile Responsive Styles */
         @media (max-width: 768px) {
@@ -237,11 +230,6 @@ class BuddyHeader extends LitElement {
                 height: 20px;
             }
             
-            .status-text {
-                min-width: 40px;
-                font-size: 12px;
-            }
-            
             /* Adjust status container for mobile */
             .status-container {
                 flex-wrap: wrap;
@@ -300,10 +288,6 @@ class BuddyHeader extends LitElement {
             .icon-button svg {
                 width: 18px;
                 height: 18px;
-            }
-            
-            .status-text {
-                display: none; /* Hide status text on very small screens */
             }
             
             /* Hide elapsed time on very small screens */
@@ -664,8 +648,7 @@ class BuddyHeader extends LitElement {
             const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
             elapsedTime = `${elapsed}s`;
         }
-        const isLive = this.sessionActive && (this.statusText?.includes('Listening') || this.statusText?.includes('Processing'));
-        const statusIndicator = isLive ? 'status-live' : 'status-idle';
+        const statusIndicator = this.sessionActive ? 'status-live' : 'status-idle';
         return html`
             <div class="header">
                 <div class="header-title">
@@ -752,7 +735,6 @@ class BuddyHeader extends LitElement {
                                             </button>
                                         `}
                               </div>
-                              <span class="status-text">${this.statusText}</span>
                           `
                         : ''}
                     ${this.currentView === 'main'

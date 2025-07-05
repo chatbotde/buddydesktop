@@ -856,17 +856,23 @@ class BuddyChatMessage extends LitElement {
     }
 
     _onScreenshotClick(screenshot) {
-        // Open screenshot in a new window or modal
+        // Open screenshot in a new window with consistent properties
         if (screenshot) {
-            const newWindow = window.open();
-            newWindow.document.write(`
-                <html>
-                    <head><title>Screenshot</title></head>
-                    <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#000;">
-                        <img src="data:image/jpeg;base64,${screenshot}" style="max-width:100%; max-height:100%; object-fit:contain;" />
-                    </body>
-                </html>
-            `);
+            // Use the new createImageWindow function if available, fallback to window.open()
+            if (window.buddy && window.buddy.createImageWindow) {
+                window.buddy.createImageWindow(screenshot, 'Screenshot');
+            } else {
+                // Fallback to original method
+                const newWindow = window.open();
+                newWindow.document.write(`
+                    <html>
+                        <head><title>Screenshot</title></head>
+                        <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#000;">
+                            <img src="data:image/jpeg;base64,${screenshot}" style="max-width:100%; max-height:100%; object-fit:contain;" />
+                        </body>
+                    </html>
+                `);
+            }
         }
     }
 

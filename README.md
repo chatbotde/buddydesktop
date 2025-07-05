@@ -9,6 +9,36 @@ An AI assistant desktop application that supports multiple AI providers includin
 - Environment variable support for API keys
 - Chat interface with message history
 - Cross-platform support (Windows, macOS, Linux)
+- Consistent window properties across all windows (frameless, transparent, always-on-top)
+
+## Window Properties
+
+All windows in the application share consistent properties for a seamless desktop experience:
+
+- **Frameless**: No window borders or title bars
+- **Transparent**: Transparent background for modern look
+- **Always on Top**: Windows stay above other applications
+- **Hidden from Taskbar**: Windows don't appear in the system taskbar
+- **Hidden from Mission Control**: Windows don't appear in macOS Mission Control
+- **Content Protection**: Prevents screen recording in some contexts
+- **Visible on All Workspaces**: Windows appear on all virtual desktops
+
+### Creating Windows with Consistent Properties
+
+The application provides utility functions to create windows with these properties:
+
+```javascript
+// Create an image window
+window.buddy.createImageWindow(imageData, 'Screenshot Title');
+
+// Create any window with consistent properties
+window.buddy.createConsistentWindow({
+    width: 800,
+    height: 600,
+    title: 'My Window',
+    webPreferences: { nodeIntegration: true }
+});
+```
 
 ## Installation
 

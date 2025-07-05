@@ -565,6 +565,71 @@ async function captureScreenshot() {
     }
 }
 
+// Function to create image windows with consistent properties
+async function createImageWindow(imageData, title = 'Screenshot') {
+    try {
+        const result = await ipcRenderer.invoke('create-image-window', imageData, title);
+        if (result.success) {
+            console.log('Image window created successfully');
+            return result;
+        } else {
+            console.error('Failed to create image window:', result.error);
+            // Fallback to window.open() if IPC fails
+            const newWindow = window.open();
+            newWindow.document.write(`
+                <html>
+                    <head><title>${title}</title></head>
+                    <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#000;">
+                        <img src="data:image/jpeg;base64,${imageData}" style="max-width:100%; max-height:100%; object-fit:contain;" />
+                    </body>
+                </html>
+            `);
+            return { success: true, fallback: true };
+        }
+    } catch (error) {
+        console.error('Error creating image window:', error);
+        // Fallback to window.open() if IPC fails
+        const newWindow = window.open();
+        newWindow.document.write(`
+            <html>
+                <head><title>${title}</title></head>
+                <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#000;">
+                    <img src="data:image/jpeg;base64,${imageData}" style="max-width:100%; max-height:100%; object-fit:contain;" />
+                </body>
+            </html>
+        `);
+        return { success: true, fallback: true };
+    }
+}
+
+// Function to create any window with consistent properties
+// Usage example:
+// window.buddy.createConsistentWindow({
+//     width: 800,
+//     height: 600,
+//     title: 'My Window',
+//     webPreferences: { nodeIntegration: true }
+// }).then(result => {
+//     if (result.success) {
+//         console.log('Window created with ID:', result.windowId);
+//     }
+// });
+async function createConsistentWindow(options = {}) {
+    try {
+        const result = await ipcRenderer.invoke('create-consistent-window', options);
+        if (result.success) {
+            console.log('Consistent window created successfully');
+            return result;
+        } else {
+            console.error('Failed to create consistent window:', result.error);
+            return { success: false, error: result.error };
+        }
+    } catch (error) {
+        console.error('Error creating consistent window:', error);
+        return { success: false, error: error.message };
+    }
+}
+
 window.buddy = {
     initializeAI,
     startCapture,
@@ -581,6 +646,8 @@ window.buddy = {
     resumeScreen,
     enableRealtimeVideoStreaming,
     disableRealtimeVideoStreaming,
+    createImageWindow, // Add the new function
+    createConsistentWindow, // Add the general window creation function
     openExternal: async (url) => {
         try {
             const result = await ipcRenderer.invoke('open-external', url);
@@ -936,3 +1003,23 @@ window.buddy.getChatHistory = getChatHistory;
 window.buddy.deleteChatSession = deleteChatSession;
 window.buddy.logout = logout;
 window.buddy.startGuestSession = startGuestSession;
+
+// Test function for window creation (can be called from console)
+window.buddy.testWindowCreation = async () => {
+    console.log('Testing window creation...');
+    
+    // Test image window creation
+    const testImageData = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='; // 1x1 transparent pixel
+    const imageResult = await window.buddy.createImageWindow(testImageData, 'Test Image Window');
+    console.log('Image window result:', imageResult);
+    
+    // Test consistent window creation
+    const windowResult = await window.buddy.createConsistentWindow({
+        width: 400,
+        height: 300,
+        title: 'Test Window'
+    });
+    console.log('Consistent window result:', windowResult);
+    
+    return { imageResult, windowResult };
+};

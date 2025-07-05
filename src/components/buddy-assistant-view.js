@@ -207,6 +207,16 @@ class BuddyAssistantView extends LitElement {
                 0 0 0 1px rgba(255, 255, 255, 0.08);
             transform: translateY(0);
         }
+
+        /* Drag and drop visual feedback */
+        .text-input-container.drag-over {
+            border-color: rgba(59, 130, 246, 0.5) !important;
+            background: rgba(59, 130, 246, 0.1) !important;
+            box-shadow: 
+                0 8px 40px rgba(59, 130, 246, 0.2),
+                inset 0 1px 1px rgba(59, 130, 246, 0.2),
+                0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+        }
         
         .screenshots-preview {
             display: flex;
@@ -924,16 +934,22 @@ class BuddyAssistantView extends LitElement {
     }
 
     _onViewScreenshot(screenshot) {
-        // Open screenshot in a new window
-        const newWindow = window.open();
-        newWindow.document.write(`
-            <html>
-                <head><title>Screenshot</title></head>
-                <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#000;">
-                    <img src="data:image/jpeg;base64,${screenshot}" style="max-width:100%; max-height:100%; object-fit:contain;" />
-                </body>
-            </html>
-        `);
+        // Open screenshot in a new window with consistent properties
+        // Use the new createImageWindow function if available, fallback to window.open()
+        if (window.buddy && window.buddy.createImageWindow) {
+            window.buddy.createImageWindow(screenshot, 'Screenshot');
+        } else {
+            // Fallback to original method
+            const newWindow = window.open();
+            newWindow.document.write(`
+                <html>
+                    <head><title>Screenshot</title></head>
+                    <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#000;">
+                        <img src="data:image/jpeg;base64,${screenshot}" style="max-width:100%; max-height:100%; object-fit:contain;" />
+                    </body>
+                </html>
+            `);
+        }
     }
 
     _onSend() {
@@ -1080,6 +1096,160 @@ class BuddyAssistantView extends LitElement {
         e.target.value = '';
     }
 
+    // Handle paste events for images
+    _handlePaste(e) {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            
+            // Check if the pasted item is an image
+            if (item.type.indexOf('image') !== -1) {
+                e.preventDefault();
+                
+                if (this.attachedScreenshots.length >= 3) {
+                    this._showNotification('Maximum 3 images allowed', 'warning');
+                    return;
+                }
+
+                const file = item.getAsFile();
+                if (file) {
+                    // Show loading notification
+                    this._showNotification('Processing pasted image...', 'info');
+                    
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        // event.target.result is the base64-encoded string
+                        const base64String = event.target.result.split(',')[1];
+                        this.attachedScreenshots = [...this.attachedScreenshots, base64String];
+                        this.requestUpdate();
+                        this._showNotification('Image pasted successfully!', 'success');
+                        console.log('Image pasted successfully');
+                    };
+                    reader.onerror = () => {
+                        this._showNotification('Failed to process image', 'error');
+                    };
+                    reader.readAsDataURL(file);
+                }
+                break;
+            }
+        }
+    }
+
+    // Show notification to user
+    _showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? 'rgba(34, 197, 94, 0.9)' : 
+                         type === 'warning' ? 'rgba(251, 191, 36, 0.9)' : 
+                         type === 'error' ? 'rgba(239, 68, 68, 0.9)' : 
+                         'rgba(59, 130, 246, 0.9)'};
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+            word-wrap: break-word;
+        `;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 10);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    // Handle drag and drop for images
+    _handleDragOver(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.currentTarget.classList.add('drag-over');
+    }
+
+    _handleDragLeave(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.currentTarget.classList.remove('drag-over');
+    }
+
+    _handleDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Reset styling
+        e.currentTarget.classList.remove('drag-over');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                // Check if it's an image file
+                if (file.type.startsWith('image/')) {
+                    if (this.attachedScreenshots.length >= 3) {
+                        this._showNotification('Maximum 3 images allowed', 'warning');
+                        return;
+                    }
+
+                    this._showNotification('Processing dropped image...', 'info');
+                    
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const base64String = event.target.result.split(',')[1];
+                        this.attachedScreenshots = [...this.attachedScreenshots, base64String];
+                        this.requestUpdate();
+                        this._showNotification('Image dropped successfully!', 'success');
+                    };
+                    reader.onerror = () => {
+                        this._showNotification('Failed to process dropped image', 'error');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+    }
+
+    // Test function for image paste functionality (can be called from console)
+    testImagePaste() {
+        console.log('Testing image paste functionality...');
+        console.log('Available methods:');
+        console.log('1. Copy an image to clipboard and paste with Ctrl+V');
+        console.log('2. Drag and drop image files onto the text input');
+        console.log('3. Use the "Attach image" button in the actions menu');
+        console.log('4. Take screenshots with the "Capture screenshot" button');
+        
+        // Focus the textarea
+        const textarea = this.renderRoot.querySelector('#textInput');
+        if (textarea) {
+            textarea.focus();
+            this._showNotification('Ready to test image paste! Copy an image and press Ctrl+V', 'info');
+        }
+    }
+
     render() {
         const isAtLimit = this.attachedScreenshots.length >= 3;
         
@@ -1097,6 +1267,9 @@ class BuddyAssistantView extends LitElement {
                         ? html`
                             <div class="welcome-message">
                                 <p>Welcome! Start a session to begin chatting with your AI assistant.</p>
+                                <p style="font-size: 12px; opacity: 0.7; margin-top: 8px;">
+                                    📷 <strong>Image support:</strong> Take screenshots, upload files, paste images with Ctrl+V, or drag & drop!
+                                </p>
                                 ${this.autoScreenshotEnabled ? html`
                                     <p style="font-size: 12px; opacity: 0.6; margin-top: 8px;">
                                         Auto-screenshot is enabled - a screenshot will be captured when you start typing
@@ -1129,7 +1302,10 @@ class BuddyAssistantView extends LitElement {
                         </div>
                     ` : ''}
                 </div>
-                <div class="text-input-container">
+                <div class="text-input-container"
+                     @dragover=${this._handleDragOver}
+                     @dragleave=${this._handleDragLeave}
+                     @drop=${this._handleDrop}>
                     ${this.attachedScreenshots.length > 0 ? html`
                         <div class="screenshots-preview">
                             <div class="screenshots-header">
@@ -1164,9 +1340,10 @@ class BuddyAssistantView extends LitElement {
                         <textarea
                             id="textInput"
                             rows="1"
-                            placeholder="${this.autoScreenshotEnabled ? 'Ask me anything... (auto-screenshot enabled)' : 'Ask me anything...'}"
+                            placeholder="${this.autoScreenshotEnabled ? 'Ask me anything... (auto-screenshot enabled) - Paste images with Ctrl+V or drag & drop' : 'Ask me anything... - Paste images with Ctrl+V or drag & drop'}"
                             @keydown=${this._onKeydown}
                             @input=${this._onTextInput}
+                            @paste=${this._handlePaste}
                         ></textarea>
                         <div class="action-buttons">
                              <div class="actions-dropdown-container">

@@ -24,17 +24,17 @@ class BuddyMainView extends LitElement {
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 40px 20px;
+            padding: 30px 15px;
             width: 100%;
-            max-width: 450px;
+            max-width: 400px;
             margin: 0 auto;
             background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-            border-radius: 20px;
+            border-radius: 16px;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.1),
+                0 6px 24px rgba(0, 0, 0, 0.1),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         
@@ -58,7 +58,7 @@ class BuddyMainView extends LitElement {
         }
         
         .option-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             width: 100%;
             position: relative;
         }
@@ -116,19 +116,7 @@ class BuddyMainView extends LitElement {
             line-height: 1.4;
         }
         
-        .api-card {
-            text-align: center;
-        }
-        
-        .api-card .input-group {
-            margin: 0 auto;
-            max-width: 100%;
-            box-sizing: border-box;
-        }
-        
-        .api-card .option-group {
-            margin-bottom: 16px;
-        }
+
         
         select, input[type="password"] {
             background: rgba(255, 255, 255, 0.08);
@@ -148,7 +136,7 @@ class BuddyMainView extends LitElement {
         }
         
         select {
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.08) 100%);
             appearance: none !important;
             -webkit-appearance: none !important;
             -moz-appearance: none !important;
@@ -161,45 +149,49 @@ class BuddyMainView extends LitElement {
         }
         
         select:hover {
-            border-color: rgba(255, 255, 255, 0.2);
+            border-color: #666666;
             transform: translateY(-1px);
             box-shadow: 
-                0 8px 24px rgba(0, 0, 0, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+                0 8px 24px #333333,
+                inset 0 1px 0 #444444;
+            background: linear-gradient(135deg, #444444 0%, #333333 100%);
         }
-        
         select:focus {
             outline: none;
             border-color: var(--text-color);
             box-shadow: 
                 0 0 0 4px rgba(255, 255, 255, 0.2),
                 0 8px 24px rgba(0, 0, 0, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
             transform: translateY(-1px);
+            background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.12) 100%);
         }
         
         select option {
-            background-color: var(--main-content-background);
+            background: rgba(30, 30, 30, 0.95);
             color: var(--text-color);
             padding: 12px 16px;
             border: none;
             font-size: 14px;
             font-weight: 500;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
         
         select option:hover,
         select option:checked,
         select option:focus {
-            background: var(--text-color);
-            color: var(--main-content-background);
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.1) 100%);
+            color: var(--text-color);
         }
         
         input[type="password"]:hover {
-            border-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.25);
             transform: translateY(-1px);
             box-shadow: 
                 0 8px 24px rgba(0, 0, 0, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.1) 100%);
         }
         
         input[type="password"]:focus {
@@ -208,8 +200,9 @@ class BuddyMainView extends LitElement {
             box-shadow: 
                 0 0 0 4px rgba(255, 255, 255, 0.2),
                 0 8px 24px rgba(0, 0, 0, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
             transform: translateY(-1px);
+            background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.12) 100%);
         }
         
         input::placeholder {
@@ -361,8 +354,7 @@ class BuddyMainView extends LitElement {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 16px;
+            padding: 28px;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             box-shadow: 
@@ -370,17 +362,20 @@ class BuddyMainView extends LitElement {
                 inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
         
-        .form-card:last-child {
-            margin-bottom: 0;
-        }
-        
         .card-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
             color: var(--text-color);
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             text-align: center;
             letter-spacing: 0.5px;
+        }
+        
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            margin: 24px 0;
+            border-radius: 1px;
         }
         
         @media (max-width: 640px) {
@@ -476,7 +471,8 @@ class BuddyMainView extends LitElement {
                 <div class="welcome">Welcome to Buddy</div>
                 
                 <div class="form-card">
-                    <div class="card-title">AI Provider Configuration</div>
+                    <div class="card-title">AI Configuration</div>
+                    
                     <div class="option-group">
                         <label class="option-label">Select AI Provider</label>
                         <select .value=${this.selectedProvider} @change=${this._onProviderSelect}>
@@ -502,10 +498,8 @@ class BuddyMainView extends LitElement {
                         </select>
                         <div class="provider-help-text">Choose a model for the selected provider</div>
                     </div>
-                </div>
-                
-                <div class="form-card api-card">
-                    <div class="card-title">API Configuration</div>
+                    
+                    <div class="divider"></div>
                     
                     ${this.hasEnvironmentKey ? html`
                         <div class="env-status success">
@@ -520,6 +514,7 @@ class BuddyMainView extends LitElement {
                     `}
                     
                     <div class="option-group">
+                        <label class="option-label">API Key</label>
                         <div class="input-group">
                             <input
                                 type="password"
@@ -527,15 +522,17 @@ class BuddyMainView extends LitElement {
                                 .value=${this.apiKey || ''}
                                 @input=${this._onApiKeyInput}
                             />
-                            <button @click=${this._onStartSession} class="button start-button">Start</button>
+                            <button @click=${this._onStartSession} class="button start-button" style="display: flex; align-items: center; justify-content: center; width: 100%; margin-top: 20px; padding: 16px; font-size: 16px; font-weight: 600; letter-spacing: 0.5px;">
+                                <span style="margin-right: 12px;">Start Chat</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m12 16 4-4-4-4"/><path d="M8 12h8"/></svg>
+                            </button>
                         </div>
-                    </div>
-                    
-                    <div class="api-help">
-                        ${this.hasEnvironmentKey ? 
-                            'Ready to chat with environment key' :
-                            html`Need a key? <button class="link-button" @click=${() => this._openExternalLink(this._getProviderSignupUrl(this.selectedProvider))}>Get ${currentProvider.name} API Key</button>`
-                        }
+                        <div class="api-help">
+                            ${this.hasEnvironmentKey ? 
+                                'Ready to chat with environment key' :
+                                html`Need a key? <button class="link-button" @click=${() => this._openExternalLink(this._getProviderSignupUrl(this.selectedProvider))}>Get ${currentProvider.name} API Key</button>`
+                            }
+                        </div>
                     </div>
                 </div>
             </div>

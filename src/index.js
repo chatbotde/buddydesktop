@@ -5,6 +5,22 @@ if (require('electron-squirrel-startup')) {
 // Load environment variables from .env file
 require('dotenv').config();
 
+/**
+ * Buddy Desktop Application
+ * 
+ * This application provides consistent window properties across all windows:
+ * - Frameless windows (frame: false)
+ * - Transparent background (transparent: true)
+ * - Always on top (alwaysOnTop: true)
+ * - Hidden from taskbar (skipTaskbar: true)
+ * - Hidden from mission control (hiddenInMissionControl: true)
+ * - Content protection enabled
+ * - Visible on all workspaces
+ * 
+ * All windows created through createConsistentWindow() or createImageWindow()
+ * will inherit these properties automatically.
+ */
+
 const { app, BrowserWindow, desktopCapturer, globalShortcut, session, ipcMain, shell, screen } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
@@ -45,13 +61,11 @@ function ensureDataDirectories() {
     return { imageDir, audioDir };
 }
 
-function createWindow() {
-    // Initialize authentication service
-    authService = new AuthService();
-    
-    const mainWindow = new BrowserWindow({
-        width: 600,
-        height: 700,
+// Utility function to create windows with consistent properties
+function createConsistentWindow(options = {}) {
+    const defaultOptions = {
+        width: 800,
+        height: 600,
         frame: false,
         transparent: true,
         hasShadow: false,
@@ -62,11 +76,41 @@ function createWindow() {
             nodeIntegration: true,
             contextIsolation: false,
             backgroundThrottling: false,
-            enableBlinkFeatures: 'GetDisplayMedia',
             webSecurity: true,
             allowRunningInsecureContent: false,
         },
         backgroundColor: '#00000000',
+    };
+
+    const windowOptions = { ...defaultOptions, ...options };
+    const newWindow = new BrowserWindow(windowOptions);
+
+    // Apply consistent window properties
+    newWindow.setContentProtection(true);
+    newWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+
+    if (process.platform === 'win32') {
+        newWindow.setAlwaysOnTop(true, 'screen-saver', 1);
+    }
+
+    return newWindow;
+}
+
+function createWindow() {
+    // Initialize authentication service
+    authService = new AuthService();
+    
+    const mainWindow = createConsistentWindow({
+        width: 600,
+        height: 700,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            backgroundThrottling: false,
+            enableBlinkFeatures: 'GetDisplayMedia',
+            webSecurity: true,
+            allowRunningInsecureContent: false,
+        }
     });
 
     session.defaultSession.setDisplayMediaRequestHandler(
@@ -77,13 +121,6 @@ function createWindow() {
         },
         { useSystemPicker: true }
     );
-
-    mainWindow.setContentProtection(true);
-    mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-
-    if (process.platform === 'win32') {
-        mainWindow.setAlwaysOnTop(true, 'screen-saver', 1);
-    }
 
     mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
@@ -178,8 +215,114 @@ function createWindow() {
     });
 
     ipcMain.handle('window-minimize', () => {
-        mainWindow.minimize();
-    });
+    mainWindow.minimize();
+});
+
+// IPC handler for creating image windows with consistent properties
+ipcMain.handle('create-image-window', async (event, imageData, title = 'Screenshot') => {
+    try {
+        const imageWindow = createConsistentWindow({
+            width: 400,
+            height: 200,
+            title: title,
+            webPreferences: {
+                nodeIntegration: true,
+                contextIsolation: false,
+                backgroundThrottling: false,
+                webSecurity: true,
+                allowRunningInsecureContent: false,
+            }
+        });
+
+        // Create HTML content for the image window
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    <title>${title}</title>
+                    <style>
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            background: #000;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            min-height: 100vh;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                        }
+                        .image-container {
+                            position: relative;
+                            max-width: 80%;
+                            max-height: 80%;
+                        }
+                        img {
+                            max-width: 80%;
+                            max-height: 80%;
+                            object-fit: contain;
+                            display: block;
+                        }
+                        .close-btn {
+                            position: absolute;
+                            top: 10px;
+                            right: 10px;
+                            background: rgba(0, 0, 0, 0.7);
+                            color: white;
+                            border: none;
+                            border-radius: 50%;
+                            width: 30px;
+                            height: 30px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        .close-btn:hover {
+                            background: rgba(255, 0, 0, 0.8);
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="image-container">
+                        <button class="close-btn" onclick="window.close()">×</button>
+                        <img src="data:image/jpeg;base64,${imageData}" alt="${title}" />
+                    </div>
+                </body>
+            </html>
+        `;
+
+        // Load the HTML content
+        imageWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`);
+
+        // Handle window close
+        imageWindow.on('closed', () => {
+            // Window will be garbage collected
+        });
+
+        return { success: true, windowId: imageWindow.id };
+    } catch (error) {
+        console.error('Failed to create image window:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+// General IPC handler for creating any window with consistent properties
+ipcMain.handle('create-consistent-window', async (event, options = {}) => {
+    try {
+        const window = createConsistentWindow(options);
+        
+        // Handle window close
+        window.on('closed', () => {
+            // Window will be garbage collected
+        });
+
+        return { success: true, windowId: window.id };
+    } catch (error) {
+        console.error('Failed to create consistent window:', error);
+        return { success: false, error: error.message };
+    }
+});
 }
 
 async function initializeAISession(provider, apiKey, customPrompt = '', profile = 'interview', language = 'en-US', model = '') {
