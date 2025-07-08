@@ -206,6 +206,80 @@ const models = [
         description: 'Claude 3.5 Sonnet via OpenRouter with text and image understanding.',
         url: 'https://openrouter.ai/models/anthropic/claude-3.5-sonnet',
     },
+
+    // DSPy Models
+    {
+        id: 'dspy/gpt-4',
+        name: 'DSPy GPT-4',
+        provider: 'dspy',
+        type: 'llm',
+        live: false,
+        capabilities: {
+            text: true,
+            image: false,
+            audio: false,
+            video: false,
+            realtime: false,
+            optimization: true,
+            custom_pipelines: true
+        },
+        description: 'GPT-4 with DSPy optimization capabilities for advanced reasoning.',
+        url: 'https://dspy-docs.vercel.app/',
+    },
+    {
+        id: 'dspy/gpt-3.5-turbo',
+        name: 'DSPy GPT-3.5 Turbo',
+        provider: 'dspy',
+        type: 'llm',
+        live: false,
+        capabilities: {
+            text: true,
+            image: false,
+            audio: false,
+            video: false,
+            realtime: false,
+            optimization: true,
+            custom_pipelines: true
+        },
+        description: 'GPT-3.5 Turbo with DSPy optimization capabilities.',
+        url: 'https://dspy-docs.vercel.app/',
+    },
+    {
+        id: 'dspy/claude-3-5-sonnet',
+        name: 'DSPy Claude 3.5 Sonnet',
+        provider: 'dspy',
+        type: 'llm',
+        live: false,
+        capabilities: {
+            text: true,
+            image: false,
+            audio: false,
+            video: false,
+            realtime: false,
+            optimization: true,
+            custom_pipelines: true
+        },
+        description: 'Claude 3.5 Sonnet with DSPy optimization capabilities.',
+        url: 'https://dspy-docs.vercel.app/',
+    },
+    {
+        id: 'dspy/gemini-pro',
+        name: 'DSPy Gemini Pro',
+        provider: 'dspy',
+        type: 'llm',
+        live: false,
+        capabilities: {
+            text: true,
+            image: false,
+            audio: false,
+            video: false,
+            realtime: false,
+            optimization: true,
+            custom_pipelines: true
+        },
+        description: 'Gemini Pro with DSPy optimization capabilities.',
+        url: 'https://dspy-docs.vercel.app/',
+    },
     {
        id : 'deepseek/deepseek-chat-v3-0324:free',
        name : 'DeepSeek Chat V3',

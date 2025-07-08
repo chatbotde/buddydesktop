@@ -30,6 +30,7 @@ const { pcmToWav, analyzeAudioBuffer, saveDebugAudio, processRealtimeAudio } = r
 const { getSystemPrompt } = require('./prompts');
 const { createAIProvider } = require('./ai-providers');
 const AuthService = require('./auth-service');
+const AutoUpdateService = require('./auto-updater');
 
 let geminiSession = null;
 let loopbackProc = null;
@@ -40,6 +41,7 @@ let messageBuffer = '';
 let currentAIProvider = null;
 let authService = null;
 let currentUser = null;
+let autoUpdateService = null;
 
 // Make these globally accessible for AI providers
 global.sendToRenderer = sendToRenderer;
@@ -123,6 +125,10 @@ function createWindow() {
     );
 
     mainWindow.loadFile(path.join(__dirname, 'index.html'));
+
+    // Initialize auto-update service
+    autoUpdateService = new AutoUpdateService(mainWindow);
+    autoUpdateService.start();
 
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;

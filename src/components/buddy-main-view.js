@@ -522,9 +522,68 @@ class BuddyMainView extends LitElement {
                                 .value=${this.apiKey || ''}
                                 @input=${this._onApiKeyInput}
                             />
-                            <button @click=${this._onStartSession} class="button start-button" style="display: flex; align-items: center; justify-content: center; width: 100%; margin-top: 20px; padding: 16px; font-size: 16px; font-weight: 600; letter-spacing: 0.5px;">
-                                <span style="margin-right: 12px;">Start Chat</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m12 16 4-4-4-4"/><path d="M8 12h8"/></svg>
+                            <button 
+                                @click=${this._onStartSession} 
+                                class="button start-button liquid-glass"
+                                style="
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    width: 100%;
+                                    margin-top: 20px;
+                                    padding: 16px;
+                                    font-size: 16px;
+                                    font-weight: 600;
+                                    letter-spacing: 0.5px;
+                                    background: rgba(255, 255, 255, 0.1);
+                                    backdrop-filter: blur(10px);
+                                    border: 1px solid rgba(255, 255, 255, 0.2);
+                                    border-radius: 12px;
+                                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                                    transition: all 0.3s ease;
+                                    color: rgba(255, 255, 255, 0.9);
+                                    position: relative;
+                                    overflow: hidden;
+                                "
+                                @mousemove=${(e) => {
+                                    const rect = e.target.getBoundingClientRect();
+                                    const x = e.clientX - rect.left;
+                                    const y = e.clientY - rect.top;
+                                    e.target.style.setProperty('--mouse-x', `${x}px`);
+                                    e.target.style.setProperty('--mouse-y', `${y}px`);
+                                }}
+                            >
+                                <span style="
+                                    margin-right: 12px;
+                                    position: relative;
+                                    z-index: 1;
+                                ">Start Chat</span>
+                                <svg 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    width="24" 
+                                    height="24" 
+                                    viewBox="0 0 24 24" 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    stroke-width="2.5" 
+                                    stroke-linecap="round" 
+                                    stroke-linejoin="round"
+                                    style="position: relative; z-index: 1;"
+                                >
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="m12 16 4-4-4-4"/>
+                                    <path d="M8 12h8"/>
+                                </svg>
+                                <div style="
+                                    position: absolute;
+                                    width: 100px;
+                                    height: 100px;
+                                    background: radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, transparent 70%);
+                                    transform: translate(-50%, -50%);
+                                    left: var(--mouse-x, 0);
+                                    top: var(--mouse-y, 0);
+                                    pointer-events: none;
+                                "></div>
                             </button>
                         </div>
                         <div class="api-help">

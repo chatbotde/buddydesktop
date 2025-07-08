@@ -1425,6 +1425,7 @@ class BuddyApp extends LitElement {
             { value: 'anthropic', name: 'Anthropic Claude', keyLabel: 'Anthropic API Key' },
             { value: 'deepseek', name: 'DeepSeek', keyLabel: 'DeepSeek API Key' },
             { value: 'openrouter', name: 'OpenRouter', keyLabel: 'OpenRouter API Key' },
+            { value: 'dspy', name: 'DSPy (Advanced)', keyLabel: 'DSPy API Key' },
         ];
         this.historyLimit = 5;
         this.user = null;
