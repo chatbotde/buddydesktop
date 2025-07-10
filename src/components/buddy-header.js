@@ -642,6 +642,7 @@ class BuddyHeader extends LitElement {
             customize: 'Customize',
             help: 'Help & Shortcuts',
             assistant: 'Buddy',
+            settings: 'AI Settings',
         };
         let elapsedTime = '';
         if (this.currentView === 'assistant' && this.startTime) {
@@ -805,8 +806,142 @@ class BuddyHeader extends LitElement {
                         : ''}
                     ${this.currentView === 'assistant'
                         ? html`
-                              <button @click=${this._handleClose} class="button window-close">
-                                  Back
+                              <button class="icon-button" @click=${() => this._handleNav('history')}>
+                                  <svg width="24px" height="24px" stroke-width="1.7" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M12 6v6h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22a9.99999 9.99999 0 0 1-9.42-7.11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21.5492 14.3313A9.99999 9.99999 0 0 1 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2c5.4578 0 9.8787 4.3676 9.9958 9.794" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                              </button>
+                              <button class="icon-button" @click=${() => this._handleNav('customize')}>
+                                  <svg
+                                      width="24px"
+                                      height="24px"
+                                      stroke-width="1.7"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      color="currentColor"
+                                  >
+                                      <path
+                                          d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                      ></path>
+                                      <path
+                                          d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                      ></path>
+                                  </svg>
+                              </button>
+                              <button class="icon-button" @click=${() => this._handleNav('settings')}>
+                                  <svg
+                                      width="24px"
+                                      height="24px"
+                                      stroke-width="1.7"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      color="currentColor"
+                                  >
+                                      <path
+                                          d="M9 12C9 13.3807 7.88071 14.5 6.5 14.5C5.11929 14.5 4 13.3807 4 12C4 10.6193 5.11929 9.5 6.5 9.5C7.88071 9.5 9 10.6193 9 12Z"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                      ></path>
+                                      <path
+                                          d="M20 12C20 13.3807 18.8807 14.5 17.5 14.5C16.1193 14.5 15 13.3807 15 12C15 10.6193 16.1193 9.5 17.5 9.5C18.8807 9.5 20 10.6193 20 12Z"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                      ></path>
+                                      <path
+                                          d="M14.5 6C14.5 7.38071 13.3807 8.5 12 8.5C10.6193 8.5 9.5 7.38071 9.5 6C9.5 4.61929 10.6193 3.5 12 3.5C13.3807 3.5 14.5 4.61929 14.5 6Z"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                      ></path>
+                                      <path
+                                          d="M14.5 18C14.5 19.3807 13.3807 20.5 12 20.5C10.6193 20.5 9.5 19.3807 9.5 18C9.5 16.6193 10.6193 15.5 12 15.5C13.3807 15.5 14.5 16.6193 14.5 18Z"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                      ></path>
+                                      <path
+                                          d="M6.5 9.5C7.06815 8.83688 7.83688 8.06815 8.5 7.5"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                      ></path>
+                                      <path
+                                          d="M8.5 16.5C7.83688 15.9319 7.06815 15.1631 6.5 14.5"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                      ></path>
+                                      <path
+                                          d="M15.5 7.5C16.1631 8.06815 16.9319 8.83688 17.5 9.5"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                      ></path>
+                                      <path
+                                          d="M17.5 14.5C16.9319 15.1631 16.1631 15.9319 15.5 16.5"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                      ></path>
+                                  </svg>
+                              </button>
+                              <button class="icon-button" @click=${() => this._handleNav('help')}>
+                                  <svg
+                                      width="24px"
+                                      height="24px"
+                                      stroke-width="1.7"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      color="currentColor"
+                                  >
+                                      <path
+                                          d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                      ></path>
+                                      <path
+                                          d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                      ></path>
+                                      <path
+                                          d="M12 18.01L12.01 17.9989"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                      ></path>
+                                  </svg>
+                              </button>
+                              <button @click=${this._handleClose} class="icon-button window-close">
+                                  <svg
+                                      width="24px"
+                                      height="24px"
+                                      stroke-width="1.7"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      color="currentColor"
+                                  >
+                                      <path
+                                          d="M6.75827 17.2426L12.0009 12M17.2435 6.75736L12.0009 12M12.0009 12L6.75827 6.75736M12.0009 12L17.2435 17.2426"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                      ></path>
+                                  </svg>
                               </button>
                              
                           `

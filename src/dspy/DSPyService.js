@@ -6,9 +6,16 @@ const EventEmitter = require('events');
 class DSPyService extends EventEmitter {
     constructor(options = {}) {
         super();
+        
+        // Detect Python path based on platform
+        let defaultPythonPath = 'python3';
+        if (process.platform === 'win32') {
+            defaultPythonPath = 'python'; // Windows typically uses 'python'
+        }
+        
         this.options = {
             port: options.port || 8765,
-            pythonPath: options.pythonPath || 'python3',
+            pythonPath: options.pythonPath || defaultPythonPath,
             dspyPath: options.dspyPath || path.join(__dirname, 'dspy-service.py'),
             autoRestart: options.autoRestart !== false,
             maxRestarts: options.maxRestarts || 3,
@@ -86,25 +93,44 @@ class DSPyService extends EventEmitter {
      */
     async checkDependencies() {
         return new Promise((resolve, reject) => {
-            // Check Python version
-            exec(`${this.options.pythonPath} --version`, (error, stdout) => {
-                if (error) {
-                    reject(new Error(`Python not found: ${error.message}`));
+            // Try multiple Python commands for Windows compatibility
+            const pythonCommands = ['python', 'python3', 'py'];
+            let currentCommandIndex = 0;
+            
+            const tryPythonCommand = () => {
+                if (currentCommandIndex >= pythonCommands.length) {
+                    reject(new Error('Python not found. Please install Python and ensure it\'s in your PATH.'));
                     return;
                 }
-                console.log(`Python version: ${stdout.trim()}`);
                 
-                // Check if DSPy is installed
-                exec(`${this.options.pythonPath} -c "import dspy; print('DSPy available')"`, (error) => {
+                const pythonCommand = pythonCommands[currentCommandIndex];
+                console.log(`Trying Python command: ${pythonCommand}`);
+                
+                exec(`${pythonCommand} --version`, (error, stdout) => {
                     if (error) {
-                        console.warn('DSPy not installed. Attempting to install...');
-                        this.installDSPy().then(resolve).catch(reject);
-                    } else {
-                        console.log('DSPy is available');
-                        resolve();
+                        currentCommandIndex++;
+                        tryPythonCommand();
+                        return;
                     }
+                    
+                    // Update the python path to the working command
+                    this.options.pythonPath = pythonCommand;
+                    console.log(`Python version: ${stdout.trim()}`);
+                    
+                    // Check if DSPy is installed
+                    exec(`${pythonCommand} -c "import dspy; print('DSPy available')"`, (error) => {
+                        if (error) {
+                            console.warn('DSPy not installed. Attempting to install...');
+                            this.installDSPy().then(resolve).catch(reject);
+                        } else {
+                            console.log('DSPy is available');
+                            resolve();
+                        }
+                    });
                 });
-            });
+            };
+            
+            tryPythonCommand();
         });
     }
 

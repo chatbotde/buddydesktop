@@ -137,35 +137,61 @@ class BuddyCustomizeView extends LitElement {
                 name: 'General Assistant',
                 description: 'Ask anything - general knowledge, problem solving, creative tasks, and more',
             },
-            {
-                value: 'interview',
-                name: 'Job Interview',
-                description: 'Get help with answering interview questions',
-            },
-            {
-                value: 'sales',
-                name: 'Sales Call',
-                description: 'Assist with sales conversations and objection handling',
-            },
-            {
-                value: 'meeting',
-                name: 'Business Meeting',
-                description: 'Support for professional meetings and discussions',
-            },
-            {
-                value: 'presentation',
-                name: 'Presentation',
-                description: 'Help with presentations and public speaking',
-            },
-            {
-                value: 'negotiation',
-                name: 'Negotiation',
-                description: 'Guidance for business negotiations and deals',
-            },
+            
+            // {
+            //     value: 'sales',
+            //     name: 'Sales Call', 
+            //     description: 'Assist with sales conversations and objection handling',
+            // },
+            // {
+            //     value: 'meeting',
+            //     name: 'Business Meeting',
+            //     description: 'Support for professional meetings and discussions',
+            // },
+            // {
+            //     value: 'presentation',
+            //     name: 'Presentation',
+            //     description: 'Help with presentations and public speaking',
+            // },
+            // {
+            //     value: 'negotiation',
+            //     name: 'Negotiation',
+            //     description: 'Guidance for business negotiations and deals',
+            // },
             {
                 value: 'teacher',
                 name: 'JEE Advanced Teacher',
                 description: 'Educational explanations and teaching for JEE Advanced topics',
+            },
+            {
+                value: 'math_teacher',
+                name: 'Math Teacher',
+                description: 'Comprehensive mathematics instruction with step-by-step solutions',
+            },
+            {
+                value: 'physics_teacher',
+                name: 'Physics Teacher',
+                description: 'Physics concepts with real-world applications and mathematical approach',
+            },
+            {
+                value: 'chemistry_teacher',
+                name: 'Chemistry Teacher',
+                description: 'Chemistry instruction with molecular understanding and safety notes',
+            },
+            {
+                value: 'advanced_math_teacher',
+                name: 'Advanced Math Teacher',
+                description: 'Advanced mathematics with modular DSPy reasoning and multi-step problem solving',
+            },
+            {
+                value: 'advanced_physics_teacher',
+                name: 'Advanced Physics Teacher',
+                description: 'Advanced physics with experimental design, unit conversion, and error analysis',
+            },
+            {
+                value: 'advanced_chemistry_teacher',
+                name: 'Advanced Chemistry Teacher',
+                description: 'Advanced chemistry with stoichiometry, pH analysis, and thermodynamics',
             },
         ];
 
@@ -210,6 +236,12 @@ class BuddyCustomizeView extends LitElement {
             presentation: 'Presentation',
             negotiation: 'Negotiation',
             teacher: 'JEE Advanced Teacher',
+            math_teacher: 'Math Teacher',
+            physics_teacher: 'Physics Teacher',
+            chemistry_teacher: 'Chemistry Teacher',
+            advanced_math_teacher: 'Advanced Math Teacher',
+            advanced_physics_teacher: 'Advanced Physics Teacher',
+            advanced_chemistry_teacher: 'Advanced Chemistry Teacher',
         };
 
         return html`

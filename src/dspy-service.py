@@ -73,6 +73,8 @@ class DSPyHandler(BaseHTTPRequestHandler):
             self.generate_response(data)
         elif parsed_path.path == '/optimize':
             self.optimize_pipeline(data)
+        elif parsed_path.path == '/advanced-teacher':
+            self.advanced_teacher_generate(data)
         else:
             self.send_error(404, 'Endpoint not found')
     
@@ -226,6 +228,163 @@ class DSPyHandler(BaseHTTPRequestHandler):
                 cot = dspy.ChainOfThought(CoTSignature)
                 result = cot(question=query)
                 response = f"{result.reasoning}\n\nAnswer: {result.answer}"
+                
+            elif pipeline_type == 'math_teacher':
+                # Math teacher pipeline using DSPy modules
+                class MathProblem(dspy.Signature):
+                    """Analyze and solve a mathematical problem step by step."""
+                    question = dspy.InputField(desc="The math problem or concept to explain")
+                    context = dspy.InputField(desc="Additional context or background information")
+                    reasoning = dspy.OutputField(desc="Step-by-step mathematical reasoning")
+                    concept_explanation = dspy.OutputField(desc="Clear explanation of the underlying concept")
+                    step_by_step_solution = dspy.OutputField(desc="Detailed step-by-step solution")
+                    final_answer = dspy.OutputField(desc="The final answer with proper mathematical notation")
+                    practice_tip = dspy.OutputField(desc="A helpful tip for practicing similar problems")
+                
+                # Create a multi-stage math teaching pipeline
+                class MathTeacherModule(dspy.Module):
+                    def __init__(self):
+                        self.analyze = dspy.ChainOfThought(MathProblem)
+                        self.validate = dspy.Predict("question, answer -> is_correct: bool, explanation: str")
+                    
+                    def forward(self, question, context=""):
+                        # Analyze and solve the problem
+                        result = self.analyze(question=question, context=context)
+                        
+                        # Validate the answer (optional step)
+                        validation = self.validate(question=question, answer=result.final_answer)
+                        
+                        # Format the response
+                        response = f"""📚 **Concept Explanation:**
+{result.concept_explanation}
+
+🔢 **Step-by-Step Solution:**
+{result.step_by_step_solution}
+
+✅ **Final Answer:** {result.final_answer}
+
+💡 **Practice Tip:** {result.practice_tip}"""
+                        
+                        return dspy.Prediction(
+                            response=response,
+                            reasoning=result.reasoning,
+                            is_correct=validation.is_correct,
+                            validation_explanation=validation.explanation
+                        )
+                
+                math_teacher = MathTeacherModule()
+                result = math_teacher(question=query, context=context)
+                response = result.response
+                
+            elif pipeline_type == 'physics_teacher':
+                # Physics teacher pipeline using DSPy modules
+                class PhysicsProblem(dspy.Signature):
+                    """Analyze and solve a physics problem with conceptual understanding."""
+                    question = dspy.InputField(desc="The physics problem or concept to explain")
+                    context = dspy.InputField(desc="Additional context or background information")
+                    reasoning = dspy.OutputField(desc="Step-by-step physics reasoning")
+                    concept_explanation = dspy.OutputField(desc="Clear explanation of the physics concept")
+                    mathematical_approach = dspy.OutputField(desc="Mathematical approach and formulas used")
+                    real_world_example = dspy.OutputField(desc="Real-world example or application")
+                    solution_steps = dspy.OutputField(desc="Step-by-step solution with units")
+                    final_answer = dspy.OutputField(desc="Final answer with proper units")
+                    key_insight = dspy.OutputField(desc="Key insight or takeaway")
+                
+                # Create a multi-stage physics teaching pipeline
+                class PhysicsTeacherModule(dspy.Module):
+                    def __init__(self):
+                        self.analyze = dspy.ChainOfThought(PhysicsProblem)
+                        self.calculate = dspy.Predict("formula, values -> result: float, units: str")
+                        self.explain = dspy.Predict("concept, example -> explanation: str")
+                    
+                    def forward(self, question, context=""):
+                        # Analyze the physics problem
+                        result = self.analyze(question=question, context=context)
+                        
+                        # Format the response
+                        response = f"""⚡ **Physics Concept:**
+{result.concept_explanation}
+
+🔬 **Mathematical Approach:**
+{result.mathematical_approach}
+
+🌍 **Real-World Example:**
+{result.real_world_example}
+
+📝 **Solution Steps:**
+{result.solution_steps}
+
+✅ **Final Answer:** {result.final_answer}
+
+💡 **Key Insight:** {result.key_insight}"""
+                        
+                        return dspy.Prediction(
+                            response=response,
+                            reasoning=result.reasoning,
+                            concept=result.concept_explanation,
+                            mathematical_formula=result.mathematical_approach
+                        )
+                
+                physics_teacher = PhysicsTeacherModule()
+                result = physics_teacher(question=query, context=context)
+                response = result.response
+                
+            elif pipeline_type == 'chemistry_teacher':
+                # Chemistry teacher pipeline using DSPy modules
+                class ChemistryProblem(dspy.Signature):
+                    """Analyze and solve a chemistry problem with molecular understanding."""
+                    question = dspy.InputField(desc="The chemistry problem or concept to explain")
+                    context = dspy.InputField(desc="Additional context or background information")
+                    reasoning = dspy.OutputField(desc="Step-by-step chemistry reasoning")
+                    concept_explanation = dspy.OutputField(desc="Clear explanation of the chemistry concept")
+                    molecular_understanding = dspy.OutputField(desc="Understanding at the molecular level")
+                    chemical_equations = dspy.OutputField(desc="Relevant chemical equations and formulas")
+                    practical_application = dspy.OutputField(desc="Practical application or laboratory context")
+                    solution_process = dspy.OutputField(desc="Step-by-step solution process")
+                    final_answer = dspy.OutputField(desc="Final answer with proper units")
+                    safety_note = dspy.OutputField(desc="Safety note or precaution if applicable")
+                
+                # Create a multi-stage chemistry teaching pipeline
+                class ChemistryTeacherModule(dspy.Module):
+                    def __init__(self):
+                        self.analyze = dspy.ChainOfThought(ChemistryProblem)
+                        self.balance_equation = dspy.Predict("unbalanced_equation -> balanced_equation: str")
+                        self.check_safety = dspy.Predict("chemicals, procedure -> safety_notes: str")
+                    
+                    def forward(self, question, context=""):
+                        # Analyze the chemistry problem
+                        result = self.analyze(question=question, context=context)
+                        
+                        # Format the response
+                        response = f"""🧪 **Chemistry Concept:**
+{result.concept_explanation}
+
+⚛️ **Molecular Understanding:**
+{result.molecular_understanding}
+
+⚗️ **Chemical Equations:**
+{result.chemical_equations}
+
+🔬 **Practical Application:**
+{result.practical_application}
+
+📋 **Solution Process:**
+{result.solution_process}
+
+✅ **Final Answer:** {result.final_answer}
+
+⚠️ **Safety Note:** {result.safety_note}"""
+                        
+                        return dspy.Prediction(
+                            response=response,
+                            reasoning=result.reasoning,
+                            molecular_concept=result.molecular_understanding,
+                            equations=result.chemical_equations
+                        )
+                
+                chemistry_teacher = ChemistryTeacherModule()
+                result = chemistry_teacher(question=query, context=context)
+                response = result.response
             else:
                 raise ValueError(f"Unsupported pipeline type: {pipeline_type}")
             
@@ -274,6 +433,44 @@ class DSPyHandler(BaseHTTPRequestHandler):
                     answer = dspy.OutputField()
                 
                 pipeline = dspy.Predict(OptimizeQASignature)
+            elif pipeline_type == 'math_teacher':
+                class OptimizeMathTeacherSignature(dspy.Signature):
+                    """Teach mathematics with clear explanations and step-by-step solutions."""
+                    question = dspy.InputField()
+                    reasoning = dspy.OutputField()
+                    concept_explanation = dspy.OutputField()
+                    step_by_step_solution = dspy.OutputField()
+                    final_answer = dspy.OutputField()
+                    practice_tip = dspy.OutputField()
+                
+                pipeline = dspy.ChainOfThought(OptimizeMathTeacherSignature)
+            elif pipeline_type == 'physics_teacher':
+                class OptimizePhysicsTeacherSignature(dspy.Signature):
+                    """Teach physics with conceptual understanding and real-world applications."""
+                    question = dspy.InputField()
+                    reasoning = dspy.OutputField()
+                    concept_explanation = dspy.OutputField()
+                    mathematical_approach = dspy.OutputField()
+                    real_world_example = dspy.OutputField()
+                    solution_steps = dspy.OutputField()
+                    final_answer = dspy.OutputField()
+                    key_insight = dspy.OutputField()
+                
+                pipeline = dspy.ChainOfThought(OptimizePhysicsTeacherSignature)
+            elif pipeline_type == 'chemistry_teacher':
+                class OptimizeChemistryTeacherSignature(dspy.Signature):
+                    """Teach chemistry with molecular understanding and practical applications."""
+                    question = dspy.InputField()
+                    reasoning = dspy.OutputField()
+                    concept_explanation = dspy.OutputField()
+                    molecular_understanding = dspy.OutputField()
+                    chemical_equations = dspy.OutputField()
+                    practical_application = dspy.OutputField()
+                    solution_process = dspy.OutputField()
+                    final_answer = dspy.OutputField()
+                    safety_note = dspy.OutputField()
+                
+                pipeline = dspy.ChainOfThought(OptimizeChemistryTeacherSignature)
             else:
                 class OptimizeCoTSignature(dspy.Signature):
                     """Think step by step to answer questions."""
@@ -300,6 +497,66 @@ class DSPyHandler(BaseHTTPRequestHandler):
             
         except Exception as e:
             logger.error(f"Optimization error: {e}")
+            self.send_json_response({
+                'error': str(e)
+            }, 500)
+    
+    def advanced_teacher_generate(self, data):
+        """Generate response using advanced DSPy teacher modules"""
+        if not DSPY_AVAILABLE:
+            self.send_json_response({
+                'error': 'DSPy not available'
+            }, 500)
+            return
+        
+        if not self.dspy_lm:
+            self.send_json_response({
+                'error': 'DSPy not configured. Call /configure first.'
+            }, 400)
+            return
+        
+        try:
+            query = data.get('query', '')
+            context = data.get('context', '')
+            teacher_type = data.get('teacher_type', 'math')  # math, physics, chemistry
+            
+            # Import the advanced teacher modules
+            try:
+                from dspy.TeacherModules import (
+                    AdvancedMathTeacher, PhysicsLab, ChemistryResearch,
+                    format_math_response, format_physics_response, format_chemistry_response
+                )
+            except ImportError:
+                # Fallback to basic modules if advanced modules not available
+                self.send_json_response({
+                    'error': 'Advanced teacher modules not available'
+                }, 500)
+                return
+            
+            # Create the appropriate teacher module
+            if teacher_type == 'math':
+                teacher = AdvancedMathTeacher()
+                result = teacher(question=query, context=context)
+                response = format_math_response(result)
+            elif teacher_type == 'physics':
+                teacher = PhysicsLab()
+                result = teacher(question=query, context=context)
+                response = format_physics_response(result)
+            elif teacher_type == 'chemistry':
+                teacher = ChemistryResearch()
+                result = teacher(question=query, context=context)
+                response = format_chemistry_response(result)
+            else:
+                raise ValueError(f"Unsupported teacher type: {teacher_type}")
+            
+            self.send_json_response({
+                'response': response,
+                'teacher_type': teacher_type,
+                'module_used': teacher.__class__.__name__
+            })
+            
+        except Exception as e:
+            logger.error(f"Advanced teacher generation error: {e}")
             self.send_json_response({
                 'error': str(e)
             }, 500)

@@ -7,6 +7,7 @@ import './components/buddy-customize-view.js';
 import './components/buddy-help-view.js';
 import './components/buddy-history-view.js';
 import './components/buddy-assistant-view.js';
+import './components/buddy-settings-view.js';
 import { getModelsByProvider } from './lib/models/models.js';
 
 
@@ -1459,7 +1460,7 @@ class BuddyApp extends LitElement {
                     // Load chat history from database
                     await this.loadChatHistory();
                     
-                    this.currentView = 'main';
+                    this.currentView = 'assistant';
                 } else {
                     // Invalid token, remove it
                     localStorage.removeItem('authToken');
@@ -1595,7 +1596,7 @@ class BuddyApp extends LitElement {
                 await this.loadChatHistory();
             }
             
-            this.currentView = 'main';
+            this.currentView = 'assistant';
             this.requestUpdate();
         });
         
@@ -1633,6 +1634,8 @@ class BuddyApp extends LitElement {
         this.addEventListener('start-session', async () => {
             await this.handleStart();
         });
+        
+        // Settings view now works exactly like main view, no separate save needed
         
         this.addEventListener('profile-select', async (e) => {
             this.selectedProfile = e.detail.profile;
@@ -2021,13 +2024,17 @@ class BuddyApp extends LitElement {
     }
 
     async handleClose() {
-        if (this.currentView === 'customize' || this.currentView === 'help' || this.currentView === 'history') {
-            this.currentView = 'main';
+        if (this.currentView === 'customize' || this.currentView === 'help' || this.currentView === 'history' || this.currentView === 'settings') {
+            this.currentView = 'assistant';
         } else if (this.currentView === 'assistant') {
             if (this.sessionActive) {
                 await this.handleEndSession(); // This will set isAudioActive/isScreenActive to false
             }
-            this.currentView = 'main';
+            // Quit the entire application
+            const { ipcRenderer } = window.require('electron');
+            await ipcRenderer.invoke('quit-application');
+        } else if (this.currentView === 'main') {
+            this.currentView = 'assistant';
         } else {
             // Quit the entire application
             const { ipcRenderer } = window.require('electron');
@@ -2310,6 +2317,16 @@ class BuddyApp extends LitElement {
                 .chatMessages=${this.chatMessages}
                 .isStreamingActive=${this.isStreamingActive}
             ></buddy-assistant-view>`,
+            settings: html`<buddy-settings-view
+                .selectedProvider=${this.selectedProvider}
+                .selectedModel=${this.selectedModel}
+                .providers=${this.providers}
+                .models=${this.mainViewModels}
+                .apiKey=${this.mainViewApiKey}
+                .keyLabel=${this.mainViewKeyLabel}
+                .disabledModelIds=${this.disabledModelIdsForCurrentMode}
+                .hasEnvironmentKey=${this.mainViewHasEnvironmentKey}
+            ></buddy-settings-view>`,
         };
 
         return html`

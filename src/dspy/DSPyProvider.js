@@ -114,10 +114,34 @@ class DSPyProvider {
                 pipelineType = 'basic'; // Direct generation for coding
             } else if (this.profile === 'analysis') {
                 pipelineType = 'qa'; // Question-answering for analysis
+            } else if (this.profile === 'math_teacher') {
+                pipelineType = 'math_teacher'; // Math teacher pipeline
+            } else if (this.profile === 'physics_teacher') {
+                pipelineType = 'physics_teacher'; // Physics teacher pipeline
+            } else if (this.profile === 'chemistry_teacher') {
+                pipelineType = 'chemistry_teacher'; // Chemistry teacher pipeline
+            } else if (this.profile === 'advanced_math_teacher') {
+                pipelineType = 'advanced_math_teacher'; // Advanced math teacher with modules
+            } else if (this.profile === 'advanced_physics_teacher') {
+                pipelineType = 'advanced_physics_teacher'; // Advanced physics teacher with modules
+            } else if (this.profile === 'advanced_chemistry_teacher') {
+                pipelineType = 'advanced_chemistry_teacher'; // Advanced chemistry teacher with modules
             }
 
             // Generate response using DSPy
-            const result = await this.dspyService.generate(query, context, pipelineType);
+            let result;
+            if (pipelineType.startsWith('advanced_')) {
+                // Use advanced teacher modules
+                const teacherType = pipelineType.replace('advanced_', '').replace('_teacher', '');
+                result = await this.dspyService.request('POST', '/advanced-teacher', {
+                    query: query,
+                    context: context,
+                    teacher_type: teacherType
+                });
+            } else {
+                // Use basic pipelines
+                result = await this.dspyService.generate(query, context, pipelineType);
+            }
             
             if (result.error) {
                 throw new Error(result.error);
