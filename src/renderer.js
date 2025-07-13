@@ -758,7 +758,7 @@ function disableRealtimeVideoStreaming() {
 
 // Function to capture screenshot and automatically send it to AI
 async function captureAndSendScreenshot() {
-    console.log('Capturing screenshot and auto-sending to AI...');
+    console.log('Capturing screenshot and analyzing with AI...');
     
     try {
         // Capture the screenshot
@@ -769,21 +769,21 @@ async function captureAndSendScreenshot() {
             return { success: false, error: 'Failed to capture screenshot' };
         }
         
-        // Send the screenshot to AI with a comprehensive coding-focused prompt
-        const result = await sendTextMessage('🔧 CODE ANALYZER: Analyze this screenshot and provide comprehensive coding solutions.\n\n📋 Requirements:\n1. If you see coding errors/bugs - provide the EXACT corrected code\n2. Show MULTIPLE different approaches/methods to solve the problem\n3. Include well-written, clean, and optimized code examples\n4. Provide alternative solutions (different algorithms, patterns, or techniques)\n5. Add brief explanations for each approach\n6. Include best practices and performance considerations\n\n💻 Format your response with:\n- ✅ Direct fix for immediate problem\n- 🔄 Alternative Method 1 (with code)\n- 🔄 Alternative Method 2 (with code) \n- 🔄 Alternative Method 3 (if applicable)\n- 💡 Best practices & optimization tips\n\nBe comprehensive but concise. Focus on actionable, copy-paste ready code solutions.', [screenshotData]);
+        // Send the screenshot to AI with a concise screen analysis prompt
+        const result = await sendTextMessage('🔍 **SCREEN ANALYZER**: Analyze this screenshot and provide concise, actionable insights.\n\n📋 **Format**:\n- 🎯 **What I see**: Brief summary\n- 💡 **Key Issue/Opportunity**: Main point\n- 🚀 **Solution**: Specific action to take\n- ⚡ **Next Step**: Immediate action\n\n💡 **Be concise, practical, and immediately actionable.**', [screenshotData]);
         
         if (result.success) {
-            console.log('Screenshot sent successfully to AI');
+            console.log('Screenshot analyzed and sent to AI');
             // Show a brief status message to the user
             const buddy = window.buddy.e();
             if (buddy && buddy.setStatus) {
-                buddy.setStatus('Screenshot captured and sent to AI');
+                buddy.setStatus('Screen analyzed and sent to AI');
             }
         } else {
-            console.error('Failed to send screenshot to AI:', result.error);
+            console.error('Failed to analyze and send screenshot to AI:', result.error);
             const buddy = window.buddy.e();
             if (buddy && buddy.setStatus) {
-                buddy.setStatus('Failed to send screenshot to AI');
+                buddy.setStatus('Failed to analyze screen');
             }
         }
         

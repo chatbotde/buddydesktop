@@ -74,14 +74,18 @@ function createConsistentWindow(options = {}) {
         alwaysOnTop: true,
         skipTaskbar: true,
         hiddenInMissionControl: true,
+        roundedCorners: true, // Additional feature: rounded corners (Electron 25+)
+        vibrancy: 'ultra-dark', // Additional feature: macOS vibrancy effect
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
             backgroundThrottling: false,
             webSecurity: true,
             allowRunningInsecureContent: false,
+            spellcheck: true, // Additional feature: enable spellcheck
         },
         backgroundColor: '#00000000',
+        titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : undefined, // Additional: better macOS titlebar
     };
 
     const windowOptions = { ...defaultOptions, ...options };
@@ -89,7 +93,7 @@ function createConsistentWindow(options = {}) {
 
     // Apply consistent window properties
     newWindow.setContentProtection(true);
-    newWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    newWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true});
 
     if (process.platform === 'win32') {
         newWindow.setAlwaysOnTop(true, 'screen-saver', 1);
@@ -199,18 +203,18 @@ function createWindow() {
         }
     });
 
-    // Add screenshot and auto-send shortcut
-    const screenshotShortcut = 'Ctrl+Alt+N';
+    // Add screen analysis shortcut
+    const screenshotShortcut = 'Alt+A';
     globalShortcut.register(screenshotShortcut, async () => {
-        console.log('Screenshot and auto-send shortcut triggered');
+        console.log('Screen analysis shortcut triggered');
         try {
-            // Send command to renderer to capture screenshot and send it
+            // Send command to renderer to capture screenshot and analyze it
             const windows = BrowserWindow.getAllWindows();
             if (windows.length > 0) {
                 windows[0].webContents.send('capture-and-send-screenshot');
             }
         } catch (error) {
-            console.error('Error triggering screenshot capture:', error);
+            console.error('Error triggering screen analysis:', error);
         }
     });
 
@@ -902,6 +906,35 @@ ipcMain.handle('start-guest-session', async (event) => {
         return { success: true };
     } catch (error) {
         console.error('Failed to start guest session:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+// Visibility control handlers
+ipcMain.handle('toggle-content-protection', async (event, enabled) => {
+    try {
+        const windows = BrowserWindow.getAllWindows();
+        if (windows.length > 0) {
+            windows[0].setContentProtection(enabled);
+            console.log(`Content protection ${enabled ? 'enabled' : 'disabled'}`);
+        }
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to toggle content protection:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('toggle-workspace-visibility', async (event, enabled) => {
+    try {
+        const windows = BrowserWindow.getAllWindows();
+        if (windows.length > 0) {
+            windows[0].setVisibleOnAllWorkspaces(enabled, { visibleOnFullScreen: true });
+            console.log(`Workspace visibility ${enabled ? 'enabled' : 'disabled'}`);
+        }
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to toggle workspace visibility:', error);
         return { success: false, error: error.message };
     }
 });

@@ -8,11 +8,17 @@ class BuddyChatMessage extends LitElement {
         timestamp: { type: String },
         isStreaming: { type: Boolean },
         screenshots: { type: Array }, // Array of base64 screenshot data
+        isEditing: { type: Boolean },
+        editableContent: { type: String },
+        isWhiteBackground: { type: Boolean },
     };
 
     constructor() {
         super();
         this.showCopyButton = false;
+        this.isEditing = false;
+        this.editableContent = '';
+        this.isWhiteBackground = false;
         this._loadHighlightJS();
     }
 
@@ -256,6 +262,220 @@ class BuddyChatMessage extends LitElement {
             color: var(--text-color);
             border-radius: 18px 18px 18px 6px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        }
+        
+        .message-bubble.white-background {
+            background: white !important;
+            color: #333 !important;
+            border: 1px solid #e0e0e0 !important;
+        }
+        
+        .message-bubble.white-background .message-content {
+            color: #333 !important;
+        }
+        
+        .message-bubble.white-background .message-content a {
+            color: #0066cc !important;
+            border-bottom: 1px solid #0066cc !important;
+        }
+        
+        .message-bubble.white-background .message-content code {
+            background: rgba(0, 0, 0, 0.1) !important;
+            color: #333 !important;
+            border: 1px solid #ddd !important;
+        }
+        
+        .message-bubble.white-background .code-block-container {
+            background: rgba(0, 0, 0, 0.05) !important;
+            border: 1px solid #ddd !important;
+        }
+        
+        .message-bubble.white-background .code-block {
+            background: rgba(0, 0, 0, 0.05) !important;
+        }
+        
+        .message-bubble.white-background .hljs {
+            color: #333 !important;
+        }
+        
+        .message-bubble.white-background .msg-action-btn,
+        .message-bubble.white-background .background-toggle-btn {
+            background: rgba(0, 0, 0, 0.1) !important;
+            border-color: rgba(0, 0, 0, 0.2) !important;
+            color: #333 !important;
+        }
+        
+        .message-bubble.white-background .msg-action-btn:hover,
+        .message-bubble.white-background .background-toggle-btn:hover {
+            background: rgba(0, 0, 0, 0.15) !important;
+            border-color: rgba(0, 0, 0, 0.3) !important;
+        }
+        
+        .message-bubble.white-background .edit-textarea {
+            background: rgba(0, 0, 0, 0.05) !important;
+            color: #333 !important;
+            border-color: rgba(0, 0, 0, 0.2) !important;
+        }
+        
+        .message-bubble.white-background .edit-textarea:hover {
+            border-color: rgba(0, 0, 0, 0.3) !important;
+        }
+        
+        .message-bubble.white-background .edit-textarea:focus {
+            border-color: rgba(0, 0, 0, 0.4) !important;
+            background: rgba(0, 0, 0, 0.08) !important;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .message-bubble.white-background .edit-btn {
+            background: rgba(0, 0, 0, 0.1) !important;
+            border-color: rgba(0, 0, 0, 0.2) !important;
+            color: #333 !important;
+        }
+        
+        .message-bubble.white-background .edit-btn:hover {
+            background: rgba(0, 0, 0, 0.15) !important;
+            border-color: rgba(0, 0, 0, 0.3) !important;
+        }
+        
+        .message-bubble.white-background .edit-btn.save {
+            background: rgba(76, 175, 80, 0.2) !important;
+            border-color: rgba(76, 175, 80, 0.4) !important;
+            color: #2e7d32 !important;
+        }
+        
+        .message-bubble.white-background .edit-btn.save:hover {
+            background: rgba(76, 175, 80, 0.3) !important;
+            border-color: rgba(76, 175, 80, 0.5) !important;
+        }
+        
+        .message-bubble.white-background .edit-btn.cancel {
+            background: rgba(244, 67, 54, 0.2) !important;
+            border-color: rgba(244, 67, 54, 0.4) !important;
+            color: #c62828 !important;
+        }
+        
+        .message-bubble.white-background .edit-btn.cancel:hover {
+            background: rgba(244, 67, 54, 0.3) !important;
+            border-color: rgba(244, 67, 54, 0.5) !important;
+        }
+        
+        .edit-textarea {
+            width: 100% !important;
+            min-width: 100% !important;
+            min-height: 100px;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: both;
+            outline: none;
+            transition: all 0.3s ease;
+            overflow: visible;
+            cursor: text;
+            box-sizing: border-box;
+        }
+        
+        .edit-textarea:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .edit-textarea:focus {
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+        
+        .edit-textarea:focus {
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .edit-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .edit-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .edit-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .edit-btn.save {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: rgba(76, 175, 80, 0.4);
+        }
+        
+        .edit-btn.save:hover {
+            background: rgba(76, 175, 80, 0.3);
+            border-color: rgba(76, 175, 80, 0.5);
+        }
+        
+        .edit-btn.cancel {
+            background: rgba(244, 67, 54, 0.2);
+            border-color: rgba(244, 67, 54, 0.4);
+        }
+        
+        .edit-btn.cancel:hover {
+            background: rgba(244, 67, 54, 0.3);
+            border-color: rgba(244, 67, 54, 0.5);
+        }
+        
+        .background-toggle-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            opacity: 0.6;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 8px;
+            margin-left: 4px;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .background-toggle-btn:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        .edit-container {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            overflow: visible;
         }
         
         .screenshots-container {
@@ -855,6 +1075,81 @@ class BuddyChatMessage extends LitElement {
         });
     }
 
+    _onEdit() {
+        this.isEditing = true;
+        this.editableContent = this.text || '';
+        this.requestUpdate();
+        
+        // Focus on textarea after render
+        setTimeout(() => {
+            const textarea = this.shadowRoot.querySelector('.edit-textarea');
+            if (textarea) {
+                textarea.focus();
+                textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+                
+                // Set initial size based on content
+                this._setInitialTextareaSize(textarea);
+            }
+        }, 0);
+    }
+
+    _onSave() {
+        this.text = this.editableContent;
+        this.isEditing = false;
+        this.requestUpdate();
+        
+        // Dispatch event to notify parent of content change
+        this.dispatchEvent(new CustomEvent('message-edited', {
+            detail: { 
+                id: this.id,
+                newText: this.text
+            },
+            bubbles: true,
+            composed: true
+        }));
+    }
+
+    _onCancel() {
+        this.isEditing = false;
+        this.editableContent = '';
+        this.requestUpdate();
+    }
+
+    _onToggleBackground() {
+        this.isWhiteBackground = !this.isWhiteBackground;
+        this.requestUpdate();
+        
+        // Dispatch event to notify parent of background change
+        this.dispatchEvent(new CustomEvent('background-toggled', {
+            detail: { 
+                id: this.id,
+                isWhiteBackground: this.isWhiteBackground
+            },
+            bubbles: true,
+            composed: true
+        }));
+    }
+
+    _onTextareaInput(e) {
+        this.editableContent = e.target.value;
+    }
+    
+    _setInitialTextareaSize(textarea) {
+        // Calculate initial height based on content
+        const lines = this.editableContent.split('\n').length;
+        const lineHeight = 20; // Approximate line height
+        const padding = 24; // Top and bottom padding
+        const minHeight = 100;
+        
+        // Calculate height based on content
+        const contentHeight = Math.max(lines * lineHeight + padding, minHeight);
+        textarea.style.height = `${contentHeight}px`;
+        
+        // Set minimum width to prevent shrinking
+        textarea.style.minWidth = '100%';
+        textarea.style.width = '100%';
+    }
+
     _onScreenshotClick(screenshot) {
         // Open screenshot in a new window with consistent properties
         if (screenshot) {
@@ -901,10 +1196,11 @@ class BuddyChatMessage extends LitElement {
 
     render() {
         const hasScreenshots = this.screenshots && Array.isArray(this.screenshots) && this.screenshots.length > 0;
+        const backgroundClass = this.isWhiteBackground ? 'white-background' : '';
         
         return html`
             <div class="message-wrapper ${this.sender}">
-                <div class="message-bubble ${this.sender}">
+                <div class="message-bubble ${this.sender} ${backgroundClass}">
                     ${hasScreenshots ? html`
                         <div class="screenshots-container">
                             <div class="screenshots-grid">
@@ -922,11 +1218,37 @@ class BuddyChatMessage extends LitElement {
                                 `)}
                             </div>
                             <div class="screenshots-caption">
-                                📷 ${this.screenshots.length} screenshot${this.screenshots.length > 1 ? 's' : ''} attached
+                                 ${this.screenshots.length} screenshot${this.screenshots.length > 1 ? 's' : ''} attached
                             </div>
                         </div>
                     ` : ''}
-                    ${this.text ? html`
+                    ${this.isEditing ? html`
+                        <div class="edit-container">
+                            <textarea 
+                                class="edit-textarea"
+                                .value=${this.editableContent}
+                                @input=${this._onTextareaInput}
+                                placeholder="Edit your message..."
+                            ></textarea>
+                            <div class="edit-buttons">
+                                <button class="edit-btn save" @click=${this._onSave}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                        <polyline points="17,21 17,13 7,13 7,21"></polyline>
+                                        <polyline points="7,3 7,8 15,8"></polyline>
+                                    </svg>
+                                    Save
+                                </button>
+                                <button class="edit-btn cancel" @click=${this._onCancel}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    ` : this.text ? html`
                         <div class="message-content">
                             ${this.sender === 'assistant' 
                                 ? html`<div .innerHTML=${this._processMessageContent(this.text)}></div>`
@@ -949,6 +1271,30 @@ class BuddyChatMessage extends LitElement {
                             title="Copy message"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"></path></svg>
+                        </button>
+                        <button 
+                            class="msg-action-btn edit-button"
+                            @click=${this._onEdit}
+                            title="Edit message"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        <button 
+                            class="background-toggle-btn"
+                            @click=${this._onToggleBackground}
+                            title="${this.isWhiteBackground ? 'Switch to dark background' : 'Switch to white background'}"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3"></line>
+                                <line x1="12" y1="21" x2="12" y2="23"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                <line x1="1" y1="12" x2="3" y2="12"></line>
+                                <line x1="21" y1="12" x2="23" y2="12"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                            </svg>
                         </button>
                         <button 
                             class="msg-action-btn delete-button"

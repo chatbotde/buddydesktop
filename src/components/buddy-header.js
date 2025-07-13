@@ -8,14 +8,20 @@ class BuddyHeader extends LitElement {
         isAudioActive: { type: Boolean },
         isScreenActive: { type: Boolean },
         isControlsMenuOpen: { type: Boolean },
+        isMainMenuOpen: { type: Boolean },
         user: { type: Object },
         isAuthenticated: { type: Boolean },
         isGuest: { type: Boolean },
+        isContentProtected: { type: Boolean },
+        isVisibleOnAllWorkspaces: { type: Boolean },
     };
 
     constructor() {
         super();
         this.isControlsMenuOpen = false;
+        this.isMainMenuOpen = false;
+        this.isContentProtected = true;
+        this.isVisibleOnAllWorkspaces = true;
         this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
     }
 
@@ -580,6 +586,123 @@ class BuddyHeader extends LitElement {
             opacity: 0.7;
             font-size: 14px;
         }
+
+        /* Main Menu Dropdown Styles */
+        .main-menu-dropdown-container {
+            position: relative;
+            z-index: 1000;
+        }
+
+        .main-menu-btn {
+            background: oklch(37.4% 0.01 67.558);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            cursor: pointer;
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            opacity: 0.9;
+            position: relative;
+        }
+
+        .main-menu-btn:hover:not(:disabled) {
+            background: oklch(42% 0.01 67.558);
+            border-color: rgba(255, 255, 255, 0.35);
+            transform: translateY(-1px);
+            opacity: 1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .main-menu-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: oklch(37.4% 0.01 67.558);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex !important;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 9999 !important;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.4),
+                0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: fadeInDown 0.2s ease-out;
+            width: 220px;
+            min-height: 100px;
+            max-height: 350px;
+            overflow: visible;
+        }
+
+        .menu-item {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-align: left;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-item:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-item svg {
+            width: 16px;
+            height: 16px;
+            opacity: 0.9;
+            stroke-width: 2;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .menu-item:hover svg {
+            opacity: 1;
+        }
+
+        .menu-item-label {
+            flex-grow: 1;
+        }
+
+        .menu-item-status {
+            font-size: 11px;
+            opacity: 0.7;
+            font-weight: 600;
+        }
+
+        .menu-item.active .menu-item-status {
+            color: #4ade80;
+            opacity: 1;
+        }
+
+        .menu-item.inactive .menu-item-status {
+            color: #ef4444;
+            opacity: 1;
+        }
+
+        .menu-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.15);
+            margin: 4px 0;
+        }
     `;
 
     disconnectedCallback() {
@@ -609,9 +732,36 @@ class BuddyHeader extends LitElement {
         }
     }
 
+    _toggleMainMenu() {
+        this.isMainMenuOpen = !this.isMainMenuOpen;
+        this.requestUpdate();
+        if (this.isMainMenuOpen) {
+            setTimeout(() => {
+                document.addEventListener('click', this.boundOutsideClickHandler);
+            }, 0);
+        } else {
+            document.removeEventListener('click', this.boundOutsideClickHandler);
+        }
+    }
+
+    _closeMainMenu() {
+        if (this.isMainMenuOpen) {
+            this.isMainMenuOpen = false;
+            document.removeEventListener('click', this.boundOutsideClickHandler);
+            this.requestUpdate();
+        }
+    }
+
     _handleOutsideClick(e) {
-        if (!this.renderRoot.querySelector('.controls-dropdown-container')?.contains(e.target)) {
+        const controlsContainer = this.renderRoot.querySelector('.controls-dropdown-container');
+        const mainMenuContainer = this.renderRoot.querySelector('.main-menu-dropdown-container');
+        
+        if (controlsContainer && !controlsContainer.contains(e.target)) {
             this._closeControlsMenu();
+        }
+        
+        if (mainMenuContainer && !mainMenuContainer.contains(e.target)) {
+            this._closeMainMenu();
         }
     }
 
@@ -633,7 +783,48 @@ class BuddyHeader extends LitElement {
         this.dispatchEvent(new CustomEvent('close', { bubbles: true, composed: true }));
     }
     _handleNav(e) {
+        this._closeMainMenu();
         this.dispatchEvent(new CustomEvent('navigate', { detail: { view: e }, bubbles: true, composed: true }));
+    }
+    
+    _handleMenuToggleAudio() {
+        this._closeMainMenu();
+        this.dispatchEvent(new CustomEvent('toggle-audio', { bubbles: true, composed: true }));
+    }
+    
+    _handleMenuToggleScreen() {
+        this._closeMainMenu();
+        this.dispatchEvent(new CustomEvent('toggle-screen', { bubbles: true, composed: true }));
+    }
+    
+    _handleMenuStartSession() {
+        this._closeMainMenu();
+        this.dispatchEvent(new CustomEvent('start-session', { bubbles: true, composed: true }));
+    }
+    
+    _handleMenuEndSession() {
+        this._closeMainMenu();
+        this.dispatchEvent(new CustomEvent('end-session', { bubbles: true, composed: true }));
+    }
+    
+    _handleToggleContentProtection() {
+        this._closeMainMenu();
+        this.isContentProtected = !this.isContentProtected;
+        this.dispatchEvent(new CustomEvent('toggle-content-protection', { 
+            detail: { enabled: this.isContentProtected }, 
+            bubbles: true, 
+            composed: true 
+        }));
+    }
+    
+    _handleToggleVisibilityOnWorkspaces() {
+        this._closeMainMenu();
+        this.isVisibleOnAllWorkspaces = !this.isVisibleOnAllWorkspaces;
+        this.dispatchEvent(new CustomEvent('toggle-workspace-visibility', { 
+            detail: { enabled: this.isVisibleOnAllWorkspaces }, 
+            bubbles: true, 
+            composed: true 
+        }));
     }
 
     render() {
@@ -669,303 +860,146 @@ class BuddyHeader extends LitElement {
                     ` : ''}
                 </div>
                 <div class="header-actions">
-                    ${this.currentView === 'assistant'
-                        ? html`
-                              <span>${elapsedTime}</span>
-                              <div class="status-container">
-                                  <span class="status-indicator ${statusIndicator}"></span>
-                                  ${this.sessionActive
-                                      ? html`
-                                            <!-- Controls Dropdown -->
-                                            <div class="controls-dropdown-container">
-                                            <button 
-                                                    class="controls-btn"
-                                                    @click=${this._toggleControlsMenu}
-                                                    title="Audio & Video Controls"
-                                                ?disabled=${!this.sessionActive}
-                                            >
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
-                                                        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
-                                                    </svg>
-                                                    <span class="controls-status-indicator ${
-                                                        this.isAudioActive && this.isScreenActive ? 'both-active' :
-                                                        this.isAudioActive || this.isScreenActive ? 'partial-active' :
-                                                        'both-inactive'
-                                                    }"></span>
-                                                </button>
+                    <!-- Session Timer (only for assistant view) -->
+                    ${this.currentView === 'assistant' ? html`
+                        <span>${elapsedTime}</span>
+                        <span class="status-indicator ${statusIndicator}"></span>
+                    ` : ''}
+                    
+                    <!-- Main Menu Dropdown -->
+                    <div class="main-menu-dropdown-container">
+                        <button 
+                            class="main-menu-btn"
+                            @click=${this._toggleMainMenu}
+                            title="Menu"
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="1"/>
+                                <circle cx="19" cy="12" r="1"/>
+                                <circle cx="5" cy="12" r="1"/>
+                            </svg>
+                        </button>
 
-                                                ${this.isControlsMenuOpen ? html`
-                                                    <div class="controls-dropdown">
-                                                        <button 
-                                                            class="dropdown-item ${this.isAudioActive ? 'active' : 'inactive'}" 
-                                                            @click=${this._handleToggleAudio}
-                                                        >
-                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                                <path d="M2 10v3"/>
-                                                                <path d="M6 6v11"/>
-                                                                <path d="M10 3v18"/>
-                                                                <path d="M14 8v7"/>
-                                                                <path d="M18 5v13"/>
-                                                                <path d="M22 10v3"/>
-                                                            </svg>
-                                                            <span class="dropdown-item-label">Audio</span>
-                                                            <span class="dropdown-item-value">${this.isAudioActive ? 'ON' : 'OFF'}</span>
-                                            </button>
-                                            <button 
-                                                            class="dropdown-item ${this.isScreenActive ? 'active' : 'inactive'}" 
-                                                @click=${this._handleToggleScreen} 
-                                            >
-                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                                <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/>
-                                                                <rect x="2" y="6" width="14" height="12" rx="2"/>
-                                                            </svg>
-                                                            <span class="dropdown-item-label">Video</span>
-                                                            <span class="dropdown-item-value">${this.isScreenActive ? 'ON' : 'OFF'}</span>
-                                            </button>
-                                                    </div>
-                                                ` : ''}
-                                            </div>
-                                            <button class="session-button end" @click=${this._handleEndSession} title="End Session">
-                                                ■ End
-                                            </button>
-                                        `
-                                      : html`
-                                            <button class="session-button start" @click=${this._handleStartSession} title="Start Session">
-                                                ▶ Start
-                                            </button>
-                                        `}
-                              </div>
-                          `
-                        : ''}
-                    ${this.currentView === 'main'
-                        ? html`
-                              <button class="icon-button" @click=${() => this._handleNav('history')}>
-                                  <svg width="24px" height="24px" stroke-width="1.7" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M12 6v6h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22a9.99999 9.99999 0 0 1-9.42-7.11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21.5492 14.3313A9.99999 9.99999 0 0 1 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2c5.4578 0 9.8787 4.3676 9.9958 9.794" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                              </button>
-                              <button class="icon-button" @click=${() => this._handleNav('customize')}>
-                                  <svg
-                                      width="24px"
-                                      height="24px"
-                                      stroke-width="1.7"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      color="currentColor"
-                                  >
-                                      <path
-                                          d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                      <path
-                                          d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                  </svg>
-                              </button>
-                              <button class="icon-button" @click=${() => this._handleNav('help')}>
-                                  <svg
-                                      width="24px"
-                                      height="24px"
-                                      stroke-width="1.7"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      color="currentColor"
-                                  >
-                                      <path
-                                          d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                      <path
-                                          d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                      <path
-                                          d="M12 18.01L12.01 17.9989"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                  </svg>
-                              </button>
-                          `
-                        : ''}
-                    ${this.currentView === 'assistant'
-                        ? html`
-                              <button class="icon-button" @click=${() => this._handleNav('history')}>
-                                  <svg width="24px" height="24px" stroke-width="1.7" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor"><path d="M12 6v6h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22a9.99999 9.99999 0 0 1-9.42-7.11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21.5492 14.3313A9.99999 9.99999 0 0 1 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2c5.4578 0 9.8787 4.3676 9.9958 9.794" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                              </button>
-                              <button class="icon-button" @click=${() => this._handleNav('customize')}>
-                                  <svg
-                                      width="24px"
-                                      height="24px"
-                                      stroke-width="1.7"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      color="currentColor"
-                                  >
-                                      <path
-                                          d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                      <path
-                                          d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                  </svg>
-                              </button>
-                              <button class="icon-button" @click=${() => this._handleNav('settings')}>
-                                  <svg
-                                      width="24px"
-                                      height="24px"
-                                      stroke-width="1.7"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      color="currentColor"
-                                  >
-                                      <path
-                                          d="M9 12C9 13.3807 7.88071 14.5 6.5 14.5C5.11929 14.5 4 13.3807 4 12C4 10.6193 5.11929 9.5 6.5 9.5C7.88071 9.5 9 10.6193 9 12Z"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                      ></path>
-                                      <path
-                                          d="M20 12C20 13.3807 18.8807 14.5 17.5 14.5C16.1193 14.5 15 13.3807 15 12C15 10.6193 16.1193 9.5 17.5 9.5C18.8807 9.5 20 10.6193 20 12Z"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                      ></path>
-                                      <path
-                                          d="M14.5 6C14.5 7.38071 13.3807 8.5 12 8.5C10.6193 8.5 9.5 7.38071 9.5 6C9.5 4.61929 10.6193 3.5 12 3.5C13.3807 3.5 14.5 4.61929 14.5 6Z"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                      ></path>
-                                      <path
-                                          d="M14.5 18C14.5 19.3807 13.3807 20.5 12 20.5C10.6193 20.5 9.5 19.3807 9.5 18C9.5 16.6193 10.6193 15.5 12 15.5C13.3807 15.5 14.5 16.6193 14.5 18Z"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                      ></path>
-                                      <path
-                                          d="M6.5 9.5C7.06815 8.83688 7.83688 8.06815 8.5 7.5"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                      ></path>
-                                      <path
-                                          d="M8.5 16.5C7.83688 15.9319 7.06815 15.1631 6.5 14.5"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                      ></path>
-                                      <path
-                                          d="M15.5 7.5C16.1631 8.06815 16.9319 8.83688 17.5 9.5"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                      ></path>
-                                      <path
-                                          d="M17.5 14.5C16.9319 15.1631 16.1631 15.9319 15.5 16.5"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                      ></path>
-                                  </svg>
-                              </button>
-                              <button class="icon-button" @click=${() => this._handleNav('help')}>
-                                  <svg
-                                      width="24px"
-                                      height="24px"
-                                      stroke-width="1.7"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      color="currentColor"
-                                  >
-                                      <path
-                                          d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                      <path
-                                          d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                      <path
-                                          d="M12 18.01L12.01 17.9989"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                  </svg>
-                              </button>
-                              <button @click=${this._handleClose} class="icon-button window-close">
-                                  <svg
-                                      width="24px"
-                                      height="24px"
-                                      stroke-width="1.7"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      color="currentColor"
-                                  >
-                                      <path
-                                          d="M6.75827 17.2426L12.0009 12M17.2435 6.75736L12.0009 12M12.0009 12L6.75827 6.75736M12.0009 12L17.2435 17.2426"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                  </svg>
-                              </button>
-                             
-                          `
-                        : html`
-                              <button @click=${this._handleClose} class="icon-button window-close">
-                                  <svg
-                                      width="24px"
-                                      height="24px"
-                                      stroke-width="1.7"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      color="currentColor"
-                                  >
-                                      <path
-                                          d="M6.75827 17.2426L12.0009 12M17.2435 6.75736L12.0009 12M12.0009 12L6.75827 6.75736M12.0009 12L17.2435 17.2426"
-                                          stroke="currentColor"
-                                          stroke-width="1.7"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      ></path>
-                                  </svg>
-                              </button>
-                          `}
+                        ${this.isMainMenuOpen ? html`
+                            <div class="main-menu-dropdown">
+                                <!-- Navigation Items -->
+                                <button class="menu-item" @click=${() => this._handleNav('main')}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                        <polyline points="9,22 9,12 15,12 15,22"/>
+                                    </svg>
+                                    <span class="menu-item-label">Home</span>
+                                </button>
+                                
+                                <button class="menu-item" @click=${() => this._handleNav('assistant')}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                    <span class="menu-item-label">Chat</span>
+                                </button>
+                                
+                                <button class="menu-item" @click=${() => this._handleNav('history')}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="12,6 12,12 16,14"/>
+                                    </svg>
+                                    <span class="menu-item-label">History</span>
+                                </button>
+                                
+                                <button class="menu-item" @click=${() => this._handleNav('customize')}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="3"/>
+                                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                                    </svg>
+                                    <span class="menu-item-label">Customize</span>
+                                </button>
+                                
+                                <button class="menu-item" @click=${() => this._handleNav('help')}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                    </svg>
+                                    <span class="menu-item-label">Help</span>
+                                </button>
+
+                                <div class="menu-divider"></div>
+
+                                <!-- Session Controls (only show in assistant view) -->
+                                ${this.currentView === 'assistant' ? html`
+                                    ${this.sessionActive ? html`
+                                        <button class="menu-item" @click=${this._handleMenuEndSession}>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="6" y="4" width="4" height="16"/>
+                                                <rect x="14" y="4" width="4" height="16"/>
+                                            </svg>
+                                            <span class="menu-item-label">End Session</span>
+                                        </button>
+                                    ` : html`
+                                        <button class="menu-item" @click=${this._handleMenuStartSession}>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polygon points="5,3 19,12 5,21"/>
+                                            </svg>
+                                            <span class="menu-item-label">Start Session</span>
+                                        </button>
+                                    `}
+                                    
+                                    <button class="menu-item ${this.isAudioActive ? 'active' : 'inactive'}" @click=${this._handleMenuToggleAudio}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M2 10v3"/>
+                                            <path d="M6 6v11"/>
+                                            <path d="M10 3v18"/>
+                                            <path d="M14 8v7"/>
+                                            <path d="M18 5v13"/>
+                                            <path d="M22 10v3"/>
+                                        </svg>
+                                        <span class="menu-item-label">Audio</span>
+                                        <span class="menu-item-status">${this.isAudioActive ? 'ON' : 'OFF'}</span>
+                                    </button>
+                                    
+                                    <button class="menu-item ${this.isScreenActive ? 'active' : 'inactive'}" @click=${this._handleMenuToggleScreen}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/>
+                                            <rect x="2" y="6" width="14" height="12" rx="2"/>
+                                        </svg>
+                                        <span class="menu-item-label">Video</span>
+                                        <span class="menu-item-status">${this.isScreenActive ? 'ON' : 'OFF'}</span>
+                                    </button>
+                                    
+                                    <div class="menu-divider"></div>
+                                    
+                                    <!-- Visibility Controls -->
+                                    <button class="menu-item ${this.isContentProtected ? 'active' : 'inactive'}" @click=${this._handleToggleContentProtection}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                        </svg>
+                                        <span class="menu-item-label">Content Protection</span>
+                                        <span class="menu-item-status">${this.isContentProtected ? 'ON' : 'OFF'}</span>
+                                    </button>
+                                    
+                                    <button class="menu-item ${this.isVisibleOnAllWorkspaces ? 'active' : 'inactive'}" @click=${this._handleToggleVisibilityOnWorkspaces}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                        <span class="menu-item-label">Visible on All Workspaces</span>
+                                        <span class="menu-item-status">${this.isVisibleOnAllWorkspaces ? 'ON' : 'OFF'}</span>
+                                    </button>
+                                    
+                                    <div class="menu-divider"></div>
+                                ` : ''}
+
+                                <!-- Close App -->
+                                <button class="menu-item" @click=${this._handleClose}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                    <span class="menu-item-label">Close App</span>
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
                 </div>
             </div>
         `;

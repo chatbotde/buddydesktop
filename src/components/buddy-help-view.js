@@ -156,6 +156,7 @@ class BuddyHelpView extends LitElement {
                         <strong>Text Input:</strong><br />
                         <span class="key">Enter</span> - Send text message to AI<br />
                         <span class="key">Shift</span> + <span class="key">Enter</span> - New line in text input
+                        <span class="key">Ctrl</span> + <span class="key">Alt</span> + <span class="key">N</span> - Direct send message
                     </div>
                 </div>
 
@@ -176,11 +177,7 @@ class BuddyHelpView extends LitElement {
                     <span class="option-label">Supported Profiles</span>
                     <div class="description">
                         <strong>General Assistant:</strong> Ask anything - general knowledge, problem solving, creative tasks<br />
-                        <strong>Job Interview:</strong> Get help with interview questions and responses<br />
-                        <strong>Sales Call:</strong> Assistance with sales conversations and objection handling<br />
-                        <strong>Business Meeting:</strong> Support for professional meetings and discussions<br />
-                        <strong>Presentation:</strong> Help with presentations and public speaking<br />
-                        <strong>Negotiation:</strong> Guidance for business negotiations and deals<br />
+                       
                         <strong>Math Teacher:</strong> Comprehensive mathematics instruction with step-by-step solutions<br />
                         <strong>Physics Teacher:</strong> Physics concepts with real-world applications and mathematical approach<br />
                         <strong>Chemistry Teacher:</strong> Chemistry instruction with molecular understanding and safety notes<br />

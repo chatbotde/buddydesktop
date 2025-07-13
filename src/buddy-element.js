@@ -1709,6 +1709,12 @@ class BuddyApp extends LitElement {
         this.addEventListener('toggle-screen', async () => {
             await this.toggleScreenCapture();
         });
+        this.addEventListener('toggle-content-protection', async (e) => {
+            await this.toggleContentProtection(e.detail.enabled);
+        });
+        this.addEventListener('toggle-workspace-visibility', async (e) => {
+            await this.toggleWorkspaceVisibility(e.detail.enabled);
+        });
         this.addEventListener('delete-session', (e) => {
             this.deleteSession(e.detail.index);
         });
@@ -2125,6 +2131,34 @@ class BuddyApp extends LitElement {
             }
         }
         this.requestUpdate();
+    }
+
+    async toggleContentProtection(enabled) {
+        try {
+            const { ipcRenderer } = window.require('electron');
+            const result = await ipcRenderer.invoke('toggle-content-protection', enabled);
+            if (result.success) {
+                console.log(`Content protection ${enabled ? 'enabled' : 'disabled'}`);
+            } else {
+                console.error('Failed to toggle content protection:', result.error);
+            }
+        } catch (error) {
+            console.error('Error toggling content protection:', error);
+        }
+    }
+
+    async toggleWorkspaceVisibility(enabled) {
+        try {
+            const { ipcRenderer } = window.require('electron');
+            const result = await ipcRenderer.invoke('toggle-workspace-visibility', enabled);
+            if (result.success) {
+                console.log(`Workspace visibility ${enabled ? 'enabled' : 'disabled'}`);
+            } else {
+                console.error('Failed to toggle workspace visibility:', result.error);
+            }
+        } catch (error) {
+            console.error('Error toggling workspace visibility:', error);
+        }
     }
     // --- End Updated Toggle Handlers ---
 
