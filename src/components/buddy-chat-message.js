@@ -1,5 +1,6 @@
 import { html, css, LitElement } from '../lit-core-2.7.4.min.js';
 import { chatMessageStyles } from './ui/chat-message-css.js';
+import { ThemeConfig, backgroundThemes } from './ui/theme-config.js';
 
 class BuddyChatMessage extends LitElement {
     static properties = {
@@ -11,7 +12,10 @@ class BuddyChatMessage extends LitElement {
         screenshots: { type: Array }, // Array of base64 screenshot data
         isEditing: { type: Boolean },
         editableContent: { type: String },
-        isWhiteBackground: { type: Boolean },
+        backgroundTheme: { type: String }, // New property for background theme
+        showBackgroundDropdown: { type: Boolean }, // New property for dropdown state
+        searchQuery: { type: String }, // Search query for theme filtering
+        selectedCategory: { type: String }, // Selected category filter
     };
 
     constructor() {
@@ -19,8 +23,16 @@ class BuddyChatMessage extends LitElement {
         this.showCopyButton = false;
         this.isEditing = false;
         this.editableContent = '';
-        this.isWhiteBackground = false;
+        this.backgroundTheme = 'default'; // Default background
+        this.showBackgroundDropdown = false;
+        this.searchQuery = '';
+        this.selectedCategory = 'all';
         this._loadHighlightJS();
+    }
+
+    // Background theme options - now using centralized config
+    static get backgroundThemes() {
+        return backgroundThemes;
     }
 
     async _loadHighlightJS() {
@@ -269,106 +281,6 @@ class BuddyChatMessage extends LitElement {
         };
     }
 
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        if (this._selectionCleanup) {
-            this._selectionCleanup();
-        }
-    }
-
-    _showSelectionCopyButton(selection) {
-        // Remove any existing selection copy button
-        this._hideSelectionCopyButton();
-
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        const messageContent = this.shadowRoot.querySelector('.message-content');
-        
-        if (!messageContent || rect.width === 0 || rect.height === 0) return;
-
-        const copyBtn = document.createElement('div');
-        copyBtn.className = 'selection-copy-btn';
-        copyBtn.innerHTML = `
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"></path>
-            </svg>
-            Copy
-        `;
-
-        // Position the button above the selection, centered
-        const buttonWidth = 60; // Approximate width of the button
-        let leftPosition = rect.left + (rect.width / 2) - (buttonWidth / 2);
-        
-        // Ensure button stays within viewport
-        const viewportWidth = window.innerWidth;
-        if (leftPosition < 10) leftPosition = 10;
-        if (leftPosition + buttonWidth > viewportWidth - 10) leftPosition = viewportWidth - buttonWidth - 10;
-
-        copyBtn.style.left = `${leftPosition}px`;
-        copyBtn.style.top = `${rect.top - 40}px`;
-        copyBtn.style.position = 'fixed';
-        copyBtn.style.zIndex = '1000';
-
-        copyBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            this._copySelectedText();
-            this._hideSelectionCopyButton();
-        });
-
-        document.body.appendChild(copyBtn);
-        this._selectionCopyButton = copyBtn;
-
-        // Show the button with animation
-        requestAnimationFrame(() => {
-            copyBtn.classList.add('show');
-        });
-
-        // Auto-hide after 3 seconds
-        setTimeout(() => {
-            this._hideSelectionCopyButton();
-        }, 3000);
-    }
-
-    _hideSelectionCopyButton() {
-        if (this._selectionCopyButton) {
-            this._selectionCopyButton.classList.remove('show');
-            setTimeout(() => {
-                if (this._selectionCopyButton) {
-                    this._selectionCopyButton.remove();
-                    this._selectionCopyButton = null;
-                }
-            }, 200);
-        }
-    }
-
-    _copySelectedText() {
-        const selection = window.getSelection();
-        const selectedText = selection.toString();
-        
-        if (selectedText) {
-            navigator.clipboard.writeText(selectedText).then(() => {
-                console.log('Selected text copied to clipboard:', selectedText);
-                // Clear the selection after copying
-                selection.removeAllRanges();
-            }).catch(err => {
-                console.error('Failed to copy selected text:', err);
-                // Fallback for older browsers
-                try {
-                    const textArea = document.createElement('textarea');
-                    textArea.value = selectedText;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textArea);
-                } catch (fallbackErr) {
-                    console.error('Fallback copy also failed:', fallbackErr);
-                }
-            });
-        }
-    }
-
     _onDelete() {
         this.dispatchEvent(new CustomEvent('delete-message', { detail: { id: this.id }, bubbles: true, composed: true }));
     }
@@ -502,9 +414,200 @@ class BuddyChatMessage extends LitElement {
         }
     }
 
+    _onToggleBackgroundDropdown() {
+        this.showBackgroundDropdown = !this.showBackgroundDropdown;
+        this.requestUpdate();
+    }
+
+    _onBackgroundThemeChange(theme) {
+        this.backgroundTheme = theme;
+        this.showBackgroundDropdown = false;
+        this.searchQuery = '';
+        this.selectedCategory = 'all';
+        this.requestUpdate();
+        // Dispatch event to notify parent of background change
+        this.dispatchEvent(new CustomEvent('background-theme-changed', {
+            detail: { 
+                id: this.id,
+                backgroundTheme: this.backgroundTheme
+            },
+            bubbles: true,
+            composed: true
+        }));
+    }
+
+    _onSearchInput(e) {
+        this.searchQuery = e.target.value;
+        this.requestUpdate();
+    }
+
+    _onCategorySelect(category) {
+        this.selectedCategory = category;
+        this.requestUpdate();
+    }
+
+    _getFilteredThemes() {
+        let themes = ThemeConfig.themes;
+        // Filter by search query
+        if (this.searchQuery) {
+            themes = ThemeConfig.searchThemes(this.searchQuery);
+        }
+        // Filter by category
+        if (this.selectedCategory && this.selectedCategory !== 'all') {
+            themes = ThemeConfig.getThemesByCategory(this.selectedCategory);
+        }
+        return themes;
+    }
+
+    _getCategorizedThemes() {
+        const categorized = ThemeConfig.getThemesForDropdown();
+        // Filter by search if needed
+        if (this.searchQuery) {
+            const searchResults = ThemeConfig.searchThemes(this.searchQuery);
+            const filtered = {};
+            Object.keys(categorized).forEach(categoryKey => {
+                const categoryThemes = categorized[categoryKey].themes;
+                const filteredThemes = {};
+                Object.keys(categoryThemes).forEach(themeKey => {
+                    if (searchResults[themeKey]) {
+                        filteredThemes[themeKey] = categoryThemes[themeKey];
+                    }
+                });
+                if (Object.keys(filteredThemes).length > 0) {
+                    filtered[categoryKey] = {
+                        ...categorized[categoryKey],
+                        themes: filteredThemes
+                    };
+                }
+            });
+            return filtered;
+        }
+        return categorized;
+    }
+
+    _onClickOutside(event) {
+        if (this.showBackgroundDropdown) {
+            const popup = this.shadowRoot.querySelector('.background-popup');
+            const dropdownBtn = this.shadowRoot.querySelector('.background-dropdown-btn');
+            
+            if (popup && !popup.contains(event.target) && !dropdownBtn.contains(event.target)) {
+                this.showBackgroundDropdown = false;
+                this.requestUpdate();
+            }
+        }
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        document.addEventListener('click', this._onClickOutside.bind(this));
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        document.removeEventListener('click', this._onClickOutside.bind(this));
+        if (this._selectionCleanup) {
+            this._selectionCleanup();
+        }
+    }
+
+    _showSelectionCopyButton(selection) {
+        // Remove any existing selection copy button
+        this._hideSelectionCopyButton();
+
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        const messageContent = this.shadowRoot.querySelector('.message-content');
+        
+        if (!messageContent || rect.width === 0 || rect.height === 0) return;
+
+        const copyBtn = document.createElement('div');
+        copyBtn.className = 'selection-copy-btn';
+        copyBtn.innerHTML = `
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Copy
+        `;
+
+        // Position the button above the selection, centered
+        const buttonWidth = 60; // Approximate width of the button
+        let leftPosition = rect.left + (rect.width / 2) - (buttonWidth / 2);
+        
+        // Ensure button stays within viewport
+        const viewportWidth = window.innerWidth;
+        if (leftPosition < 10) leftPosition = 10;
+        if (leftPosition + buttonWidth > viewportWidth - 10) leftPosition = viewportWidth - buttonWidth - 10;
+
+        copyBtn.style.left = `${leftPosition}px`;
+        copyBtn.style.top = `${rect.top - 40}px`;
+        copyBtn.style.position = 'fixed';
+        copyBtn.style.zIndex = '1000';
+
+        copyBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this._copySelectedText();
+            this._hideSelectionCopyButton();
+        });
+
+        document.body.appendChild(copyBtn);
+        this._selectionCopyButton = copyBtn;
+
+        // Show the button with animation
+        requestAnimationFrame(() => {
+            copyBtn.classList.add('show');
+        });
+
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            this._hideSelectionCopyButton();
+        }, 3000);
+    }
+
+    _hideSelectionCopyButton() {
+        if (this._selectionCopyButton) {
+            this._selectionCopyButton.classList.remove('show');
+            setTimeout(() => {
+                if (this._selectionCopyButton) {
+                    this._selectionCopyButton.remove();
+                    this._selectionCopyButton = null;
+                }
+            }, 200);
+        }
+    }
+
+    _copySelectedText() {
+        const selection = window.getSelection();
+        const selectedText = selection.toString();
+        
+        if (selectedText) {
+            navigator.clipboard.writeText(selectedText).then(() => {
+                console.log('Selected text copied to clipboard:', selectedText);
+                // Clear the selection after copying
+                selection.removeAllRanges();
+            }).catch(err => {
+                console.error('Failed to copy selected text:', err);
+                // Fallback for older browsers
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = selectedText;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                } catch (fallbackErr) {
+                    console.error('Fallback copy also failed:', fallbackErr);
+                }
+            });
+        }
+    }
+
     render() {
         const hasScreenshots = this.screenshots && Array.isArray(this.screenshots) && this.screenshots.length > 0;
-        const backgroundClass = this.isWhiteBackground ? 'white-background' : '';
+        const backgroundClass = this.backgroundTheme !== 'default' ? BuddyChatMessage.backgroundThemes[this.backgroundTheme]?.class : '';
+        
+
         
         return html`
             <div class="message-wrapper ${this.sender}">
@@ -587,23 +690,54 @@ class BuddyChatMessage extends LitElement {
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button 
-                            class="background-toggle-btn"
-                            @click=${this._onToggleBackground}
-                            title="${this.isWhiteBackground ? 'Switch to dark background' : 'Switch to white background'}"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="5"></circle>
-                                <line x1="12" y1="1" x2="12" y2="3"></line>
-                                <line x1="12" y1="21" x2="12" y2="23"></line>
-                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                                <line x1="1" y1="12" x2="3" y2="12"></line>
-                                <line x1="21" y1="12" x2="23" y2="12"></line>
-                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                            </svg>
-                        </button>
+                        <div class="background-dropdown-container" style="position:relative;">
+                            <button 
+                                class="background-dropdown-btn"
+                                @click=${this._onToggleBackgroundDropdown}
+                                title="Change background theme"
+                            >
+                                <div class="current-theme-preview ${BuddyChatMessage.backgroundThemes[this.backgroundTheme]?.class || ''}"></div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="6,9 12,15 18,9"></polyline>
+                                </svg>
+                            </button>
+                            ${this.showBackgroundDropdown ? html`
+                                <div class="background-dropdown above">
+                                    <div class="dropdown-header">
+                                        <span class="dropdown-title">Theme Selection</span>
+                                        <input class="dropdown-search" type="text" placeholder="Search themes..." .value=${this.searchQuery} @input=${this._onSearchInput} />
+                                    </div>
+                                    <div class="dropdown-categories">
+                                        ${Object.entries(this._getCategorizedThemes()).map(([categoryKey, category]) => html`
+                                            <div class="category-section">
+                                                <div class="category-header">
+                                                    <span class="category-icon">${category.icon}</span>
+                                                    <span>${category.name}</span>
+                                                </div>
+                                                ${Object.entries(category.themes).map(([themeKey, theme]) => html`
+                                                    <button 
+                                                        class="theme-item ${this.backgroundTheme === themeKey ? 'active' : ''}"
+                                                        @click=${() => this._onBackgroundThemeChange(themeKey)}
+                                                    >
+                                                        <div class="theme-preview ${theme.class}"></div>
+                                                        <div class="theme-info">
+                                                            <div class="theme-name">${theme.name}</div>
+                                                            <div class="theme-description">${theme.description}</div>
+                                                            <div class="theme-tags">
+                                                                ${theme.tags.map(tag => html`<span class="theme-tag">${tag}</span>`)}
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                `)}
+                                            </div>
+                                        `)}
+                                        ${Object.keys(this._getCategorizedThemes()).length === 0 ? html`
+                                            <div class="no-results">No themes found.</div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
                         <button 
                             class="msg-action-btn delete-button"
                             @click=${this._onDelete}
