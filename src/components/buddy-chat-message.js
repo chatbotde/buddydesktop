@@ -23,11 +23,25 @@ class BuddyChatMessage extends LitElement {
         this.showCopyButton = false;
         this.isEditing = false;
         this.editableContent = '';
-        this.backgroundTheme = 'default'; // Default background
+        this.backgroundTheme = this._loadSavedTheme(); // Load saved theme or default
         this.showBackgroundDropdown = false;
         this.searchQuery = '';
         this.selectedCategory = 'all';
         this._loadHighlightJS();
+    }
+    
+    _loadSavedTheme() {
+        try {
+            // Use separate keys for input (user) and output (assistant) messages
+            const themeKey = this.sender === 'user' ? 'buddy-chat-input-theme' : 'buddy-chat-output-theme';
+            const savedTheme = localStorage.getItem(themeKey);
+            if (savedTheme && ThemeConfig.themes[savedTheme]) {
+                return savedTheme;
+            }
+        } catch (error) {
+            console.warn('Failed to load saved theme:', error);
+        }
+        return 'default';
     }
 
     // Background theme options - now using centralized config
@@ -335,20 +349,7 @@ class BuddyChatMessage extends LitElement {
         this.requestUpdate();
     }
 
-    _onToggleBackground() {
-        this.isWhiteBackground = !this.isWhiteBackground;
-        this.requestUpdate();
-        
-        // Dispatch event to notify parent of background change
-        this.dispatchEvent(new CustomEvent('background-toggled', {
-            detail: { 
-                id: this.id,
-                isWhiteBackground: this.isWhiteBackground
-            },
-            bubbles: true,
-            composed: true
-        }));
-    }
+    
 
     _onTextareaInput(e) {
         this.editableContent = e.target.value;
@@ -417,13 +418,38 @@ class BuddyChatMessage extends LitElement {
     _onToggleBackgroundDropdown() {
         this.showBackgroundDropdown = !this.showBackgroundDropdown;
         this.requestUpdate();
+        
+        // Dispatch event to notify parent of dropdown state change
+        this.dispatchEvent(new CustomEvent('background-dropdown-toggled', {
+            detail: { 
+                id: this.id,
+                isOpen: this.showBackgroundDropdown
+            },
+            bubbles: true,
+            composed: true
+        }));
     }
 
     _onBackgroundThemeChange(theme) {
+        if (this.backgroundTheme === theme) {
+            this.showBackgroundDropdown = false;
+            this.searchQuery = '';
+            this.selectedCategory = 'all';
+            return;
+        }
         this.backgroundTheme = theme;
         this.showBackgroundDropdown = false;
         this.searchQuery = '';
         this.selectedCategory = 'all';
+        
+        // Store theme preference in localStorage with separate keys for input/output
+        try {
+            const themeKey = this.sender === 'user' ? 'buddy-chat-input-theme' : 'buddy-chat-output-theme';
+            localStorage.setItem(themeKey, theme);
+        } catch (error) {
+            console.warn('Failed to save theme preference:', error);
+        }
+        
         this.requestUpdate();
         // Dispatch event to notify parent of background change
         this.dispatchEvent(new CustomEvent('background-theme-changed', {
@@ -752,4 +778,4 @@ class BuddyChatMessage extends LitElement {
     }
 }
 
-customElements.define('buddy-chat-message', BuddyChatMessage); 
+customElements.define('buddy-chat-message', BuddyChatMessage);

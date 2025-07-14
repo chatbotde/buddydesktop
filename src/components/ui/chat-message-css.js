@@ -21,10 +21,12 @@ export const chatMessageStyles = css`
         }
         
         .message-bubble {
-            max-width: 100%;
+            max-width:100%;
             padding: 12px 16px;
             border-radius: 18px;
             word-wrap: break-word;
+            word-break: break-word;
+            overflow-wrap: break-word;
             position: relative;
             animation: messageSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
@@ -32,6 +34,7 @@ export const chatMessageStyles = css`
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             transition: all 0.3s ease;
+            box-sizing: border-box;
         }
         
         .message-bubble:hover {
@@ -140,27 +143,33 @@ export const chatMessageStyles = css`
         }
 
         .background-dropdown-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             color: var(--text-color);
-            opacity: 0.6;
             cursor: pointer;
-            padding: 6px 8px;
-            border-radius: 8px;
-            margin-left: 4px;
-            font-size: 13px;
-            transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 12px;
+            margin-left: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
-            gap: 6px;
-            backdrop-filter: blur(10px);
+            gap: 8px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .background-dropdown-btn:hover {
-            opacity: 1;
             background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .background-dropdown-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
 
         .background-dropdown-btn:active {
@@ -239,15 +248,16 @@ export const chatMessageStyles = css`
         }
 
         .background-popup {
-            background: rgba(0, 0, 0, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 16px;
-            min-width: 280px;
-            max-width: 400px;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-            animation: popupSlideIn 0.3s ease-out;
+            min-width: 320px;
+            max-width: 420px;
+            backdrop-filter: blur(24px);
+            box-shadow: 0 24px 72px rgba(0, 0, 0, 0.4);
+            animation: popupSlideIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
+            transform-origin: top center;
         }
 
         .popup-header {
@@ -290,28 +300,31 @@ export const chatMessageStyles = css`
         .popup-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px 12px;
+            gap: 16px;
+            padding: 12px 16px;
             background: transparent;
             border: none;
             color: var(--text-color);
             cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.2s ease;
+            border-radius: 12px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
             text-align: left;
-            font-size: 13px;
-            margin-bottom: 2px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
         }
 
         .popup-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(2px);
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(4px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
         .popup-item.active {
-            background: rgba(59, 130, 246, 0.2);
-            border: 1px solid rgba(59, 130, 246, 0.4);
+            background: rgba(59, 130, 246, 0.25);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
         }
 
         @keyframes fadeIn {
@@ -335,11 +348,18 @@ export const chatMessageStyles = css`
         }
 
         .theme-preview {
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
             flex-shrink: 0;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .popup-item:hover .theme-preview {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
         .theme-preview.bg-transparent {
@@ -401,101 +421,7 @@ export const chatMessageStyles = css`
             }
         }
         
-        .message-bubble.white-background {
-            background: white !important;
-            color: #333 !important;
-            border: 1px solid #e0e0e0 !important;
-        }
         
-        .message-bubble.white-background .message-content {
-            color: #333 !important;
-        }
-        
-        .message-bubble.white-background .message-content a {
-            color: #0066cc !important;
-            border-bottom: 1px solid #0066cc !important;
-        }
-        
-        .message-bubble.white-background .message-content code {
-            background: rgba(0, 0, 0, 0.1) !important;
-            color: #333 !important;
-            border: 1px solid #ddd !important;
-        }
-        
-        .message-bubble.white-background .code-block-container {
-            background: rgba(0, 0, 0, 0.05) !important;
-            border: 1px solid #ddd !important;
-        }
-        
-        .message-bubble.white-background .code-block {
-            background: rgba(0, 0, 0, 0.05) !important;
-        }
-        
-        .message-bubble.white-background .hljs {
-            color: #333 !important;
-        }
-        
-        .message-bubble.white-background .msg-action-btn,
-        .message-bubble.white-background .background-toggle-btn {
-            background: rgba(0, 0, 0, 0.1) !important;
-            border-color: rgba(0, 0, 0, 0.2) !important;
-            color: #333 !important;
-        }
-        
-        .message-bubble.white-background .msg-action-btn:hover,
-        .message-bubble.white-background .background-toggle-btn:hover {
-            background: rgba(0, 0, 0, 0.15) !important;
-            border-color: rgba(0, 0, 0, 0.3) !important;
-        }
-        
-        .message-bubble.white-background .edit-textarea {
-            background: rgba(0, 0, 0, 0.05) !important;
-            color: #333 !important;
-            border-color: rgba(0, 0, 0, 0.2) !important;
-        }
-        
-        .message-bubble.white-background .edit-textarea:hover {
-            border-color: rgba(0, 0, 0, 0.3) !important;
-        }
-        
-        .message-bubble.white-background .edit-textarea:focus {
-            border-color: rgba(0, 0, 0, 0.4) !important;
-            background: rgba(0, 0, 0, 0.08) !important;
-            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1) !important;
-        }
-        
-        .message-bubble.white-background .edit-btn {
-            background: rgba(0, 0, 0, 0.1) !important;
-            border-color: rgba(0, 0, 0, 0.2) !important;
-            color: #333 !important;
-        }
-        
-        .message-bubble.white-background .edit-btn:hover {
-            background: rgba(0, 0, 0, 0.15) !important;
-            border-color: rgba(0, 0, 0, 0.3) !important;
-        }
-        
-        .message-bubble.white-background .edit-btn.save {
-            background: rgba(76, 175, 80, 0.2) !important;
-            border-color: rgba(76, 175, 80, 0.4) !important;
-            color: #2e7d32 !important;
-        }
-        
-        .message-bubble.white-background .edit-btn.save:hover {
-            background: rgba(76, 175, 80, 0.3) !important;
-            border-color: rgba(76, 175, 80, 0.5) !important;
-        }
-        
-        .message-bubble.white-background .edit-btn.cancel {
-            background: rgba(244, 67, 54, 0.2) !important;
-            border-color: rgba(244, 67, 54, 0.4) !important;
-            color: #c62828 !important;
-        }
-        
-        .message-bubble.white-background .edit-btn.cancel:hover {
-            background: rgba(244, 67, 54, 0.3) !important;
-            border-color: rgba(244, 67, 54, 0.5) !important;
-        }
         
         .edit-textarea {
             width: 100% !important;
@@ -579,28 +505,7 @@ export const chatMessageStyles = css`
             border-color: rgba(244, 67, 54, 0.5);
         }
         
-        .background-toggle-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-color);
-            opacity: 0.6;
-            cursor: pointer;
-            padding: 4px 6px;
-            border-radius: 8px;
-            margin-left: 4px;
-            font-size: 13px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            backdrop-filter: blur(10px);
-        }
         
-        .background-toggle-btn:hover {
-            opacity: 1;
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
-        }
         
         .edit-container {
             width: 100%;
@@ -692,6 +597,13 @@ export const chatMessageStyles = css`
             user-select: text;
             -webkit-user-select: text;
             font-weight: 600;
+            width: 100%;
+            max-width: 100%;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-word;
+            hyphens: auto;
+            box-sizing: border-box;
         }
         
         .message-content h1, .message-content h2, .message-content h3 {
@@ -719,6 +631,10 @@ export const chatMessageStyles = css`
             overflow-x: auto;
             border: 1px solid rgba(255, 255, 255, 0.1);
             margin: 10px 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-word;
+            max-width: 100%;
         }
         
         /* Enhanced code block styles */
@@ -790,6 +706,11 @@ export const chatMessageStyles = css`
             font-size: 13px;
             line-height: 1.5;
             border: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-word;
+            max-width: 100%;
+            box-sizing: border-box;
         }
         
         .code-block code {

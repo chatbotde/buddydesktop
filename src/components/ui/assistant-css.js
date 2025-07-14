@@ -247,11 +247,16 @@ export const assistantStyles = css`
     padding: 10px 0;
     resize: none;
     min-width: 0;
+    max-width: 100%;
+    width: 100%;
     max-height: 100px;
     line-height: 1.4;
     transition: all 0.2s ease;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
 }
 
 /* Custom scrollbar for textarea in webkit browsers */
