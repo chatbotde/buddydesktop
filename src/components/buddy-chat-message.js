@@ -23,7 +23,6 @@ class BuddyChatMessage extends LitElement {
         this.showCopyButton = false;
         this.isEditing = false;
         this.editableContent = '';
-        this.backgroundTheme = this._loadSavedTheme(); // Load saved theme or default
         this.showBackgroundDropdown = false;
         this.searchQuery = '';
         this.selectedCategory = 'all';
@@ -32,16 +31,38 @@ class BuddyChatMessage extends LitElement {
     
     _loadSavedTheme() {
         try {
-            // Use separate keys for input (user) and output (assistant) messages
-            const themeKey = this.sender === 'user' ? 'buddy-chat-input-theme' : 'buddy-chat-output-theme';
-            const savedTheme = localStorage.getItem(themeKey);
-            if (savedTheme && ThemeConfig.themes[savedTheme]) {
-                return savedTheme;
+            // Ensure sender is available
+            if (!this.sender) {
+                console.warn('Sender not available yet, using default theme');
+                return ThemeConfig.getDefaultTheme('input'); // Default to input theme
             }
+            
+            // Use separate keys for input (user) and output (assistant) messages
+            const messageType = this.sender === 'user' ? 'input' : 'output';
+            const themeKey = `buddy-chat-${messageType}-theme`;
+            const savedTheme = localStorage.getItem(themeKey);
+            
+            console.log(`Loading theme for ${messageType} message:`, savedTheme);
+            
+            if (savedTheme && ThemeConfig.themes[savedTheme]) {
+                // Check if the theme is suitable for this message type
+                const theme = ThemeConfig.themes[savedTheme];
+                if (theme.suitableFor.includes(messageType)) {
+                    console.log(`Using saved theme: ${savedTheme} for ${messageType}`);
+                    return savedTheme;
+                } else {
+                    console.warn(`Saved theme ${savedTheme} is not suitable for ${messageType} messages`);
+                }
+            }
+            
+            // Fallback to default theme for this message type
+            const defaultTheme = ThemeConfig.getDefaultTheme(messageType);
+            console.log(`Using default theme: ${defaultTheme} for ${messageType}`);
+            return defaultTheme;
         } catch (error) {
             console.warn('Failed to load saved theme:', error);
+            return ThemeConfig.getDefaultTheme(this.sender === 'user' ? 'input' : 'output');
         }
-        return 'default';
     }
 
     // Background theme options - now using centralized config
@@ -241,6 +262,7 @@ class BuddyChatMessage extends LitElement {
 
     firstUpdated() {
         this._setupSelectionHandling();
+        this._validateAndFixTheme();
     }
 
     _setupSelectionHandling() {
@@ -392,8 +414,47 @@ class BuddyChatMessage extends LitElement {
         }
     }
 
+    _validateAndFixTheme() {
+        if (!this.sender) {
+            console.warn('Cannot validate theme: sender not available');
+            return;
+        }
+
+        if (!this.backgroundTheme) {
+            console.log('No background theme set, loading saved theme');
+            this.backgroundTheme = this._loadSavedTheme();
+            return;
+        }
+
+        const messageType = this.sender === 'user' ? 'input' : 'output';
+        const theme = ThemeConfig.themes[this.backgroundTheme];
+        
+        console.log(`Validating theme "${this.backgroundTheme}" for ${messageType} message`);
+        
+        // Check if the current theme is suitable for this message type
+        if (!theme) {
+            console.warn(`Theme "${this.backgroundTheme}" not found in theme config`);
+            this.backgroundTheme = ThemeConfig.getDefaultTheme(messageType);
+        } else if (!theme.suitableFor.includes(messageType)) {
+            console.warn(`Theme "${this.backgroundTheme}" is not suitable for ${messageType} messages. Suitable for: ${theme.suitableFor.join(', ')}`);
+            this.backgroundTheme = ThemeConfig.getDefaultTheme(messageType);
+        } else {
+            console.log(`Theme "${this.backgroundTheme}" is valid for ${messageType} messages`);
+        }
+    }
+
     updated(changedProperties) {
         super.updated(changedProperties);
+        
+        // Validate theme when sender or backgroundTheme changes
+        if (changedProperties.has('sender')) {
+            console.log(`Sender changed from "${changedProperties.get('sender')}" to "${this.sender}"`);
+            // Reload theme when sender changes
+            this.backgroundTheme = this._loadSavedTheme();
+            this._validateAndFixTheme();
+        } else if (changedProperties.has('backgroundTheme')) {
+            this._validateAndFixTheme();
+        }
         
         // Notify parent when assistant message starts (has content for first time)
         if (this.sender === 'assistant' && changedProperties.has('text')) {
@@ -444,7 +505,8 @@ class BuddyChatMessage extends LitElement {
         
         // Store theme preference in localStorage with separate keys for input/output
         try {
-            const themeKey = this.sender === 'user' ? 'buddy-chat-input-theme' : 'buddy-chat-output-theme';
+            const messageType = this.sender === 'user' ? 'input' : 'output';
+            const themeKey = `buddy-chat-${messageType}-theme`;
             localStorage.setItem(themeKey, theme);
         } catch (error) {
             console.warn('Failed to save theme preference:', error);
@@ -473,23 +535,36 @@ class BuddyChatMessage extends LitElement {
     }
 
     _getFilteredThemes() {
-        let themes = ThemeConfig.themes;
+        const messageType = this.sender === 'user' ? 'input' : 'output';
+        let themes = ThemeConfig.getThemesForMessageType(messageType);
+        
         // Filter by search query
         if (this.searchQuery) {
-            themes = ThemeConfig.searchThemes(this.searchQuery);
+            themes = ThemeConfig.searchThemes(this.searchQuery, messageType);
         }
+        
         // Filter by category
         if (this.selectedCategory && this.selectedCategory !== 'all') {
-            themes = ThemeConfig.getThemesByCategory(this.selectedCategory);
+            const categoryThemes = ThemeConfig.getThemesByCategory(this.selectedCategory);
+            // Only include themes that are both in the category and suitable for this message type
+            themes = Object.entries(themes)
+                .filter(([key, theme]) => categoryThemes[key])
+                .reduce((acc, [key, theme]) => {
+                    acc[key] = theme;
+                    return acc;
+                }, {});
         }
+        
         return themes;
     }
 
     _getCategorizedThemes() {
-        const categorized = ThemeConfig.getThemesForDropdown();
+        const messageType = this.sender === 'user' ? 'input' : 'output';
+        const categorized = ThemeConfig.getThemesForDropdown(messageType);
+        
         // Filter by search if needed
         if (this.searchQuery) {
-            const searchResults = ThemeConfig.searchThemes(this.searchQuery);
+            const searchResults = ThemeConfig.searchThemes(this.searchQuery, messageType);
             const filtered = {};
             Object.keys(categorized).forEach(categoryKey => {
                 const categoryThemes = categorized[categoryKey].themes;
@@ -526,6 +601,11 @@ class BuddyChatMessage extends LitElement {
     connectedCallback() {
         super.connectedCallback();
         document.addEventListener('click', this._onClickOutside.bind(this));
+        
+        // Initialize background theme if not already set
+        if (!this.backgroundTheme) {
+            this.backgroundTheme = this._loadSavedTheme();
+        }
     }
 
     disconnectedCallback() {
@@ -718,7 +798,7 @@ class BuddyChatMessage extends LitElement {
                         </button>
                         <div class="background-dropdown-container" style="position:relative;">
                             <button 
-                                class="background-dropdown-btn"
+                                class="background-dropdown-btn ${this.sender === 'user' ? 'input' : 'output'}"
                                 @click=${this._onToggleBackgroundDropdown}
                                 title="Change background theme"
                             >
@@ -730,7 +810,12 @@ class BuddyChatMessage extends LitElement {
                             ${this.showBackgroundDropdown ? html`
                                 <div class="background-dropdown above">
                                     <div class="dropdown-header">
-                                        <span class="dropdown-title">Theme Selection</span>
+                                        <span class="dropdown-title">
+                                            <span class="message-type-indicator ${this.sender === 'user' ? 'input' : 'output'}">
+                                                ${this.sender === 'user' ? 'Input' : 'Output'}
+                                            </span>
+                                            Message Theme
+                                        </span>
                                         <input class="dropdown-search" type="text" placeholder="Search themes..." .value=${this.searchQuery} @input=${this._onSearchInput} />
                                     </div>
                                     <div class="dropdown-categories">
@@ -752,6 +837,10 @@ class BuddyChatMessage extends LitElement {
                                                             <div class="theme-tags">
                                                                 ${theme.tags.map(tag => html`<span class="theme-tag">${tag}</span>`)}
                                                             </div>
+                                                        </div>
+                                                        <div class="theme-suitability">
+                                                            ${theme.suitableFor.includes('input') ? html`<div class="suitability-dot input"></div>` : ''}
+                                                            ${theme.suitableFor.includes('output') ? html`<div class="suitability-dot output"></div>` : ''}
                                                         </div>
                                                     </button>
                                                 `)}

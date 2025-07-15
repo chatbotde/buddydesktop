@@ -19,6 +19,12 @@ export const ThemeConfig = {
         }
     },
 
+    // Default themes for input and output messages
+    defaults: {
+        input: 'default',  // Default theme for user input messages
+        output: 'glass'    // Default theme for assistant output messages
+    },
+
     // Theme definitions with enhanced metadata
     themes: {
         default: {
@@ -27,7 +33,8 @@ export const ThemeConfig = {
             category: 'basic',
             description: 'Clean default appearance',
             preview: 'default',
-            tags: ['clean', 'simple']
+            tags: ['clean', 'simple'],
+            suitableFor: ['input', 'output'] // Can be used for both
         },
         transparent: {
             name: 'Transparent',
@@ -35,7 +42,8 @@ export const ThemeConfig = {
             category: 'basic',
             description: 'See-through background',
             preview: 'transparent',
-            tags: ['minimal', 'transparent']
+            tags: ['minimal', 'transparent'],
+            suitableFor: ['input', 'output']
         },
         glass: {
             name: 'Glass',
@@ -43,7 +51,8 @@ export const ThemeConfig = {
             category: 'basic',
             description: 'Frosted glass effect',
             preview: 'glass',
-            tags: ['modern', 'blur']
+            tags: ['modern', 'blur'],
+            suitableFor: ['output'] // Better for output messages
         },
         dark: {
             name: 'Dark',
@@ -51,7 +60,8 @@ export const ThemeConfig = {
             category: 'basic',
             description: 'Dark theme for low light',
             preview: 'dark',
-            tags: ['dark', 'night']
+            tags: ['dark', 'night'],
+            suitableFor: ['input', 'output']
         },
         light: {
             name: 'Light',
@@ -59,7 +69,8 @@ export const ThemeConfig = {
             category: 'basic',
             description: 'Bright and clean',
             preview: 'light',
-            tags: ['bright', 'clean']
+            tags: ['bright', 'clean'],
+            suitableFor: ['input'] // Better for input messages
         },
         blue: {
             name: 'Ocean Blue',
@@ -67,7 +78,8 @@ export const ThemeConfig = {
             category: 'gradient',
             description: 'Calming blue gradient',
             preview: 'blue',
-            tags: ['blue', 'calm', 'ocean']
+            tags: ['blue', 'calm', 'ocean'],
+            suitableFor: ['output'] // Better for output messages
         },
         green: {
             name: 'Forest Green',
@@ -75,7 +87,8 @@ export const ThemeConfig = {
             category: 'gradient',
             description: 'Natural green tones',
             preview: 'green',
-            tags: ['green', 'nature', 'forest']
+            tags: ['green', 'nature', 'forest'],
+            suitableFor: ['output']
         },
         purple: {
             name: 'Royal Purple',
@@ -83,7 +96,8 @@ export const ThemeConfig = {
             category: 'gradient',
             description: 'Elegant purple gradient',
             preview: 'purple',
-            tags: ['purple', 'royal', 'elegant']
+            tags: ['purple', 'royal', 'elegant'],
+            suitableFor: ['output']
         },
         orange: {
             name: 'Sunset Orange',
@@ -91,7 +105,8 @@ export const ThemeConfig = {
             category: 'gradient',
             description: 'Warm orange sunset',
             preview: 'orange',
-            tags: ['orange', 'warm', 'sunset']
+            tags: ['orange', 'warm', 'sunset'],
+            suitableFor: ['output']
         },
         pink: {
             name: 'Rose Pink',
@@ -99,7 +114,8 @@ export const ThemeConfig = {
             category: 'gradient',
             description: 'Soft pink tones',
             preview: 'pink',
-            tags: ['pink', 'soft', 'rose']
+            tags: ['pink', 'soft', 'rose'],
+            suitableFor: ['output']
         },
         gradient: {
             name: 'Rainbow',
@@ -107,7 +123,8 @@ export const ThemeConfig = {
             category: 'gradient',
             description: 'Vibrant rainbow gradient',
             preview: 'gradient',
-            tags: ['rainbow', 'vibrant', 'colorful']
+            tags: ['rainbow', 'vibrant', 'colorful'],
+            suitableFor: ['output']
         },
         neon: {
             name: 'Cyber Neon',
@@ -115,7 +132,8 @@ export const ThemeConfig = {
             category: 'special',
             description: 'Futuristic neon glow',
             preview: 'neon',
-            tags: ['neon', 'cyber', 'futuristic']
+            tags: ['neon', 'cyber', 'futuristic'],
+            suitableFor: ['output']
         }
     },
 
@@ -133,15 +151,37 @@ export const ThemeConfig = {
             }, {});
     },
 
+    // Get themes suitable for specific message type
+    getThemesForMessageType(messageType) {
+        return Object.entries(this.themes)
+            .filter(([key, theme]) => theme.suitableFor.includes(messageType))
+            .reduce((acc, [key, theme]) => {
+                acc[key] = theme;
+                return acc;
+            }, {});
+    },
+
+    // Get default theme for message type
+    getDefaultTheme(messageType) {
+        return this.defaults[messageType] || 'default';
+    },
+
     getAllCategories() {
         return this.categories;
     },
 
-    getThemesForDropdown() {
+    getThemesForDropdown(messageType = 'output') {
         const categorized = {};
+        const availableThemes = this.getThemesForMessageType(messageType);
         
         Object.keys(this.categories).forEach(categoryKey => {
-            const categoryThemes = this.getThemesByCategory(categoryKey);
+            const categoryThemes = Object.entries(availableThemes)
+                .filter(([key, theme]) => theme.category === categoryKey)
+                .reduce((acc, [key, theme]) => {
+                    acc[key] = theme;
+                    return acc;
+                }, {});
+            
             if (Object.keys(categoryThemes).length > 0) {
                 categorized[categoryKey] = {
                     ...this.categories[categoryKey],
@@ -153,10 +193,12 @@ export const ThemeConfig = {
         return categorized;
     },
 
-    // Search functionality
-    searchThemes(query) {
+    // Search functionality with message type filtering
+    searchThemes(query, messageType = 'output') {
         const searchTerm = query.toLowerCase();
-        return Object.entries(this.themes)
+        const availableThemes = this.getThemesForMessageType(messageType);
+        
+        return Object.entries(availableThemes)
             .filter(([key, theme]) => 
                 theme.name.toLowerCase().includes(searchTerm) ||
                 theme.description.toLowerCase().includes(searchTerm) ||

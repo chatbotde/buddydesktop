@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Debug Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        .debug-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .debug-info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .debug-controls {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .test-message {
+            margin: 20px 0;
+        }
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .localStorage-info {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>Theme Debug Test</h1>
+        
+        <div class="debug-info">
+            <h3>Current localStorage State:</h3>
+            <div id="localStorageInfo" class="localStorage-info">
+                Loading...
+            </div>
+        </div>
+
+        <div class="debug-controls">
+            <h3>Debug Controls:</h3>
+            <button onclick="clearAllThemes()">Clear All Theme Preferences</button>
+            <button onclick="setInputTheme('light')">Set Input Theme to 'light'</button>
+            <button onclick="setOutputTheme('glass')">Set Output Theme to 'glass'</button>
+            <button onclick="refreshDebugInfo()">Refresh Debug Info</button>
+            <button onclick="createTestMessages()">Create Test Messages</button>
+        </div>
+
+        <div id="testMessages"></div>
+    </div>
+
+    <script type="module">
+        // Import the chat message component
+        import './src/components/buddy-chat-message.js';
+        
+        // Debug functions
+        window.clearAllThemes = function() {
+            localStorage.removeItem('buddy-chat-input-theme');
+            localStorage.removeItem('buddy-chat-output-theme');
+            refreshDebugInfo();
+            console.log('All theme preferences cleared');
+        };
+
+        window.setInputTheme = function(theme) {
+            localStorage.setItem('buddy-chat-input-theme', theme);
+            refreshDebugInfo();
+            console.log(`Input theme set to: ${theme}`);
+        };
+
+        window.setOutputTheme = function(theme) {
+            localStorage.setItem('buddy-chat-output-theme', theme);
+            refreshDebugInfo();
+            console.log(`Output theme set to: ${theme}`);
+        };
+
+        window.refreshDebugInfo = function() {
+            const inputTheme = localStorage.getItem('buddy-chat-input-theme') || 'none';
+            const outputTheme = localStorage.getItem('buddy-chat-output-theme') || 'none';
+            
+            document.getElementById('localStorageInfo').innerHTML = `
+                Input Theme: ${inputTheme}
+                Output Theme: ${outputTheme}
+            `;
+        };
+
+        window.createTestMessages = function() {
+            const container = document.getElementById('testMessages');
+            container.innerHTML = `
+                <div class="test-message">
+                    <buddy-chat-message 
+                        id="debug-input"
+                        text="This is a debug input message"
+                        sender="user"
+                        timestamp="Debug Time">
+                    </buddy-chat-message>
+                </div>
+                <div class="test-message">
+                    <buddy-chat-message 
+                        id="debug-output"
+                        text="This is a debug output message"
+                        sender="assistant"
+                        timestamp="Debug Time">
+                    </buddy-chat-message>
+                </div>
+            `;
+        };
+
+        // Initialize debug info
+        refreshDebugInfo();
+        
+        console.log('Theme debug test loaded. Use the buttons to test theme functionality.');
+    </script>
+</body>
+</html> 

@@ -158,6 +158,27 @@ export const chatMessageStyles = css`
             gap: 8px;
             backdrop-filter: blur(16px);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .background-dropdown-btn::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            opacity: 0.7;
+        }
+
+        .background-dropdown-btn.input::before {
+            background: #60a5fa;
+        }
+
+        .background-dropdown-btn.output::before {
+            background: #4ade80;
         }
 
         .background-dropdown-btn:hover {
@@ -1012,6 +1033,31 @@ export const chatMessageStyles = css`
             gap: 8px;
         }
 
+        /* Message type indicator */
+        .message-type-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .message-type-indicator.input {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .message-type-indicator.output {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
         .dropdown-search {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1098,6 +1144,30 @@ export const chatMessageStyles = css`
             color: #3b82f6;
             font-weight: bold;
             font-size: 14px;
+        }
+
+        /* Theme suitability indicators */
+        .theme-suitability {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 2px;
+        }
+
+        .suitability-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+
+        .suitability-dot.input {
+            background: #60a5fa;
+        }
+
+        .suitability-dot.output {
+            background: #4ade80;
         }
 
         .theme-preview {
