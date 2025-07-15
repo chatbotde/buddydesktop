@@ -147,27 +147,51 @@ export const chatMessageStyles = css`
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: var(--text-color);
             cursor: pointer;
-            padding: 8px 12px;
-            border-radius: 12px;
-            margin-left: 6px;
-            font-size: 14px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            margin-left: 4px;
+            font-size: 11px;
             font-weight: 500;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
             backdrop-filter: blur(16px);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             position: relative;
+            min-width: 24px;
+            height: 24px;
+            justify-content: center;
+        }
+
+        /* Compact mode for smaller screens */
+        .background-dropdown-btn.compact {
+            min-width: 20px;
+            height: 20px;
+            padding: 4px;
+            font-size: 10px;
+        }
+
+        .background-dropdown-btn.compact .current-theme-preview {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        .background-dropdown-btn.compact::before {
+            width: 3px;
+            height: 3px;
+            top: 1px;
+            right: 1px;
         }
 
         .background-dropdown-btn::before {
             content: '';
             position: absolute;
-            top: 2px;
-            right: 2px;
-            width: 6px;
-            height: 6px;
+            top: 1px;
+            right: 1px;
+            width: 4px;
+            height: 4px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.6);
             opacity: 0.7;
@@ -198,9 +222,9 @@ export const chatMessageStyles = css`
         }
 
         .current-theme-preview {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             flex-shrink: 0;
         }
@@ -983,16 +1007,16 @@ export const chatMessageStyles = css`
             color: inherit;
         }
 
-        /* Enhanced Theme Dropdown Styles */
+        /* Enhanced Theme Dropdown Styles - Horizontal Layout */
         .background-dropdown.above {
             position: absolute;
             bottom: 120%;
             right: 0;
             background: rgba(0, 0, 0, 0.95);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            min-width: 320px;
-            max-width: 400px;
+            border-radius: 12px;
+            min-width: 300px;
+            max-width: 90vw;
             z-index: 10000;
             backdrop-filter: blur(20px);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
@@ -1001,16 +1025,98 @@ export const chatMessageStyles = css`
             visibility: visible;
             opacity: 1;
             overflow: hidden;
+            max-height: 120px;
+            /* Ensure dropdown doesn't go off-screen */
+            right: 0;
+            left: 0;
+            margin: 0 auto;
+            width: calc(100vw - 40px);
+        }
+
+        /* Responsive positioning for smaller screens */
+        @media (max-width: 480px) {
+            .background-dropdown.above,
+            .background-dropdown.below {
+                min-width: 250px;
+                max-width: calc(100vw - 20px);
+                right: 10px;
+                left: 10px;
+                width: calc(100vw - 20px);
+                max-height: 100px;
+            }
+            
+            .background-dropdown.above::after,
+            .background-dropdown.below::after {
+                right: 20px;
+            }
+
+            .theme-item {
+                min-width: 45px;
+                max-width: 50px;
+            }
+
+            .theme-preview {
+                width: 24px;
+                height: 24px;
+            }
+
+            .theme-name {
+                font-size: 8px;
+            }
+
+            .theme-description {
+                font-size: 7px;
+                max-width: 40px;
+            }
         }
 
         .background-dropdown.above::after {
             content: '';
             position: absolute;
-            bottom: -8px;
-            right: 16px;
-            border-width: 8px 8px 0 8px;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px 6px 0 6px;
             border-style: solid;
             border-color: rgba(0, 0, 0, 0.95) transparent transparent transparent;
+            display: block;
+        }
+
+        /* Position dropdown below if not enough space above */
+        .background-dropdown.below {
+            position: absolute;
+            top: 120%;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            min-width: 300px;
+            max-width: 90vw;
+            z-index: 10000;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            animation: dropdownSlideIn 0.3s ease-out;
+            display: block;
+            visibility: visible;
+            opacity: 1;
+            overflow: hidden;
+            max-height: 120px;
+            /* Ensure dropdown doesn't go off-screen */
+            right: 0;
+            left: 0;
+            margin: 0 auto;
+            width: calc(100vw - 40px);
+        }
+
+        .background-dropdown.below::after {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 0 6px 6px 6px;
+            border-style: solid;
+            border-color: transparent transparent rgba(0, 0, 0, 0.95) transparent;
             display: block;
         }
 
@@ -1019,7 +1125,7 @@ export const chatMessageStyles = css`
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 20px;
+            padding: 8px 12px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             background: rgba(255, 255, 255, 0.05);
         }
@@ -1027,10 +1133,10 @@ export const chatMessageStyles = css`
         .dropdown-title {
             color: var(--text-color);
             font-weight: 600;
-            font-size: 14px;
+            font-size: 12px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         /* Message type indicator */
@@ -1062,10 +1168,10 @@ export const chatMessageStyles = css`
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: var(--text-color);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            width: 120px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            width: 80px;
             transition: all 0.2s ease;
         }
 
@@ -1079,57 +1185,72 @@ export const chatMessageStyles = css`
             color: rgba(255, 255, 255, 0.5);
         }
 
-        /* Category Sections */
+        /* Category Sections - Horizontal Layout */
         .dropdown-categories {
-            max-height: 400px;
-            overflow-y: auto;
-            padding: 8px 0;
+            max-height: 80px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 12px 16px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: nowrap;
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
         }
 
         .category-section {
-            margin-bottom: 16px;
+            margin-bottom: 0;
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
 
         .category-header {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
+            gap: 6px;
+            padding: 6px 12px;
             color: rgba(255, 255, 255, 0.7);
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            background: rgba(255, 255, 255, 0.03);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            white-space: nowrap;
         }
 
         .category-icon {
             font-size: 14px;
         }
 
-        /* Enhanced Theme Items */
+        /* Enhanced Theme Items - Horizontal Circle Layout */
         .theme-item {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 12px;
-            padding: 10px 16px;
+            gap: 4px;
+            padding: 6px;
             background: transparent;
             border: none;
             color: var(--text-color);
             cursor: pointer;
             border-radius: 8px;
             transition: all 0.2s ease;
-            width: 100%;
-            text-align: left;
-            font-size: 13px;
-            margin: 2px 8px;
+            min-width: 50px;
+            max-width: 60px;
+            text-align: center;
+            font-size: 10px;
+            margin: 0;
             position: relative;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .theme-item:hover {
             background: rgba(255, 255, 255, 0.1);
-            transform: translateX(2px);
+            transform: translateY(-2px);
         }
 
         .theme-item.active {
@@ -1137,13 +1258,21 @@ export const chatMessageStyles = css`
             border: 1px solid rgba(59, 130, 246, 0.4);
         }
 
-        .theme-item.active::before {
+        .theme-item.active::after {
             content: '✓';
             position: absolute;
-            right: 12px;
+            top: 2px;
+            right: 2px;
             color: #3b82f6;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* Theme suitability indicators */
@@ -1171,69 +1300,82 @@ export const chatMessageStyles = css`
         }
 
         .theme-preview {
-            width: 24px;
-            height: 24px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.2);
             flex-shrink: 0;
             transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
         .theme-item:hover .theme-preview {
-            transform: scale(1.1);
+            transform: scale(1.15);
             border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .theme-info {
-            flex: 1;
-            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
         }
 
         .theme-name {
             font-weight: 500;
-            margin-bottom: 2px;
             color: var(--text-color);
+            font-size: 9px;
+            text-align: center;
+            line-height: 1.1;
         }
 
         .theme-description {
-            font-size: 11px;
+            font-size: 8px;
             color: rgba(255, 255, 255, 0.6);
-            line-height: 1.3;
+            line-height: 1.1;
+            text-align: center;
+            max-width: 45px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .theme-tags {
             display: flex;
-            gap: 4px;
-            margin-top: 4px;
+            gap: 2px;
+            margin-top: 2px;
         }
 
         .theme-tag {
             background: rgba(255, 255, 255, 0.1);
             color: rgba(255, 255, 255, 0.7);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 9px;
+            padding: 1px 3px;
+            border-radius: 3px;
+            font-size: 7px;
             font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.2px;
         }
 
         /* Search Results */
         .search-results {
             padding: 8px 0;
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
         }
 
         .no-results {
             padding: 20px;
             text-align: center;
             color: rgba(255, 255, 255, 0.5);
-            font-size: 13px;
+            font-size: 11px;
             font-style: italic;
         }
 
-        /* Scrollbar Styling */
+        /* Scrollbar Styling - Horizontal */
         .dropdown-categories::-webkit-scrollbar {
-            width: 6px;
+            height: 6px;
         }
 
         .dropdown-categories::-webkit-scrollbar-track {
@@ -1242,23 +1384,28 @@ export const chatMessageStyles = css`
         }
 
         .dropdown-categories::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 3px;
         }
 
         .dropdown-categories::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.5);
         }
 
-        /* Animation for theme items */
+        /* Firefox scrollbar */
+        .dropdown-categories {
+            scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05);
+        }
+
+        /* Animation for theme items - Horizontal */
         @keyframes themeItemSlideIn {
             from {
                 opacity: 0;
-                transform: translateX(-10px);
+                transform: translateY(-10px);
             }
             to {
                 opacity: 1;
-                transform: translateX(0);
+                transform: translateY(0);
             }
         }
 
