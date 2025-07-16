@@ -8,6 +8,7 @@ import './components/buddy-help-view.js';
 import './components/buddy-history-view.js';
 import './components/buddy-assistant-view.js';
 import './components/buddy-settings-view.js';
+import './components/buddy-models-view.js';
 import { getModelsByProvider } from './lib/models/models.js';
 import { buddyAppStyles } from './components/ui/buddy-app-style.js';
 
@@ -41,6 +42,7 @@ class BuddyApp extends LitElement {
         user: { type: Object },
         isAuthenticated: { type: Boolean },
         isGuest: { type: Boolean },
+        enabledModels: { type: Array },
     };
 
     static styles = [buddyAppStyles];
@@ -76,6 +78,14 @@ class BuddyApp extends LitElement {
         this.user = null;
         this.isAuthenticated = false;
         this.isGuest = false;
+        this.enabledModels = [
+            'claude-4-sonnet',
+            'claude-4-opus', 
+            'claude-3.5-sonnet',
+            'o3',
+            'gemini-2.5-pro',
+            'gemini-2.5-flash'
+        ]; // All models enabled by default
         
         this.initializeAuth();
     }
@@ -367,6 +377,15 @@ class BuddyApp extends LitElement {
         });
         this.addEventListener('decrease-history-limit', () => {
             this.decreaseHistoryLimit();
+        });
+        this.addEventListener('model-toggle', (e) => {
+            const { modelId, enabled } = e.detail;
+            if (enabled) {
+                this.enabledModels = [...this.enabledModels, modelId];
+            } else {
+                this.enabledModels = this.enabledModels.filter(id => id !== modelId);
+            }
+            this.requestUpdate();
         });
     }
 
@@ -674,7 +693,7 @@ class BuddyApp extends LitElement {
     }
 
     async handleClose() {
-        if (this.currentView === 'customize' || this.currentView === 'help' || this.currentView === 'history' || this.currentView === 'settings') {
+        if (this.currentView === 'customize' || this.currentView === 'help' || this.currentView === 'history' || this.currentView === 'settings' || this.currentView === 'models') {
             this.currentView = 'assistant';
         } else if (this.currentView === 'assistant') {
             if (this.sessionActive) {
@@ -1005,6 +1024,9 @@ class BuddyApp extends LitElement {
                 .disabledModelIds=${this.disabledModelIdsForCurrentMode}
                 .hasEnvironmentKey=${this.mainViewHasEnvironmentKey}
             ></buddy-settings-view>`,
+            models: html`<buddy-models-view
+                .enabledModels=${this.enabledModels}
+            ></buddy-models-view>`,
         };
 
         return html`
@@ -1023,6 +1045,7 @@ class BuddyApp extends LitElement {
                         .user=${this.user}
                         .isAuthenticated=${this.isAuthenticated}
                         .isGuest=${this.isGuest}
+                        .enabledModels=${this.enabledModels}
                     ></buddy-header>
                     <div class="main-content">${views[this.currentView]}</div>
                 </div>

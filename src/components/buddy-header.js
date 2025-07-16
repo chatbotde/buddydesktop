@@ -15,12 +15,16 @@ class BuddyHeader extends LitElement {
         isGuest: { type: Boolean },
         isContentProtected: { type: Boolean },
         isVisibleOnAllWorkspaces: { type: Boolean },
+        enabledModels: { type: Array },
+        selectedModel: { type: String },
+        isModelsDropdownOpen: { type: Boolean },
     };
 
     constructor() {
         super();
         this.isControlsMenuOpen = false;
         this.isMainMenuOpen = false;
+        this.isModelsDropdownOpen = false;
         this.isContentProtected = true;
         this.isVisibleOnAllWorkspaces = true;
         this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
@@ -38,46 +42,71 @@ class BuddyHeader extends LitElement {
         this.isControlsMenuOpen = !this.isControlsMenuOpen;
         console.log('New state:', this.isControlsMenuOpen);
         this.requestUpdate();
-        if (this.isControlsMenuOpen) {
-            setTimeout(() => {
-                document.addEventListener('click', this.boundOutsideClickHandler);
-            }, 0);
-        } else {
-            document.removeEventListener('click', this.boundOutsideClickHandler);
-        }
+        this._manageEventListener();
     }
 
     _closeControlsMenu() {
         if (this.isControlsMenuOpen) {
             this.isControlsMenuOpen = false;
-            document.removeEventListener('click', this.boundOutsideClickHandler);
             this.requestUpdate();
+            this._manageEventListener();
         }
     }
 
     _toggleMainMenu() {
+        // Close other dropdowns first
+        this._closeModelsDropdown();
+        this._closeControlsMenu();
+        
         this.isMainMenuOpen = !this.isMainMenuOpen;
         this.requestUpdate();
-        if (this.isMainMenuOpen) {
-            setTimeout(() => {
-                document.addEventListener('click', this.boundOutsideClickHandler);
-            }, 0);
-        } else {
-            document.removeEventListener('click', this.boundOutsideClickHandler);
-        }
+        this._manageEventListener();
     }
 
     _closeMainMenu() {
         if (this.isMainMenuOpen) {
             this.isMainMenuOpen = false;
-            document.removeEventListener('click', this.boundOutsideClickHandler);
             this.requestUpdate();
+            this._manageEventListener();
+        }
+    }
+
+    _toggleModelsDropdown() {
+        // Close other dropdowns first
+        this._closeMainMenu();
+        this._closeControlsMenu();
+        
+        this.isModelsDropdownOpen = !this.isModelsDropdownOpen;
+        this.requestUpdate();
+        this._manageEventListener();
+    }
+
+    _closeModelsDropdown() {
+        if (this.isModelsDropdownOpen) {
+            this.isModelsDropdownOpen = false;
+            this.requestUpdate();
+            this._manageEventListener();
+        }
+    }
+
+    _manageEventListener() {
+        const hasOpenDropdown = this.isMainMenuOpen || this.isControlsMenuOpen || this.isModelsDropdownOpen;
+        
+        if (hasOpenDropdown) {
+            // Add event listener with a small delay to prevent immediate closure
+            setTimeout(() => {
+                document.addEventListener('click', this.boundOutsideClickHandler);
+            }, 10);
+        } else {
+            // Remove event listener when no dropdowns are open
+            document.removeEventListener('click', this.boundOutsideClickHandler);
         }
     }
 
     _handleOutsideClick(e) {
         const controlsContainer = this.renderRoot.querySelector('.controls-dropdown-container');
         const mainMenuContainer = this.renderRoot.querySelector('.main-menu-dropdown-container');
+        const modelsDropdownContainer = this.renderRoot.querySelector('.models-dropdown-container');
         
         if (controlsContainer && !controlsContainer.contains(e.target)) {
             this._closeControlsMenu();
@@ -85,6 +114,10 @@ class BuddyHeader extends LitElement {
         
         if (mainMenuContainer && !mainMenuContainer.contains(e.target)) {
             this._closeMainMenu();
+        }
+        
+        if (modelsDropdownContainer && !modelsDropdownContainer.contains(e.target)) {
+            this._closeModelsDropdown();
         }
     }
 
@@ -150,6 +183,29 @@ class BuddyHeader extends LitElement {
         }));
     }
 
+    _handleModelSelect(modelId) {
+        this._closeModelsDropdown();
+        this.dispatchEvent(new CustomEvent('model-select', { 
+            detail: { model: modelId }, 
+            bubbles: true, 
+            composed: true 
+        }));
+    }
+
+    _getEnabledModelsData() {
+        // Sample model data - in a real app this would come from a models service
+        const allModels = [
+            { id: 'claude-4-sonnet', name: 'Claude 4 Sonnet', provider: 'anthropic', icon: '🤖' },
+            { id: 'claude-4-opus', name: 'Claude 4 Opus', provider: 'anthropic', icon: '🤖', badge: 'MAX Only' },
+            { id: 'claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'anthropic' },
+            { id: 'o3', name: 'O3', provider: 'openai', icon: '🤖' },
+            { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'google', icon: '🤖' },
+            { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'google', icon: '🤖' }
+        ];
+        
+        return allModels.filter(model => this.enabledModels?.includes(model.id)) || [];
+    }
+
     render() {
         const titles = {
             main: 'Buddy',
@@ -157,6 +213,7 @@ class BuddyHeader extends LitElement {
             help: 'Help & Shortcuts',
             assistant: 'Buddy',
             settings: 'AI Settings',
+            models: 'Models',
         };
         let elapsedTime = '';
         if (this.currentView === 'assistant' && this.startTime) {
@@ -187,6 +244,51 @@ class BuddyHeader extends LitElement {
                     ${this.currentView === 'assistant' ? html`
                         <span>${elapsedTime}</span>
                         <span class="status-indicator ${statusIndicator}"></span>
+                    ` : ''}
+                    
+                    <!-- Models Dropdown -->
+                    ${this.enabledModels && this.enabledModels.length > 0 ? html`
+                        <div class="models-dropdown-container">
+                            <button 
+                                class="models-dropdown-btn"
+                                @click=${this._toggleModelsDropdown}
+                                title="Select Model"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <path d="M21 15l-5-5L5 21"/>
+                                </svg>
+                                <span class="models-dropdown-text">
+                                    ${this.selectedModel ? this._getEnabledModelsData().find(m => m.id === this.selectedModel)?.name || this.selectedModel : 'Select Model'}
+                                </span>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="6,9 12,15 18,9"></polyline>
+                                </svg>
+                            </button>
+
+                            ${this.isModelsDropdownOpen ? html`
+                                <div class="models-dropdown">
+                                    ${this._getEnabledModelsData().map(model => html`
+                                        <button 
+                                            class="model-dropdown-item ${this.selectedModel === model.id ? 'selected' : ''}"
+                                            @click=${() => this._handleModelSelect(model.id)}
+                                        >
+                                            ${model.icon ? html`<span class="model-icon">${model.icon}</span>` : ''}
+                                            <div class="model-info">
+                                                <span class="model-name">${model.name}</span>
+                                                ${model.badge ? html`<span class="model-badge">${model.badge}</span>` : ''}
+                                            </div>
+                                            ${this.selectedModel === model.id ? html`
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="20,6 9,17 4,12"></polyline>
+                                                </svg>
+                                            ` : ''}
+                                        </button>
+                                    `)}
+                                </div>
+                            ` : ''}
+                        </div>
                     ` : ''}
                     
                     <!-- Main Menu Dropdown -->
@@ -227,6 +329,15 @@ class BuddyHeader extends LitElement {
                                         <polyline points="12,6 12,12 16,14"/>
                                     </svg>
                                     <span class="menu-item-label">History</span>
+                                </button>
+                                
+                                <button class="menu-item" @click=${() => this._handleNav('models')}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                                        <path d="M21 15l-5-5L5 21"/>
+                                    </svg>
+                                    <span class="menu-item-label">Models</span>
                                 </button>
                                 
                                 <button class="menu-item" @click=${() => this._handleNav('customize')}>
