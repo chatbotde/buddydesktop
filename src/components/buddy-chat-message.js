@@ -220,10 +220,42 @@ class BuddyChatMessage extends LitElement {
             processedContent = withCodeBlocks;
         }
         
+        // Post-process math content to add styling
+        processedContent = this._enhanceMathStyling(processedContent);
+        
         // Add event listeners to links after processing
         setTimeout(() => this._setupLinkHandlers(), 0);
         
         return processedContent;
+    }
+
+    _enhanceMathStyling(content) {
+        if (!content) return content;
+        
+        // Add styling to display math blocks
+        content = content.replace(
+            /<span class="katex-display">([\s\S]*?)<\/span>/g,
+            '<div class="math-block"><span class="katex-display">$1</span></div>'
+        );
+        
+        // Add styling to inline math
+        content = content.replace(
+            /<span class="katex">([\s\S]*?)<\/span>/g,
+            '<span class="math-inline"><span class="katex">$1</span></span>'
+        );
+        
+        // Handle error and plain text math spans
+        content = content.replace(
+            /<span class="math-error">([\s\S]*?)<\/span>/g,
+            '<span class="math-error">$1</span>'
+        );
+        
+        content = content.replace(
+            /<span class="math-plain">([\s\S]*?)<\/span>/g,
+            '<span class="math-plain">$1</span>'
+        );
+        
+        return content;
     }
 
     async _openExternalLink(url) {
