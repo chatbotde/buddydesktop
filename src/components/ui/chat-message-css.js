@@ -1418,4 +1418,12 @@ export const chatMessageStyles = css`
         .theme-item:nth-child(3) { animation-delay: 0.15s; }
         .theme-item:nth-child(4) { animation-delay: 0.2s; }
         .theme-item:nth-child(5) { animation-delay: 0.25s; }
+
+        /* Typography improvements */
+        .message-content {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.6; /* Increased line spacing for better readability */
+            letter-spacing: 0.02em;
+        }
     `;
