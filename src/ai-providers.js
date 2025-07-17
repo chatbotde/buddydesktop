@@ -618,9 +618,7 @@ function createAIProvider(provider, apiKey, profile, language, customPrompt, mod
             return new DeepSeekProvider(apiKey, profile, language, customPrompt, model);
         case 'openrouter':
             return new OpenRouterProvider(apiKey, profile, language, customPrompt, model);
-        case 'dspy':
-            const DSPyProvider = require('./dspy/DSPyProvider');
-            return new DSPyProvider(apiKey, profile, language, customPrompt, model);
+
         default:
             throw new Error(`Unknown AI provider: ${provider}`);
     }

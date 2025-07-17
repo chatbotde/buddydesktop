@@ -9,6 +9,7 @@ import './components/buddy-history-view.js';
 import './components/buddy-assistant-view.js';
 import './components/buddy-settings-view.js';
 import './components/buddy-models-view.js';
+import './components/buddy-system-prompt-manager.js';
 import { getModelsByProvider } from './lib/models/models.js';
 import { buddyAppStyles } from './components/ui/buddy-app-style.js';
 
@@ -72,7 +73,7 @@ class BuddyApp extends LitElement {
             { value: 'anthropic', name: 'Anthropic Claude', keyLabel: 'Anthropic API Key' },
             { value: 'deepseek', name: 'DeepSeek', keyLabel: 'DeepSeek API Key' },
             { value: 'openrouter', name: 'OpenRouter', keyLabel: 'OpenRouter API Key' },
-            { value: 'dspy', name: 'DSPy (Advanced)', keyLabel: 'DSPy API Key' },
+
         ];
         this.historyLimit = 5;
         this.user = null;
@@ -732,7 +733,7 @@ class BuddyApp extends LitElement {
     }
 
     async handleClose() {
-        if (this.currentView === 'customize' || this.currentView === 'help' || this.currentView === 'history' || this.currentView === 'settings' || this.currentView === 'models') {
+        if (this.currentView === 'customize' || this.currentView === 'help' || this.currentView === 'history' || this.currentView === 'settings' || this.currentView === 'models' || this.currentView === 'prompt-manager') {
             this.currentView = 'assistant';
         } else if (this.currentView === 'assistant') {
             if (this.sessionActive) {
@@ -1066,6 +1067,10 @@ class BuddyApp extends LitElement {
             models: html`<buddy-models-view
                 .enabledModels=${this.enabledModels}
             ></buddy-models-view>`,
+            'prompt-manager': html`<buddy-system-prompt-manager
+                .currentProfile=${this.selectedProfile}
+                .customPrompt=${this.customizeViewCustomPrompt}
+            ></buddy-system-prompt-manager>`,
         };
 
         return html`

@@ -22,69 +22,81 @@ class BuddyCustomizeView extends LitElement {
     _onBackToHistory() {
         this.dispatchEvent(new CustomEvent('navigate', { detail: { view: 'history' }, bubbles: true, composed: true }));
     }
+    _onOpenPromptManager() {
+        this.dispatchEvent(new CustomEvent('navigate', { detail: { view: 'prompt-manager' }, bubbles: true, composed: true }));
+    }
 
     render() {
         const profiles = [
             {
+                value: 'default',
+                name: 'Default Assistant',
+                description: 'General-purpose assistant for problem-solving and analysis',
+            },
+            {
                 value: 'general',
                 name: 'General Assistant',
-                description: 'Ask anything - general knowledge, problem solving, creative tasks, and more',
+                description: 'Helpful AI assistant for various tasks',
             },
-            
-            // {
-            //     value: 'sales',
-            //     name: 'Sales Call', 
-            //     description: 'Assist with sales conversations and objection handling',
-            // },
-            // {
-            //     value: 'meeting',
-            //     name: 'Business Meeting',
-            //     description: 'Support for professional meetings and discussions',
-            // },
-            // {
-            //     value: 'presentation',
-            //     name: 'Presentation',
-            //     description: 'Help with presentations and public speaking',
-            // },
-            // {
-            //     value: 'negotiation',
-            //     name: 'Negotiation',
-            //     description: 'Guidance for business negotiations and deals',
-            // },
             {
-                value: 'teacher',
-                name: 'JEE Advanced Teacher',
-                description: 'Educational explanations and teaching for JEE Advanced topics',
+                value: 'interview',
+                name: 'Job Interview',
+                description: 'Job interview preparation and practice',
+            },
+            {
+                value: 'sales',
+                name: 'Sales Assistant',
+                description: 'Sales conversations and objection handling',
+            },
+            {
+                value: 'meeting',
+                name: 'Meeting Assistant',
+                description: 'Business meeting assistance and facilitation',
             },
             {
                 value: 'math_teacher',
                 name: 'Math Teacher',
-                description: 'Comprehensive mathematics instruction with step-by-step solutions',
+                description: 'Mathematics instruction with step-by-step solutions',
             },
             {
                 value: 'physics_teacher',
                 name: 'Physics Teacher',
-                description: 'Physics concepts with real-world applications and mathematical approach',
+                description: 'Physics concepts with real-world applications',
             },
             {
                 value: 'chemistry_teacher',
                 name: 'Chemistry Teacher',
-                description: 'Chemistry instruction with molecular understanding and safety notes',
+                description: 'Chemistry instruction with molecular understanding',
             },
             {
-                value: 'advanced_math_teacher',
-                name: 'Advanced Math Teacher',
-                description: 'Advanced mathematics with modular DSPy reasoning and multi-step problem solving',
+                value: 'troubleshooter',
+                name: 'Code Troubleshooter',
+                description: 'Code debugging and problem resolution',
             },
             {
-                value: 'advanced_physics_teacher',
-                name: 'Advanced Physics Teacher',
-                description: 'Advanced physics with experimental design, unit conversion, and error analysis',
+                value: 'screen_analyzer',
+                name: 'Screen Analyzer',
+                description: 'Screen content analysis and insights',
             },
             {
-                value: 'advanced_chemistry_teacher',
-                name: 'Advanced Chemistry Teacher',
-                description: 'Advanced chemistry with stoichiometry, pH analysis, and thermodynamics',
+                value: 'code_reviewer',
+                name: 'Code Reviewer',
+                description: 'Code quality analysis and improvement suggestions',
+            },
+            {
+                value: 'technical_writer',
+                name: 'Technical Writer',
+                description: 'Technical documentation and writing assistance',
+            },
+            {
+                value: 'system_admin',
+                name: 'System Admin',
+                description: 'System administration and DevOps guidance',
+            },
+            {
+                value: 'data_analyst',
+                name: 'Data Analyst',
+                description: 'Data analysis and statistical interpretation',
             },
         ];
 
@@ -122,19 +134,20 @@ class BuddyCustomizeView extends LitElement {
         ];
 
         const profileNames = {
+            default: 'Default Assistant',
             general: 'General Assistant',
             interview: 'Job Interview',
-            sales: 'Sales Call',
-            meeting: 'Business Meeting',
-            presentation: 'Presentation',
-            negotiation: 'Negotiation',
-            teacher: 'JEE Advanced Teacher',
+            sales: 'Sales Assistant',
+            meeting: 'Meeting Assistant',
             math_teacher: 'Math Teacher',
             physics_teacher: 'Physics Teacher',
             chemistry_teacher: 'Chemistry Teacher',
-            advanced_math_teacher: 'Advanced Math Teacher',
-            advanced_physics_teacher: 'Advanced Physics Teacher',
-            advanced_chemistry_teacher: 'Advanced Chemistry Teacher',
+            troubleshooter: 'Code Troubleshooter',
+            screen_analyzer: 'Screen Analyzer',
+            code_reviewer: 'Code Reviewer',
+            technical_writer: 'Technical Writer',
+            system_admin: 'System Admin',
+            data_analyst: 'Data Analyst',
         };
 
         return html`
@@ -177,10 +190,11 @@ class BuddyCustomizeView extends LitElement {
                         This custom prompt will be added to the ${profileNames[this.selectedProfile] || 'selected profile'} instructions to
                         personalize the AI's behavior.
                     </div>
+                    <button class="button secondary" @click=${this._onOpenPromptManager}>Advanced Prompt Manager</button>
                 </div>
             </div>
         `;
     }
 }
 
-customElements.define('buddy-customize-view', BuddyCustomizeView); 
+customElements.define('buddy-customize-view', BuddyCustomizeView);

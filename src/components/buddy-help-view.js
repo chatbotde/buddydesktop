@@ -127,7 +127,7 @@ class BuddyHelpView extends LitElement {
                         <strong>Math Teacher:</strong> Comprehensive mathematics instruction with step-by-step solutions<br />
                         <strong>Physics Teacher:</strong> Physics concepts with real-world applications and mathematical approach<br />
                         <strong>Chemistry Teacher:</strong> Chemistry instruction with molecular understanding and safety notes<br />
-                        <strong>Advanced Math Teacher:</strong> Advanced mathematics with modular DSPy reasoning and multi-step problem solving<br />
+                        <strong>Advanced Math Teacher:</strong> Advanced mathematics with multi-step problem solving<br />
                         <strong>Advanced Physics Teacher:</strong> Advanced physics with experimental design, unit conversion, and error analysis<br />
                         <strong>Advanced Chemistry Teacher:</strong> Advanced chemistry with stoichiometry, pH analysis, and thermodynamics<br />
                         <strong>JEE Advanced Teacher:</strong> Educational explanations and teaching for JEE Advanced topics
