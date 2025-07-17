@@ -19,87 +19,167 @@ katexScript.onerror = () => {
 };
 document.head.appendChild(katexScript);
 
-// Add enhanced styling for math equations
+// Add enhanced styling for math equations with professional appearance
 const style = document.createElement('style');
 style.textContent = `
-    /* KaTeX Display Math */
+    /* KaTeX Display Math - Professional styling */
     .katex-display {
-        margin: 1em 0;
+        margin: 1.5em 0;
         overflow-x: auto;
         overflow-y: hidden;
         text-align: center;
-        padding: 0.5em 0;
+        padding: 1em;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
     }
     
-    /* KaTeX Inline Math */
+    .katex-display::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(0, 122, 255, 0.3), transparent);
+    }
+    
+    /* KaTeX Inline Math - Enhanced styling */
     .katex {
         font-size: 1.1em;
-        line-height: 1.2;
+        line-height: 1.4;
+        font-weight: 400;
     }
     
     .katex-inline {
-        padding: 0 0.2em;
+        padding: 0.2em 0.4em;
         vertical-align: middle;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 4px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
     
-    /* Math container styling */
+    /* Math container styling - Professional appearance */
     .math-block {
-        margin: 1em 0;
+        margin: 1.5em 0;
         text-align: center;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 4px;
-        padding: 0.5em;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+        border-radius: 8px;
+        padding: 1em;
         border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .math-block::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #007aff, #5856d6, #007aff);
     }
     
     .math-inline {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 3px;
-        padding: 0.1em 0.3em;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 4px;
+        padding: 0.2em 0.4em;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        display: inline-block;
+        margin: 0 0.1em;
     }
     
-    /* Error styling for invalid math */
+    /* Enhanced error styling for invalid math */
     .math-error {
         color: #ff6b6b;
-        background: rgba(255, 107, 107, 0.1);
+        background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 107, 107, 0.05) 100%);
         border: 1px solid rgba(255, 107, 107, 0.3);
-        border-radius: 3px;
-        padding: 0.2em 0.4em;
-        font-family: monospace;
+        border-radius: 4px;
+        padding: 0.3em 0.6em;
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
         font-size: 0.9em;
+        box-shadow: 0 2px 4px rgba(255, 107, 107, 0.1);
     }
     
     /* Plain text fallback when KaTeX is not available */
     .math-plain {
         color: #e5e5e7;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 3px;
-        padding: 0.2em 0.4em;
-        font-family: monospace;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 4px;
+        padding: 0.3em 0.6em;
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
         font-size: 0.9em;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
     
-    /* Responsive math */
+    /* Enhanced KaTeX element styling */
+    .katex-display .katex {
+        color: #e5e5e7;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    .katex-inline .katex {
+        color: #e5e5e7;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Responsive math with better scaling */
     @media (max-width: 768px) {
         .katex-display {
             font-size: 0.9em;
-            margin: 0.5em 0;
+            margin: 1em 0;
+            padding: 0.8em;
         }
         
         .katex {
             font-size: 1em;
         }
+        
+        .math-block {
+            margin: 1em 0;
+            padding: 0.8em;
+        }
     }
     
-    /* Dark theme adjustments */
-    .katex-display .katex {
-        color: #e5e5e7;
+    /* Hover effects for interactive elements */
+    .math-block:hover {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        transform: translateY(-1px);
+        transition: all 0.2s ease;
     }
     
-    .katex-inline .katex {
-        color: #e5e5e7;
+    .math-inline:hover {
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s ease;
+    }
+    
+    /* Selection styling for math content */
+    .katex-display::selection,
+    .katex-inline::selection {
+        background: rgba(0, 122, 255, 0.3);
+    }
+    
+    /* Print-friendly styles */
+    @media print {
+        .math-block {
+            background: white !important;
+            border: 1px solid #ccc !important;
+            box-shadow: none !important;
+        }
+        
+        .math-inline {
+            background: white !important;
+            border: 1px solid #ccc !important;
+            box-shadow: none !important;
+        }
     }
 `;
 document.head.appendChild(style);
@@ -109,7 +189,7 @@ window.isKaTeXReady = () => {
     return typeof katex !== 'undefined';
 };
 
-// Export a function to render math safely
+// Export a function to render math safely with enhanced options
 window.renderMath = (math, display = false) => {
     if (!window.isKaTeXReady()) {
         console.warn('KaTeX not ready yet');
@@ -121,6 +201,8 @@ window.renderMath = (math, display = false) => {
             displayMode: display,
             throwOnError: false,
             errorColor: '#ff6b6b',
+            strict: false,
+            trust: true,
             macros: {
                 "\\RR": "\\mathbb{R}",
                 "\\NN": "\\mathbb{N}",
@@ -130,8 +212,17 @@ window.renderMath = (math, display = false) => {
                 "\\PP": "\\mathbb{P}",
                 "\\EE": "\\mathbb{E}",
                 "\\Var": "\\text{Var}",
-                "\\Cov": "\\text{Cov}"
-            }
+                "\\Cov": "\\text{Cov}",
+                "\\f": "f",
+                "\\hat": "\\widehat",
+                "\\relax": "",
+                "\\macro": "\\text{macro}"
+            },
+            minRuleThickness: 0.05,
+            colorIsTextColor: false,
+            maxSize: Infinity,
+            maxExpand: 1000,
+            strict: false
         });
         
         // Check if the result contains error indicators
@@ -143,6 +234,57 @@ window.renderMath = (math, display = false) => {
         return result;
     } catch (error) {
         console.error('Math rendering error:', error);
+        return `<span class="math-error">${math}</span>`;
+    }
+};
+
+// Enhanced math rendering with additional features
+window.renderMathEnhanced = (math, options = {}) => {
+    const defaultOptions = {
+        display: false,
+        fontSize: '1.1em',
+        color: '#e5e5e7',
+        backgroundColor: 'transparent',
+        border: true,
+        shadow: true
+    };
+    
+    const finalOptions = { ...defaultOptions, ...options };
+    
+    if (!window.isKaTeXReady()) {
+        return `<span class="math-plain" style="font-size: ${finalOptions.fontSize}; color: ${finalOptions.color};">${math}</span>`;
+    }
+    
+    try {
+        const result = katex.renderToString(math, {
+            displayMode: finalOptions.display,
+            throwOnError: false,
+            errorColor: '#ff6b6b',
+            strict: false,
+            trust: true,
+            macros: {
+                "\\RR": "\\mathbb{R}",
+                "\\NN": "\\mathbb{N}",
+                "\\ZZ": "\\mathbb{Z}",
+                "\\QQ": "\\mathbb{Q}",
+                "\\CC": "\\mathbb{C}",
+                "\\PP": "\\mathbb{P}",
+                "\\EE": "\\mathbb{E}",
+                "\\Var": "\\text{Var}",
+                "\\Cov": "\\text{Cov}",
+                "\\f": "f",
+                "\\hat": "\\widehat",
+                "\\relax": "",
+                "\\macro": "\\text{macro}"
+            }
+        });
+        
+        if (result.includes('katex-error') || result.includes('ParseError')) {
+            return `<span class="math-error">${math}</span>`;
+        }
+        
+        return result;
+    } catch (error) {
         return `<span class="math-error">${math}</span>`;
     }
 };

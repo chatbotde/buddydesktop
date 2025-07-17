@@ -72,7 +72,11 @@
         </style>
     </head>
     <body>
-        <script type="module" src="katex-setup.js"></script>
+        <script type="module">
+            import { equationRenderer } from './components/equations.js';
+            // Initialize equation renderer
+            window.equationRenderer = equationRenderer;
+        </script>
         <script type="module" src="buddy-element.js"></script>
         <script type="module" src="components/buddy-update-notification.js"></script>
 

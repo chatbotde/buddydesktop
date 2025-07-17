@@ -1,8 +1,10 @@
 import { html, css, LitElement } from '../lit-core-2.7.4.min.js';
 import { chatMessageStyles } from './ui/chat-message-css.js';
-import { ThemeConfig, backgroundThemes } from './ui/theme-config.js';
+import { ThemeMixin, themeManager } from './theme.js';
+import { EquationMixin, equationRenderer } from './equations.js';
+import { CodeBlockProcessor } from './code-block.js';
 
-class BuddyChatMessage extends LitElement {
+class BuddyChatMessage extends EquationMixin(ThemeMixin(LitElement)) {
     static properties = {
         id: { type: String },
         text: { type: String },
@@ -12,10 +14,7 @@ class BuddyChatMessage extends LitElement {
         screenshots: { type: Array }, // Array of base64 screenshot data
         isEditing: { type: Boolean },
         editableContent: { type: String },
-        backgroundTheme: { type: String }, // New property for background theme
-        showBackgroundDropdown: { type: Boolean }, // New property for dropdown state
-        searchQuery: { type: String }, // Search query for theme filtering
-        selectedCategory: { type: String }, // Selected category filter
+        // Theme properties are now handled by ThemeMixin
     };
 
     constructor() {
@@ -23,160 +22,11 @@ class BuddyChatMessage extends LitElement {
         this.showCopyButton = false;
         this.isEditing = false;
         this.editableContent = '';
-        this.showBackgroundDropdown = false;
-        this.searchQuery = '';
-        this.selectedCategory = 'all';
-        this._loadHighlightJS();
     }
     
-    _loadSavedTheme() {
-        try {
-            // Ensure sender is available
-            if (!this.sender) {
-                console.warn('Sender not available yet, using default theme');
-                return ThemeConfig.getDefaultTheme('input'); // Default to input theme
-            }
-            
-            // Use separate keys for input (user) and output (assistant) messages
-            const messageType = this.sender === 'user' ? 'input' : 'output';
-            const themeKey = `buddy-chat-${messageType}-theme`;
-            const savedTheme = localStorage.getItem(themeKey);
-            
-            console.log(`Loading theme for ${messageType} message:`, savedTheme);
-            
-            if (savedTheme && ThemeConfig.themes[savedTheme]) {
-                // Check if the theme is suitable for this message type
-                const theme = ThemeConfig.themes[savedTheme];
-                if (theme.suitableFor.includes(messageType)) {
-                    console.log(`Using saved theme: ${savedTheme} for ${messageType}`);
-                    return savedTheme;
-                } else {
-                    console.warn(`Saved theme ${savedTheme} is not suitable for ${messageType} messages`);
-                }
-            }
-            
-            // Fallback to default theme for this message type
-            const defaultTheme = ThemeConfig.getDefaultTheme(messageType);
-            console.log(`Using default theme: ${defaultTheme} for ${messageType}`);
-            return defaultTheme;
-        } catch (error) {
-            console.warn('Failed to load saved theme:', error);
-            return ThemeConfig.getDefaultTheme(this.sender === 'user' ? 'input' : 'output');
-        }
-    }
-
     // Background theme options - now using centralized config
     static get backgroundThemes() {
-        return backgroundThemes;
-    }
-
-    async _loadHighlightJS() {
-        // Load highlight.js if not already loaded
-        if (!window.hljs) {
-            try {
-                // Load highlight.js script
-                const script = document.createElement('script');
-                script.src = './highlight.min.js';
-                script.onload = () => {
-                    // Load CSS
-                    const link = document.createElement('link');
-                    link.rel = 'stylesheet';
-                    link.href = './highlight.min.css';
-                    document.head.appendChild(link);
-                    this.requestUpdate();
-                };
-                document.head.appendChild(script);
-            } catch (error) {
-                console.warn('Failed to load highlight.js:', error);
-            }
-        }
-    }
-
-    _detectLanguage(code) {
-        // Simple language detection based on common patterns
-        const patterns = {
-            javascript: /(?:function|const|let|var|=>|console\.log|require|import|export)/,
-            python: /(?:def |import |from |print\(|if __name__|class |self\.)/,
-            java: /(?:public class|private |public static|System\.out)/,
-            cpp: /(?:#include|std::|cout|cin|int main)/,
-            csharp: /(?:using System|public class|private |Console\.WriteLine)/,
-            html: /(?:<html|<div|<span|<p>|<!DOCTYPE)/,
-            css: /(?:\{[\s\S]*\}|@media|@import|\.[\w-]+\s*\{)/,
-            sql: /(?:SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP)/i,
-            json: /^\s*[\{\[]/,
-            xml: /^\s*<\\?xml|<[a-zA-Z]/,
-            bash: /(?:#!\/bin\/bash|sudo |apt-get|npm |yarn |git )/,
-            php: /(?:<\\?php|\$[a-zA-Z_])/,
-            ruby: /(?:def |class |require |puts |end$)/,
-            go: /(?:package |func |import |fmt\.)/,
-            rust: /(?:fn |let |pub |use |match |impl)/,
-            swift: /(?:func |var |let |import |class |struct)/,
-            kotlin: /(?:fun |val |var |class |package |import)/,
-            typescript: /(?:interface |type |enum |namespace |declare)/
-        };
-
-        for (const [lang, pattern] of Object.entries(patterns)) {
-            if (pattern.test(code)) {
-                return lang;
-            }
-        }
-
-        return 'text';
-    }
-
-    _formatCodeBlocks(content) {
-        if (!content) return '';
-
-        // Enhanced regex to capture code blocks with optional language
-        const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g;
-        
-        return content.replace(codeBlockRegex, (match, language, code) => {
-            const trimmedCode = code.trim();
-            const detectedLang = language || this._detectLanguage(trimmedCode);
-            const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
-            
-            let highlightedCode = trimmedCode;
-            
-            // Apply syntax highlighting if hljs is available
-            if (window.hljs && detectedLang !== 'text') {
-                try {
-                    if (window.hljs.getLanguage(detectedLang)) {
-                        highlightedCode = window.hljs.highlight(trimmedCode, { language: detectedLang }).value;
-                    } else {
-                        highlightedCode = window.hljs.highlightAuto(trimmedCode).value;
-                    }
-                } catch (error) {
-                    console.warn('Highlighting failed:', error);
-                    highlightedCode = this._escapeHtml(trimmedCode);
-                }
-            } else {
-                highlightedCode = this._escapeHtml(trimmedCode);
-            }
-
-            const header = `<div class="code-block-header"><span class="code-language">${detectedLang}</span></div>`;
-            const preformattedCode = `<pre class="code-block"><code id="${codeId}" class="hljs ${detectedLang}">${highlightedCode}</code></pre>`;
-            const copyButton = `<button class="code-copy-btn" onclick="this.getRootNode().host._copyCode('${codeId}')" title="Copy code">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"></path>
-                                    </svg>
-                                    Copy
-                                </button>`;
-
-            return `
-                <div class="code-block-container">
-                    ${header}
-                    ${preformattedCode}
-                    ${copyButton}
-                </div>
-            `;
-        });
-    }
-
-    _escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        return themeManager.backgroundThemes;
     }
 
     _copyCode(codeId) {
@@ -206,56 +56,20 @@ class BuddyChatMessage extends LitElement {
         }
     }
 
+    // Override the mixin's _processMessageContent to add code block processing and link handling
     _processMessageContent(text) {
         if (!text) return '';
         
-        // First, format code blocks
-        const withCodeBlocks = this._formatCodeBlocks(text);
+        // First, format code blocks using the new CodeBlockProcessor
+        const withCodeBlocks = CodeBlockProcessor.formatCodeBlocksToHTML(text);
         
-        // Then process with marked for other markdown
-        let processedContent;
-        if (window.marked) {
-            processedContent = window.marked.parse(withCodeBlocks);
-        } else {
-            processedContent = withCodeBlocks;
-        }
-        
-        // Post-process math content to add styling
-        processedContent = this._enhanceMathStyling(processedContent);
+        // Then call the parent mixin method with processed code blocks
+        const processedContent = super._processMessageContent(withCodeBlocks);
         
         // Add event listeners to links after processing
         setTimeout(() => this._setupLinkHandlers(), 0);
         
         return processedContent;
-    }
-
-    _enhanceMathStyling(content) {
-        if (!content) return content;
-        
-        // Add styling to display math blocks
-        content = content.replace(
-            /<span class="katex-display">([\s\S]*?)<\/span>/g,
-            '<div class="math-block"><span class="katex-display">$1</span></div>'
-        );
-        
-        // Add styling to inline math
-        content = content.replace(
-            /<span class="katex">([\s\S]*?)<\/span>/g,
-            '<span class="math-inline"><span class="katex">$1</span></span>'
-        );
-        
-        // Handle error and plain text math spans
-        content = content.replace(
-            /<span class="math-error">([\s\S]*?)<\/span>/g,
-            '<span class="math-error">$1</span>'
-        );
-        
-        content = content.replace(
-            /<span class="math-plain">([\s\S]*?)<\/span>/g,
-            '<span class="math-plain">$1</span>'
-        );
-        
-        return content;
     }
 
     async _openExternalLink(url) {
@@ -446,47 +260,10 @@ class BuddyChatMessage extends LitElement {
         }
     }
 
-    _validateAndFixTheme() {
-        if (!this.sender) {
-            console.warn('Cannot validate theme: sender not available');
-            return;
-        }
 
-        if (!this.backgroundTheme) {
-            console.log('No background theme set, loading saved theme');
-            this.backgroundTheme = this._loadSavedTheme();
-            return;
-        }
-
-        const messageType = this.sender === 'user' ? 'input' : 'output';
-        const theme = ThemeConfig.themes[this.backgroundTheme];
-        
-        console.log(`Validating theme "${this.backgroundTheme}" for ${messageType} message`);
-        
-        // Check if the current theme is suitable for this message type
-        if (!theme) {
-            console.warn(`Theme "${this.backgroundTheme}" not found in theme config`);
-            this.backgroundTheme = ThemeConfig.getDefaultTheme(messageType);
-        } else if (!theme.suitableFor.includes(messageType)) {
-            console.warn(`Theme "${this.backgroundTheme}" is not suitable for ${messageType} messages. Suitable for: ${theme.suitableFor.join(', ')}`);
-            this.backgroundTheme = ThemeConfig.getDefaultTheme(messageType);
-        } else {
-            console.log(`Theme "${this.backgroundTheme}" is valid for ${messageType} messages`);
-        }
-    }
 
     updated(changedProperties) {
         super.updated(changedProperties);
-        
-        // Validate theme when sender or backgroundTheme changes
-        if (changedProperties.has('sender')) {
-            console.log(`Sender changed from "${changedProperties.get('sender')}" to "${this.sender}"`);
-            // Reload theme when sender changes
-            this.backgroundTheme = this._loadSavedTheme();
-            this._validateAndFixTheme();
-        } else if (changedProperties.has('backgroundTheme')) {
-            this._validateAndFixTheme();
-        }
         
         // Notify parent when assistant message starts (has content for first time)
         if (this.sender === 'assistant' && changedProperties.has('text')) {
@@ -508,115 +285,7 @@ class BuddyChatMessage extends LitElement {
         }
     }
 
-    _onToggleBackgroundDropdown() {
-        this.showBackgroundDropdown = !this.showBackgroundDropdown;
-        this.requestUpdate();
-        
-        // Dispatch event to notify parent of dropdown state change
-        this.dispatchEvent(new CustomEvent('background-dropdown-toggled', {
-            detail: { 
-                id: this.id,
-                isOpen: this.showBackgroundDropdown
-            },
-            bubbles: true,
-            composed: true
-        }));
-    }
 
-    _onBackgroundThemeChange(theme) {
-        if (this.backgroundTheme === theme) {
-            this.showBackgroundDropdown = false;
-            this.searchQuery = '';
-            this.selectedCategory = 'all';
-            return;
-        }
-        this.backgroundTheme = theme;
-        this.showBackgroundDropdown = false;
-        this.searchQuery = '';
-        this.selectedCategory = 'all';
-        
-        // Store theme preference in localStorage with separate keys for input/output
-        try {
-            const messageType = this.sender === 'user' ? 'input' : 'output';
-            const themeKey = `buddy-chat-${messageType}-theme`;
-            localStorage.setItem(themeKey, theme);
-        } catch (error) {
-            console.warn('Failed to save theme preference:', error);
-        }
-        
-        this.requestUpdate();
-        // Dispatch event to notify parent of background change
-        this.dispatchEvent(new CustomEvent('background-theme-changed', {
-            detail: { 
-                id: this.id,
-                backgroundTheme: this.backgroundTheme
-            },
-            bubbles: true,
-            composed: true
-        }));
-    }
-
-    _onSearchInput(e) {
-        this.searchQuery = e.target.value;
-        this.requestUpdate();
-    }
-
-    _onCategorySelect(category) {
-        this.selectedCategory = category;
-        this.requestUpdate();
-    }
-
-    _getFilteredThemes() {
-        const messageType = this.sender === 'user' ? 'input' : 'output';
-        let themes = ThemeConfig.getThemesForMessageType(messageType);
-        
-        // Filter by search query
-        if (this.searchQuery) {
-            themes = ThemeConfig.searchThemes(this.searchQuery, messageType);
-        }
-        
-        // Filter by category
-        if (this.selectedCategory && this.selectedCategory !== 'all') {
-            const categoryThemes = ThemeConfig.getThemesByCategory(this.selectedCategory);
-            // Only include themes that are both in the category and suitable for this message type
-            themes = Object.entries(themes)
-                .filter(([key, theme]) => categoryThemes[key])
-                .reduce((acc, [key, theme]) => {
-                    acc[key] = theme;
-                    return acc;
-                }, {});
-        }
-        
-        return themes;
-    }
-
-    _getCategorizedThemes() {
-        const messageType = this.sender === 'user' ? 'input' : 'output';
-        const categorized = ThemeConfig.getThemesForDropdown(messageType);
-        
-        // Filter by search if needed
-        if (this.searchQuery) {
-            const searchResults = ThemeConfig.searchThemes(this.searchQuery, messageType);
-            const filtered = {};
-            Object.keys(categorized).forEach(categoryKey => {
-                const categoryThemes = categorized[categoryKey].themes;
-                const filteredThemes = {};
-                Object.keys(categoryThemes).forEach(themeKey => {
-                    if (searchResults[themeKey]) {
-                        filteredThemes[themeKey] = categoryThemes[themeKey];
-                    }
-                });
-                if (Object.keys(filteredThemes).length > 0) {
-                    filtered[categoryKey] = {
-                        ...categorized[categoryKey],
-                        themes: filteredThemes
-                    };
-                }
-            });
-            return filtered;
-        }
-        return categorized;
-    }
 
     _onClickOutside(event) {
         if (this.showBackgroundDropdown) {
@@ -634,15 +303,20 @@ class BuddyChatMessage extends LitElement {
         super.connectedCallback();
         document.addEventListener('click', this._onClickOutside.bind(this));
         
-        // Initialize background theme if not already set
-        if (!this.backgroundTheme) {
-            this.backgroundTheme = this._loadSavedTheme();
-        }
+        // Listen for KaTeX ready event to re-render equations
+        this._katexReadyHandler = () => {
+            console.log('KaTeX ready event received, re-rendering message...');
+            this.requestUpdate();
+        };
+        window.addEventListener('katex-ready', this._katexReadyHandler);
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         document.removeEventListener('click', this._onClickOutside.bind(this));
+        if (this._katexReadyHandler) {
+            window.removeEventListener('katex-ready', this._katexReadyHandler);
+        }
         if (this._selectionCleanup) {
             this._selectionCleanup();
         }
@@ -743,7 +417,7 @@ class BuddyChatMessage extends LitElement {
 
     render() {
         const hasScreenshots = this.screenshots && Array.isArray(this.screenshots) && this.screenshots.length > 0;
-        const backgroundClass = this.backgroundTheme !== 'default' ? BuddyChatMessage.backgroundThemes[this.backgroundTheme]?.class : '';
+        const backgroundClass = this._getBackgroundClass();
         
 
         
@@ -834,7 +508,7 @@ class BuddyChatMessage extends LitElement {
                                 @click=${this._onToggleBackgroundDropdown}
                                 title="Change background theme"
                             >
-                                <div class="current-theme-preview ${BuddyChatMessage.backgroundThemes[this.backgroundTheme]?.class || ''}"></div>
+                                <div class="current-theme-preview ${this.themeManager.getThemeClass(this.backgroundTheme)}"></div>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <polyline points="6,9 12,15 18,9"></polyline>
                                 </svg>
