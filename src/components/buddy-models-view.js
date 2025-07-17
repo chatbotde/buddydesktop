@@ -1,5 +1,6 @@
 import { html, css, LitElement } from '../lit-core-2.7.4.min.js';
 import { modelsStyles } from './ui/models-css.js';
+import { MODELS_CONFIG, DEFAULT_ENABLED_MODELS } from '../services/models-service.js';
 
 class BuddyModelsView extends LitElement {
     static properties = {
@@ -63,6 +64,40 @@ class BuddyModelsView extends LitElement {
                 background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.12) 100%);
             }
 
+            .controls-container {
+                display: flex;
+                justify-content: flex-end;
+                margin-bottom: 16px;
+            }
+
+            .reset-button {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 16px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                color: var(--text-color);
+                font-size: 13px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
+
+            .reset-button:hover {
+                background: rgba(255, 255, 255, 0.15);
+                border-color: rgba(255, 255, 255, 0.3);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            .reset-button svg {
+                opacity: 0.8;
+            }
+
             .models-list {
                 display: flex;
                 flex-direction: column;
@@ -124,6 +159,15 @@ class BuddyModelsView extends LitElement {
                 font-weight: 500;
                 color: var(--text-color);
                 letter-spacing: 0.2px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .default-indicator {
+                font-size: 14px;
+                opacity: 0.8;
+                filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.3));
             }
 
             .model-badge {
@@ -245,6 +289,25 @@ class BuddyModelsView extends LitElement {
         );
     }
 
+    _getDefaultEnabledModels() {
+        // Same defaults as in main app
+        return ['claude-4-sonnet', 'claude-3.5-sonnet', 'gemini-2.5-flash', 'o3'];
+    }
+
+    _isDefaultEnabled(modelId) {
+        return this._getDefaultEnabledModels().includes(modelId);
+    }
+
+    _resetToDefaults() {
+        this.dispatchEvent(
+            new CustomEvent('reset-to-defaults', {
+                detail: { defaultModels: this._getDefaultEnabledModels() },
+                bubbles: true,
+                composed: true,
+            })
+        );
+    }
+
     render() {
         const filteredModels = this._getFilteredModels();
 
@@ -260,6 +323,27 @@ class BuddyModelsView extends LitElement {
                     />
                 </div>
 
+                <div class="controls-container">
+                    <button class="reset-button" @click=${this._resetToDefaults}>
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                            <path d="M21 3v5h-5" />
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                            <path d="M3 21v-5h5" />
+                        </svg>
+                        Reset to Defaults
+                    </button>
+                </div>
+
                 <div class="models-list">
                     ${filteredModels.length > 0
                         ? filteredModels.map(
@@ -268,7 +352,12 @@ class BuddyModelsView extends LitElement {
                                       <div class="model-info">
                                           ${model.icon ? html` <div class="model-icon">${model.icon}</div> ` : ''}
                                           <div class="model-details">
-                                              <div class="model-name">${model.name}</div>
+                                              <div class="model-name">
+                                                  ${model.name}
+                                                  ${this._isDefaultEnabled(model.id)
+                                                      ? html` <span class="default-indicator" title="Recommended by default">⭐</span> `
+                                                      : ''}
+                                              </div>
                                               ${model.badge ? html` <div class="model-badge">${model.badge}</div> ` : ''}
                                           </div>
                                       </div>

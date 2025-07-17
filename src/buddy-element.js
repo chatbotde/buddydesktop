@@ -78,14 +78,8 @@ class BuddyApp extends LitElement {
         this.user = null;
         this.isAuthenticated = false;
         this.isGuest = false;
-        this.enabledModels = [
-            'claude-4-sonnet',
-            'claude-4-opus', 
-            'claude-3.5-sonnet',
-            'o3',
-            'gemini-2.5-pro',
-            'gemini-2.5-flash'
-        ]; // All models enabled by default
+        // Load enabled models from localStorage or use defaults
+        this.enabledModels = this.loadEnabledModels();
         
         this.initializeAuth();
     }
@@ -162,6 +156,45 @@ class BuddyApp extends LitElement {
         
         // Return the first model for the provider as default
         return models[0].id;
+    }
+
+    getDefaultEnabledModels() {
+        // Default preset: Enable popular and reliable models, disable experimental/premium ones
+        return [
+            'claude-4-sonnet',      // Enabled - Popular and reliable
+            'claude-3.5-sonnet',    // Enabled - Fast and efficient
+            'gemini-2.5-flash',     // Enabled - Fast Google model
+            'o3'                    // Enabled - OpenAI model
+            // Disabled by default:
+            // 'claude-4-opus' - Premium/expensive model
+            // 'gemini-2.5-pro' - Premium model
+        ];
+    }
+
+    loadEnabledModels() {
+        try {
+            const saved = localStorage.getItem('enabledModels');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // Validate that it's an array
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to load enabled models from localStorage:', error);
+        }
+        
+        // Return default preset if no saved data or error
+        return this.getDefaultEnabledModels();
+    }
+
+    saveEnabledModels() {
+        try {
+            localStorage.setItem('enabledModels', JSON.stringify(this.enabledModels));
+        } catch (error) {
+            console.warn('Failed to save enabled models to localStorage:', error);
+        }
     }
 
     getModelsByProviderForHeader() {
@@ -385,6 +418,12 @@ class BuddyApp extends LitElement {
             } else {
                 this.enabledModels = this.enabledModels.filter(id => id !== modelId);
             }
+            this.saveEnabledModels();
+            this.requestUpdate();
+        });
+        this.addEventListener('reset-to-defaults', (e) => {
+            this.enabledModels = [...e.detail.defaultModels];
+            this.saveEnabledModels();
             this.requestUpdate();
         });
     }

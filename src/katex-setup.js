@@ -24,4 +24,4 @@ style.textContent = `
         padding: 0 0.2em;
     }
 `;
-document.head.appendChild(style); 
+document.head.appendChild(style);

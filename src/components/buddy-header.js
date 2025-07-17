@@ -192,6 +192,8 @@ class BuddyHeader extends LitElement {
         }));
     }
 
+
+
     _getEnabledModelsData() {
         // Sample model data - in a real app this would come from a models service
         const allModels = [
