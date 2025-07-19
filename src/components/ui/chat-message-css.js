@@ -682,17 +682,22 @@ export const chatMessageStyles = css`
             max-width: 100%;
         }
         
-        /* Enhanced code block styles - Ultra Professional */
+        /* Enhanced code block styles - Ultra Professional & Responsive */
         .code-block-container {
             margin: 1.5em 0;
             border-radius: 16px;
             overflow: hidden;
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4));
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
             border: 2px solid rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(20px);
             position: relative;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
         }
 
         .code-block-container:hover {
@@ -709,6 +714,8 @@ export const chatMessageStyles = css`
             background: linear-gradient(135deg, rgba(0, 122, 255, 0.15), rgba(88, 86, 214, 0.15));
             border-bottom: 2px solid rgba(255, 255, 255, 0.1);
             position: relative;
+            min-height: 44px;
+            flex-shrink: 0;
         }
 
         .code-block-header::before {
@@ -730,6 +737,8 @@ export const chatMessageStyles = css`
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
             position: relative;
             padding-left: 1.5em;
+            display: flex;
+            align-items: center;
         }
 
         .code-language::before {
@@ -761,6 +770,7 @@ export const chatMessageStyles = css`
             backdrop-filter: blur(10px);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            z-index: 10;
         }
 
         .code-block-container:hover .code-copy-btn {
@@ -779,24 +789,30 @@ export const chatMessageStyles = css`
         .code-copy-btn:active {
             transform: translateY(0);
         }
+
+        .code-copy-btn svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
         
         .code-block {
             margin: 0;
             padding: 20px;
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
-            overflow-x: auto;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'JetBrains Mono', 'Fira Code', monospace;
+            overflow: auto;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
             font-size: 14px;
             line-height: 1.6;
             border: none;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            word-break: break-word;
+            white-space: pre;
             max-width: 100%;
             box-sizing: border-box;
             color: #e5e5e7;
             font-weight: 500;
             position: relative;
+            min-height: 60px;
+            flex: 1;
         }
 
         .code-block::before {
@@ -817,10 +833,14 @@ export const chatMessageStyles = css`
             font-size: inherit;
             color: inherit;
             font-family: inherit;
+            white-space: inherit;
+            overflow-wrap: break-word;
+            word-break: break-all;
         }
 
         /* Enhanced scrollbar for code blocks */
         .code-block::-webkit-scrollbar {
+            width: 8px;
             height: 8px;
         }
 
@@ -832,10 +852,156 @@ export const chatMessageStyles = css`
         .code-block::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.2);
             border-radius: 4px;
+            transition: background 0.2s ease;
         }
 
         .code-block::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3);
+        }
+
+        .code-block::-webkit-scrollbar-corner {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Enhanced syntax highlighting */
+        .hljs {
+            background: transparent !important;
+            color: #e6e6e6;
+            font-weight: 500;
+        }
+
+        .hljs-keyword {
+            color: #c792ea;
+            font-weight: 600;
+        }
+
+        .hljs-string {
+            color: #c3e88d;
+        }
+
+        .hljs-number {
+            color: #f78c6c;
+        }
+
+        .hljs-comment {
+            color: #546e7a;
+            font-style: italic;
+            opacity: 0.8;
+        }
+
+        .hljs-function {
+            color: #82aaff;
+            font-weight: 600;
+        }
+
+        .hljs-variable {
+            color: #eeffff;
+        }
+
+        .hljs-attr {
+            color: #ffcb6b;
+        }
+
+        .hljs-tag {
+            color: #f07178;
+        }
+
+        .hljs-type {
+            color: #4ec9b0;
+        }
+
+        .hljs-built_in {
+            color: #4fc1ff;
+        }
+
+        .hljs-operator {
+            color: #89ddff;
+        }
+
+        .hljs-punctuation {
+            color: #89ddff;
+        }
+
+        .hljs-title {
+            color: #82aaff;
+            font-weight: 600;
+        }
+
+        .hljs-literal {
+            color: #ff5370;
+        }
+
+        .hljs-regexp {
+            color: #c3e88d;
+        }
+
+        .hljs-meta {
+            color: #ffcb6b;
+        }
+
+        /* Responsive design for code blocks */
+        @media (max-width: 768px) {
+            .code-block-container {
+                margin: 1em 0;
+                border-radius: 12px;
+            }
+
+            .code-block-header {
+                padding: 10px 12px;
+                min-height: 40px;
+            }
+
+            .code-language {
+                font-size: 12px;
+            }
+
+            .code-block {
+                padding: 16px 12px;
+                font-size: 13px;
+                line-height: 1.5;
+            }
+
+            .code-copy-btn {
+                padding: 4px 8px;
+                font-size: 11px;
+                top: 6px;
+                right: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .code-block {
+                padding: 12px 8px;
+                font-size: 12px;
+                overflow-x: auto;
+                white-space: pre;
+            }
+
+            .code-language {
+                font-size: 11px;
+                padding-left: 1.2em;
+            }
+
+            .code-copy-btn {
+                padding: 3px 6px;
+                font-size: 10px;
+            }
+        }
+
+        /* Animation for dynamic content */
+        .code-block-container {
+            animation: codeBlockFadeIn 0.5s ease-out;
+        }
+
+        @keyframes codeBlockFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         /* Syntax highlighting theme adjustments */

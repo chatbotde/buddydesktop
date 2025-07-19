@@ -1,4 +1,5 @@
 import { html, css, LitElement } from '../lit-core-2.7.4.min.js';
+import { highlightLoader } from '../highlight-loader.js';
 
 class CodeBlock extends LitElement {
     static properties = {
@@ -14,113 +15,228 @@ class CodeBlock extends LitElement {
         this.language = '';
         this.showHeader = true;
         this.showCopyButton = true;
-        this.codeId = 'code-' + Math.random().toString(36).substr(2, 9);
-        this._loadHighlightJS();
+        this.codeId = 'code-' + Math.random().toString(36).substring(2, 11);
+        this._initializeHighlighting();
     }
 
     static styles = css`
         .code-block-container {
             position: relative;
-            margin: 12px 0;
-            border-radius: 8px;
+            margin: 1.5em 0;
+            border-radius: 16px;
             overflow: hidden;
-            background: #1e1e1e;
-            border: 1px solid #333;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .code-block-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.18);
         }
 
         .code-block-header {
-            background: #2d2d2d;
-            padding: 8px 12px;
-            border-bottom: 1px solid #333;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 12px;
-            color: #888;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, rgba(0, 122, 255, 0.15), rgba(88, 86, 214, 0.15));
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            min-height: 44px;
+        }
+
+        .code-block-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #007aff, #5856d6, #007aff);
         }
 
         .code-language {
-            font-weight: 500;
-            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffffff;
             text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            position: relative;
+            padding-left: 1.5em;
+            display: flex;
+            align-items: center;
+        }
+
+        .code-language::before {
+            content: '◉';
+            position: absolute;
+            left: 0;
+            color: #4fc3f7;
+            font-size: 0.9em;
         }
 
         .code-block {
             margin: 0;
-            padding: 16px;
-            background: #1e1e1e;
-            color: #d4d4d4;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
+            overflow: auto;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
             font-size: 14px;
-            line-height: 1.5;
-            overflow-x: auto;
+            line-height: 1.6;
+            border: none;
             white-space: pre;
+            max-width: 100%;
+            box-sizing: border-box;
+            color: #e5e5e7;
+            font-weight: 500;
+            position: relative;
+            min-height: 60px;
+        }
+
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, #4fc3f7, #007aff);
+            border-radius: 0 2px 2px 0;
+        }
+
+        .code-block code {
+            background: transparent;
+            border: none;
+            padding: 0;
+            font-size: inherit;
+            color: inherit;
+            font-family: inherit;
+            white-space: inherit;
+            overflow-wrap: break-word;
+            word-break: break-all;
         }
 
         .code-copy-btn {
             position: absolute;
             top: 8px;
-            right: 8px;
-            background: rgba(45, 45, 45, 0.9);
-            border: 1px solid #444;
-            color: #888;
-            padding: 6px 10px;
-            border-radius: 4px;
-            cursor: pointer;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 8px;
             font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 4px;
-            transition: all 0.2s ease;
-            backdrop-filter: blur(4px);
+            gap: 6px;
+            opacity: 0;
+            pointer-events: none;
+            backdrop-filter: blur(10px);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 10;
+        }
+
+        .code-block-container:hover .code-copy-btn {
+            opacity: 0.8;
+            pointer-events: all;
         }
 
         .code-copy-btn:hover {
-            background: rgba(60, 60, 60, 0.9);
-            color: #fff;
-            border-color: #555;
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            opacity: 1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .code-copy-btn:active {
-            transform: scale(0.95);
+            transform: translateY(0);
         }
 
         .code-copy-btn svg {
             width: 14px;
             height: 14px;
+            flex-shrink: 0;
         }
 
-        /* Syntax highlighting styles */
+        /* Enhanced scrollbar for code blocks */
+        .code-block::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .code-block::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        .code-block::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .code-block::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .code-block::-webkit-scrollbar-corner {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Enhanced syntax highlighting */
         .hljs {
             background: transparent !important;
-            color: #d4d4d4;
+            color: #e6e6e6;
+            font-weight: 500;
         }
 
         .hljs-keyword {
-            color: #569cd6;
+            color: #c792ea;
+            font-weight: 600;
         }
 
         .hljs-string {
-            color: #ce9178;
-        }
-
-        .hljs-comment {
-            color: #6a9955;
-            font-style: italic;
+            color: #c3e88d;
         }
 
         .hljs-number {
-            color: #b5cea8;
+            color: #f78c6c;
+        }
+
+        .hljs-comment {
+            color: #546e7a;
+            font-style: italic;
+            opacity: 0.8;
         }
 
         .hljs-function {
-            color: #dcdcaa;
+            color: #82aaff;
+            font-weight: 600;
         }
 
         .hljs-variable {
-            color: #9cdcfe;
+            color: #eeffff;
+        }
+
+        .hljs-attr {
+            color: #ffcb6b;
+        }
+
+        .hljs-tag {
+            color: #f07178;
         }
 
         .hljs-type {
@@ -132,33 +248,127 @@ class CodeBlock extends LitElement {
         }
 
         .hljs-operator {
-            color: #d4d4d4;
+            color: #89ddff;
         }
 
         .hljs-punctuation {
-            color: #d4d4d4;
+            color: #89ddff;
+        }
+
+        .hljs-title {
+            color: #82aaff;
+            font-weight: 600;
+        }
+
+        .hljs-literal {
+            color: #ff5370;
+        }
+
+        .hljs-regexp {
+            color: #c3e88d;
+        }
+
+        .hljs-meta {
+            color: #ffcb6b;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .code-block-container {
+                margin: 1em 0;
+                border-radius: 12px;
+            }
+
+            .code-block-header {
+                padding: 10px 12px;
+                min-height: 40px;
+            }
+
+            .code-language {
+                font-size: 12px;
+            }
+
+            .code-block {
+                padding: 16px 12px;
+                font-size: 13px;
+                line-height: 1.5;
+            }
+
+            .code-copy-btn {
+                padding: 4px 8px;
+                font-size: 11px;
+                top: 6px;
+                right: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .code-block {
+                padding: 12px 8px;
+                font-size: 12px;
+                overflow-x: auto;
+                white-space: pre;
+            }
+
+            .code-language {
+                font-size: 11px;
+                padding-left: 1.2em;
+            }
+
+            .code-copy-btn {
+                padding: 3px 6px;
+                font-size: 10px;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .code-block-container {
+                background: #f8f8f8 !important;
+                border: 1px solid #ddd !important;
+                box-shadow: none !important;
+            }
+
+            .code-block-header {
+                background: #e8e8e8 !important;
+                color: #333 !important;
+            }
+
+            .code-block {
+                background: #fff !important;
+                color: #333 !important;
+            }
+
+            .code-copy-btn {
+                display: none !important;
+            }
+        }
+
+        /* Animation for dynamic content */
+        .code-block-container {
+            animation: codeBlockFadeIn 0.5s ease-out;
+        }
+
+        @keyframes codeBlockFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     `;
 
-    async _loadHighlightJS() {
-        // Load highlight.js if not already loaded
-        if (!window.hljs) {
-            try {
-                // Load highlight.js script
-                const script = document.createElement('script');
-                script.src = './highlight.min.js';
-                script.onload = () => {
-                    // Load CSS
-                    const link = document.createElement('link');
-                    link.rel = 'stylesheet';
-                    link.href = './highlight.min.css';
-                    document.head.appendChild(link);
-                    this.requestUpdate();
-                };
-                document.head.appendChild(script);
-            } catch (error) {
-                console.warn('Failed to load highlight.js:', error);
-            }
+    async _initializeHighlighting() {
+        try {
+            // Use the global highlight loader
+            await highlightLoader.load();
+            console.log('Highlight.js initialized successfully');
+            this.requestUpdate();
+        } catch (error) {
+            console.warn('Failed to initialize highlighting:', error);
         }
     }
 
@@ -209,16 +419,28 @@ class CodeBlock extends LitElement {
         // Apply syntax highlighting if hljs is available
         if (window.hljs && detectedLang !== 'text') {
             try {
-                if (window.hljs.getLanguage(detectedLang)) {
-                    highlightedCode = window.hljs.highlight(trimmedCode, { language: detectedLang }).value;
+                // Check if the language is supported
+                const supportedLanguages = window.hljs.listLanguages();
+                console.log('CodeBlock: Available languages:', supportedLanguages.length, 'languages');
+                console.log('CodeBlock: Trying to highlight with language:', detectedLang);
+                console.log('CodeBlock: Code preview:', trimmedCode.substring(0, 50) + '...');
+                
+                if (supportedLanguages.includes(detectedLang)) {
+                    const result = window.hljs.highlight(trimmedCode, { language: detectedLang });
+                    highlightedCode = result.value;
+                    console.log('CodeBlock: Highlighting successful for', detectedLang);
                 } else {
-                    highlightedCode = window.hljs.highlightAuto(trimmedCode).value;
+                    // Try auto-detection
+                    const result = window.hljs.highlightAuto(trimmedCode);
+                    highlightedCode = result.value;
+                    console.log('CodeBlock: Auto-highlighting applied, detected:', result.language);
                 }
             } catch (error) {
-                console.warn('Highlighting failed:', error);
+                console.warn('CodeBlock: Highlighting failed for', detectedLang, ':', error);
                 highlightedCode = this._escapeHtml(trimmedCode);
             }
         } else {
+            console.log('CodeBlock: hljs not available or language is text:', !!window.hljs, detectedLang);
             highlightedCode = this._escapeHtml(trimmedCode);
         }
 
@@ -291,7 +513,7 @@ export class CodeBlockProcessor {
         
         return content.replace(codeBlockRegex, (match, language, code) => {
             const trimmedCode = code.trim();
-            const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+            const codeId = 'code-' + Math.random().toString(36).substring(2, 11);
             
             // Return a custom element tag that will be processed by the chat message
             return `<code-block code="${encodeURIComponent(trimmedCode)}" language="${language || ''}" show-header="true" show-copy-button="true"></code-block>`;
@@ -337,8 +559,15 @@ export class CodeBlockProcessor {
     }
 
     // Alternative approach: return HTML directly for inline processing
-    static formatCodeBlocksToHTML(content) {
+    static async formatCodeBlocksToHTML(content) {
         if (!content) return '';
+
+        // Ensure highlight.js is loaded
+        try {
+            await highlightLoader.load();
+        } catch (error) {
+            console.warn('Failed to load highlight.js for static processing:', error);
+        }
 
         // Enhanced regex to capture code blocks with optional language
         const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g;
@@ -346,17 +575,20 @@ export class CodeBlockProcessor {
         return content.replace(codeBlockRegex, (match, language, code) => {
             const trimmedCode = code.trim();
             const detectedLang = language || CodeBlockProcessor._detectLanguage(trimmedCode);
-            const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+            const codeId = 'code-' + Math.random().toString(36).substring(2, 11);
             
             let highlightedCode = trimmedCode;
             
             // Apply syntax highlighting if hljs is available
             if (window.hljs && detectedLang !== 'text') {
                 try {
-                    if (window.hljs.getLanguage(detectedLang)) {
-                        highlightedCode = window.hljs.highlight(trimmedCode, { language: detectedLang }).value;
+                    const supportedLanguages = window.hljs.listLanguages();
+                    if (supportedLanguages.includes(detectedLang)) {
+                        const result = window.hljs.highlight(trimmedCode, { language: detectedLang });
+                        highlightedCode = result.value;
                     } else {
-                        highlightedCode = window.hljs.highlightAuto(trimmedCode).value;
+                        const result = window.hljs.highlightAuto(trimmedCode);
+                        highlightedCode = result.value;
                     }
                 } catch (error) {
                     console.warn('Highlighting failed:', error);

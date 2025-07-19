@@ -64,8 +64,21 @@ class BuddyChatMessage extends EquationMixin(ThemeMixin(LitElement)) {
     _processMessageContent(text) {
         if (!text) return '';
 
+        // Use the synchronous version for now to maintain compatibility
+        const processedContent = enhancedContentProcessor.processContentSync(text);
+
+        // Add event listeners to links after processing
+        setTimeout(() => this._setupLinkHandlers(), 0);
+
+        return processedContent;
+    }
+
+    // Async version for future use
+    async _processMessageContentAsync(text) {
+        if (!text) return '';
+
         // Use the enhanced content processor for comprehensive rendering
-        const processedContent = enhancedContentProcessor.processContent(text);
+        const processedContent = await enhancedContentProcessor.processContent(text);
 
         // Add event listeners to links after processing
         setTimeout(() => this._setupLinkHandlers(), 0);

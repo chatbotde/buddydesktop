@@ -5,6 +5,7 @@
 
 import { EquationRenderer } from './equations.js';
 import { CodeBlockProcessor } from './code-block.js';
+import { highlightLoader } from '../highlight-loader.js';
 
 export class EnhancedContentProcessor {
     constructor() {
@@ -59,18 +60,51 @@ export class EnhancedContentProcessor {
     /**
      * Process content with all enhancements
      * @param {string} content - Raw content to process
-     * @returns {string} Enhanced HTML content
+     * @returns {Promise<string>} Enhanced HTML content
      */
-    processContent(content) {
+    async processContent(content) {
         if (!content) return '';
 
         console.log('Enhanced content processing started');
         
+        // Step 1: Ensure highlight.js is loaded
+        try {
+            await highlightLoader.load();
+        } catch (error) {
+            console.warn('Failed to load highlight.js:', error);
+        }
+        
+        // Step 2: Process math equations first (before other markdown)
+        content = this.equationRenderer.processContent(content);
+        
+        // Step 3: Process code blocks (now async)
+        content = await CodeBlockProcessor.formatCodeBlocksToHTML(content);
+        
+        // Step 4: Process enhanced markdown
+        content = this.processEnhancedMarkdown(content);
+        
+        // Step 5: Apply final styling enhancements
+        content = this.applyFinalEnhancements(content);
+        
+        console.log('Enhanced content processing completed');
+        return content;
+    }
+
+    /**
+     * Synchronous version for backward compatibility
+     * @param {string} content - Raw content to process
+     * @returns {string} Enhanced HTML content
+     */
+    processContentSync(content) {
+        if (!content) return '';
+
+        console.log('Enhanced content processing started (sync)');
+        
         // Step 1: Process math equations first (before other markdown)
         content = this.equationRenderer.processContent(content);
         
-        // Step 2: Process code blocks
-        content = CodeBlockProcessor.formatCodeBlocksToHTML(content);
+        // Step 2: Process code blocks synchronously (without highlighting if not loaded)
+        content = this._processCodeBlocksSync(content);
         
         // Step 3: Process enhanced markdown
         content = this.processEnhancedMarkdown(content);
@@ -78,8 +112,111 @@ export class EnhancedContentProcessor {
         // Step 4: Apply final styling enhancements
         content = this.applyFinalEnhancements(content);
         
-        console.log('Enhanced content processing completed');
+        console.log('Enhanced content processing completed (sync)');
         return content;
+    }
+
+    /**
+     * Synchronous code block processing fallback
+     * @param {string} content - Content to process
+     * @returns {string} Processed content
+     */
+    _processCodeBlocksSync(content) {
+        if (!content) return '';
+
+        const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g;
+        
+        return content.replace(codeBlockRegex, (match, language, code) => {
+            const trimmedCode = code.trim();
+            const detectedLang = language || this._detectLanguageSync(trimmedCode);
+            const codeId = 'code-' + Math.random().toString(36).substring(2, 11);
+            
+            let highlightedCode = trimmedCode;
+            
+            // Apply syntax highlighting if hljs is available
+            if (window.hljs && detectedLang !== 'text') {
+                try {
+                    const supportedLanguages = window.hljs.listLanguages();
+                    if (supportedLanguages.includes(detectedLang)) {
+                        const result = window.hljs.highlight(trimmedCode, { language: detectedLang });
+                        highlightedCode = result.value;
+                    } else {
+                        const result = window.hljs.highlightAuto(trimmedCode);
+                        highlightedCode = result.value;
+                    }
+                } catch (error) {
+                    console.warn('Highlighting failed:', error);
+                    highlightedCode = this._escapeHtml(trimmedCode);
+                }
+            } else {
+                highlightedCode = this._escapeHtml(trimmedCode);
+            }
+
+            const header = `<div class="code-block-header"><span class="code-language">${detectedLang}</span></div>`;
+            const preformattedCode = `<pre class="code-block"><code id="${codeId}" class="hljs ${detectedLang}">${highlightedCode}</code></pre>`;
+            const copyButton = `<button class="code-copy-btn" onclick="this.getRootNode().host._copyCode('${codeId}')" title="Copy code">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                    Copy
+                                </button>`;
+
+            return `
+                <div class="code-block-container">
+                    ${header}
+                    ${preformattedCode}
+                    ${copyButton}
+                </div>
+            `;
+        });
+    }
+
+    /**
+     * Synchronous language detection
+     * @param {string} code - Code to analyze
+     * @returns {string} Detected language
+     */
+    _detectLanguageSync(code) {
+        const patterns = {
+            javascript: /(?:function|const|let|var|=>|console\.log|require|import|export)/,
+            python: /(?:def |import |from |print\(|if __name__|class |self\.)/,
+            java: /(?:public class|private |public static|System\.out)/,
+            cpp: /(?:#include|std::|cout|cin|int main)/,
+            csharp: /(?:using System|public class|private |Console\.WriteLine)/,
+            html: /(?:<html|<div|<span|<p>|<!DOCTYPE)/,
+            css: /(?:\{[\s\S]*\}|@media|@import|\.[\w-]+\s*\{)/,
+            sql: /(?:SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP)/i,
+            json: /^\s*[\{\[]/,
+            xml: /^\s*<\\?xml|<[a-zA-Z]/,
+            bash: /(?:#!\/bin\/bash|sudo |apt-get|npm |yarn |git )/,
+            php: /(?:<\\?php|\$[a-zA-Z_])/,
+            ruby: /(?:def |class |require |puts |end$)/,
+            go: /(?:package |func |import |fmt\.)/,
+            rust: /(?:fn |let |pub |use |match |impl)/,
+            swift: /(?:func |var |let |import |class |struct)/,
+            kotlin: /(?:fun |val |var |class |package |import)/,
+            typescript: /(?:interface |type |enum |namespace |declare)/
+        };
+
+        for (const [lang, pattern] of Object.entries(patterns)) {
+            if (pattern.test(code)) {
+                return lang;
+            }
+        }
+
+        return 'text';
+    }
+
+    /**
+     * Escape HTML characters
+     * @param {string} text - Text to escape
+     * @returns {string} Escaped text
+     */
+    _escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     /**
