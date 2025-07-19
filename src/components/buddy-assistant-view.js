@@ -16,7 +16,7 @@ class BuddyAssistantView extends LitElement {
     constructor() {
         super();
         this.attachedScreenshots = [];
-        this.autoScreenshotEnabled = true; // Enable auto screenshot by default
+        this.autoScreenshotEnabled = false; // Enable auto screenshot by default
         this.hasTypedInCurrentSession = false; // Track if user has typed in current input session
         this.isActionsMenuOpen = false;
         this.isWaitingForResponse = false; // Initialize loading state
