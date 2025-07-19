@@ -52,7 +52,7 @@ export const ThemeConfig = {
             description: 'Frosted glass effect',
             preview: 'glass',
             tags: ['modern', 'blur'],
-            suitableFor: ['output'] // Better for output messages
+            suitableFor: ['input', 'output']
         },
         dark: {
             name: 'Dark',
@@ -70,7 +70,7 @@ export const ThemeConfig = {
             description: 'Bright and clean',
             preview: 'light',
             tags: ['bright', 'clean'],
-            suitableFor: ['input'] // Better for input messages
+            suitableFor: ['input', 'output']
         },
         blue: {
             name: 'Ocean Blue',
@@ -79,7 +79,7 @@ export const ThemeConfig = {
             description: 'Calming blue gradient',
             preview: 'blue',
             tags: ['blue', 'calm', 'ocean'],
-            suitableFor: ['output'] // Better for output messages
+            suitableFor: ['input', 'output']
         },
         green: {
             name: 'Forest Green',
@@ -88,7 +88,7 @@ export const ThemeConfig = {
             description: 'Natural green tones',
             preview: 'green',
             tags: ['green', 'nature', 'forest'],
-            suitableFor: ['output']
+            suitableFor: ['input', 'output']
         },
         purple: {
             name: 'Royal Purple',
@@ -97,7 +97,7 @@ export const ThemeConfig = {
             description: 'Elegant purple gradient',
             preview: 'purple',
             tags: ['purple', 'royal', 'elegant'],
-            suitableFor: ['output']
+            suitableFor: ['input', 'output']
         },
         orange: {
             name: 'Sunset Orange',
@@ -106,7 +106,7 @@ export const ThemeConfig = {
             description: 'Warm orange sunset',
             preview: 'orange',
             tags: ['orange', 'warm', 'sunset'],
-            suitableFor: ['output']
+            suitableFor: ['input', 'output']
         },
         pink: {
             name: 'Rose Pink',
@@ -115,7 +115,7 @@ export const ThemeConfig = {
             description: 'Soft pink tones',
             preview: 'pink',
             tags: ['pink', 'soft', 'rose'],
-            suitableFor: ['output']
+            suitableFor: ['input', 'output']
         },
         gradient: {
             name: 'Rainbow',
@@ -124,7 +124,7 @@ export const ThemeConfig = {
             description: 'Vibrant rainbow gradient',
             preview: 'gradient',
             tags: ['rainbow', 'vibrant', 'colorful'],
-            suitableFor: ['output']
+            suitableFor: ['input', 'output']
         },
         neon: {
             name: 'Cyber Neon',
@@ -133,7 +133,7 @@ export const ThemeConfig = {
             description: 'Futuristic neon glow',
             preview: 'neon',
             tags: ['neon', 'cyber', 'futuristic'],
-            suitableFor: ['output']
+            suitableFor: ['input', 'output']
         }
     },
 
@@ -218,4 +218,4 @@ export const backgroundThemes = Object.entries(ThemeConfig.themes).reduce((acc, 
         class: theme.class
     };
     return acc;
-}, {}); 
+}, {});

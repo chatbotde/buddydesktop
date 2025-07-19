@@ -42,6 +42,7 @@ export const chatMessageStyles = css`
         }
         
         .message-bubble.user {
+            max-width: 75%;
             background: oklch(44.4% 0.011 73.639);
             border: 1px solid oklch(98.5% 0.001 106.423 / 0.2);
             color: var(--text-color);
