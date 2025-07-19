@@ -96,6 +96,28 @@ export const MODELS_CONFIG = [
         contextWindow: 64000,
         maxTokens: 4096,
     },
+    {
+        id: 'grok-2',
+        name: 'Grok 2',
+        provider: 'xai',
+        apiKeyEnv: 'XAI_API_KEY',
+        icon: '🤖',
+        description: 'xAI Grok model with real-time information',
+        capabilities: ['text', 'code', 'realtime'],
+        contextWindow: 128000,
+        maxTokens: 4096,
+    },
+    {
+        id: 'moonshot-v1',
+        name: 'Moonshot V1',
+        provider: 'kimi',
+        apiKeyEnv: 'KIMI_API_KEY',
+        icon: '🤖',
+        description: 'Kimi Moonshot model with long context',
+        capabilities: ['text', 'code'],
+        contextWindow: 200000,
+        maxTokens: 4096,
+    },
 ];
 
 // Provider configuration
@@ -134,6 +156,20 @@ export const PROVIDERS_CONFIG = {
         keyLabel: 'OpenRouter API Key',
         envKeys: ['OPENROUTER_API_KEY'],
         signupUrl: 'https://openrouter.ai/keys',
+    },
+    xai: {
+        name: 'xAI',
+        baseUrl: 'https://api.x.ai',
+        keyLabel: 'xAI API Key',
+        envKeys: ['XAI_API_KEY'],
+        signupUrl: 'https://x.ai',
+    },
+    kimi: {
+        name: 'Kimi',
+        baseUrl: 'https://api.moonshot.cn',
+        keyLabel: 'Kimi API Key',
+        envKeys: ['KIMI_API_KEY'],
+        signupUrl: 'https://platform.moonshot.cn',
     },
 };
 
@@ -182,4 +218,4 @@ export function getEnabledModels(enabledModelIds) {
 }
 
 // Default enabled models (recommended presets)
-export const DEFAULT_ENABLED_MODELS = ['claude-4-sonnet', 'claude-3.5-sonnet', 'gemini-2.5-flash', 'o3'];
+export const DEFAULT_ENABLED_MODELS = ['claude-4-sonnet', 'claude-3.5-sonnet', 'gemini-2.5-flash', 'o3', 'gpt-4o', 'deepseek-v3'];

@@ -10,7 +10,6 @@ class BuddyMainView extends LitElement {
         apiKey: { type: String },
         keyLabel: { type: String },
         disabledModelIds: { type: Array },
-        hasEnvironmentKey: { type: Boolean },
     };
 
     static styles = [modelsStyles];
@@ -36,34 +35,7 @@ class BuddyMainView extends LitElement {
         }
     }
 
-    async _checkEnvironmentKey() {
-        try {
-            // Check if environment variable exists for current provider
-            const result = await window.buddy.checkEnvironmentKey(this.selectedProvider);
-            this.hasEnvironmentKey = result;
-            this.requestUpdate();
-        } catch (error) {
-            console.error('Failed to check environment key:', error);
-            this.hasEnvironmentKey = false;
-        }
-    }
 
-    updated(changedProperties) {
-        if (changedProperties.has('selectedProvider')) {
-            this._checkEnvironmentKey();
-        }
-    }
-
-    _getEnvironmentKeyName(provider) {
-        const envKeyMap = {
-            'google': 'GOOGLE_API_KEY or GEMINI_API_KEY',
-            'openai': 'OPENAI_API_KEY',
-            'anthropic': 'ANTHROPIC_API_KEY or CLAUDE_API_KEY',
-            'deepseek': 'DEEPSEEK_API_KEY',
-            'openrouter': 'OPENROUTER_API_KEY'
-        };
-        return envKeyMap[provider] || 'API_KEY';
-    }
 
     _getProviderSignupUrl(provider) {
         const urlMap = {
@@ -114,24 +86,12 @@ class BuddyMainView extends LitElement {
                     
                     <div class="divider"></div>
                     
-                    ${this.hasEnvironmentKey ? html`
-                        <div class="env-status success">
-                            <div class="env-icon"></div>
-                            <span>Environment key detected for ${currentProvider.name}</span>
-                        </div>
-                    ` : html`
-                        <div class="env-status warning">
-                            <div class="env-icon"></div>
-                            <span>Set ${this._getEnvironmentKeyName(this.selectedProvider)} or enter manually</span>
-                        </div>
-                    `}
-                    
                     <div class="option-group">
                         <label class="option-label">API Key</label>
                         <div class="input-group">
                             <input
                                 type="password"
-                                placeholder="${this.hasEnvironmentKey ? 'Override environment key (optional)' : `Enter ${currentProvider.keyLabel || 'API Key'}`}"
+                                placeholder="Enter ${currentProvider.keyLabel || 'API Key'} (optional if set in environment)"
                                 .value=${this.apiKey || ''}
                                 @input=${this._onApiKeyInput}
                             />
@@ -200,10 +160,7 @@ class BuddyMainView extends LitElement {
                             </button>
                         </div>
                         <div class="api-help">
-                            ${this.hasEnvironmentKey ? 
-                                'Ready to chat with environment key' :
-                                html`Need a key? <button class="link-button" @click=${() => this._openExternalLink(this._getProviderSignupUrl(this.selectedProvider))}>Get ${currentProvider.name} API Key</button>`
-                            }
+                            Need a key? <button class="link-button" @click=${() => this._openExternalLink(this._getProviderSignupUrl(this.selectedProvider))}>Get ${currentProvider.name} API Key</button>
                         </div>
                     </div>
                 </div>

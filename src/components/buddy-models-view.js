@@ -11,16 +11,15 @@ class BuddyModelsView extends LitElement {
 
     constructor() {
         super();
-        this.models = [
-            { id: 'claude-4-sonnet', name: 'claude-4-sonnet', provider: 'anthropic', icon: '🤖' },
-            { id: 'claude-4-opus', name: 'claude-4-opus', provider: 'anthropic', icon: '🤖', badge: 'MAX Only' },
-            { id: 'claude-3.5-sonnet', name: 'claude-3.5-sonnet', provider: 'anthropic', icon: null },
-            { id: 'o3', name: 'o3', provider: 'openai', icon: '🤖' },
-            { id: 'gemini-2.5-pro', name: 'gemini-2.5-pro', provider: 'google', icon: '🤖' },
-            { id: 'gemini-2.5-flash', name: 'gemini-2.5-flash', provider: 'google', icon: '🤖' },
-        ];
+        this.models = MODELS_CONFIG;
         this.searchQuery = '';
         this.enabledModels = [];
+        this.apiKeyStatuses = new Map(); // Cache for API key statuses
+    }
+
+    async connectedCallback() {
+        super.connectedCallback();
+        await this._checkAllApiKeys();
     }
 
     static styles = [
@@ -151,7 +150,7 @@ class BuddyModelsView extends LitElement {
             .model-details {
                 display: flex;
                 flex-direction: column;
-                gap: 2px;
+                gap: 4px;
             }
 
             .model-name {
@@ -170,6 +169,14 @@ class BuddyModelsView extends LitElement {
                 filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.3));
             }
 
+            .model-provider {
+                font-size: 12px;
+                color: var(--text-color);
+                opacity: 0.7;
+                font-weight: 400;
+                text-transform: capitalize;
+            }
+
             .model-badge {
                 font-size: 12px;
                 color: var(--text-color);
@@ -177,6 +184,38 @@ class BuddyModelsView extends LitElement {
                 font-weight: 400;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
+            }
+
+            .model-description {
+                font-size: 12px;
+                color: var(--text-color);
+                opacity: 0.6;
+                line-height: 1.3;
+                margin-top: 2px;
+            }
+
+            .api-key-status {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 11px;
+                margin-top: 4px;
+            }
+
+            .api-key-indicator {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #ef4444;
+            }
+
+            .api-key-indicator.configured {
+                background: #22c55e;
+            }
+
+            .api-key-text {
+                color: var(--text-color);
+                opacity: 0.5;
             }
 
             .toggle-switch {
@@ -290,12 +329,51 @@ class BuddyModelsView extends LitElement {
     }
 
     _getDefaultEnabledModels() {
-        // Same defaults as in main app
-        return ['claude-4-sonnet', 'claude-3.5-sonnet', 'gemini-2.5-flash', 'o3'];
+        return DEFAULT_ENABLED_MODELS;
     }
 
     _isDefaultEnabled(modelId) {
         return this._getDefaultEnabledModels().includes(modelId);
+    }
+
+    async _hasApiKey(model) {
+        // Check if API key is stored in localStorage for this provider
+        const localApiKey = localStorage.getItem(`apiKey_${model.provider}`);
+        if (localApiKey && localApiKey.trim().length > 0) {
+            return true;
+        }
+        
+        // Check if environment key exists for this provider
+        try {
+            const hasEnvKey = await window.buddy.checkEnvironmentKey(model.provider);
+            return hasEnvKey;
+        } catch (error) {
+            console.error('Failed to check environment key:', error);
+            return false;
+        }
+    }
+
+    _getEnvironmentKeyName(provider) {
+        const envKeyMap = {
+            'google': 'GOOGLE_API_KEY or GEMINI_API_KEY',
+            'openai': 'OPENAI_API_KEY',
+            'anthropic': 'ANTHROPIC_API_KEY or CLAUDE_API_KEY',
+            'deepseek': 'DEEPSEEK_API_KEY',
+            'openrouter': 'OPENROUTER_API_KEY'
+        };
+        return envKeyMap[provider] || 'API_KEY';
+    }
+
+    async _checkAllApiKeys() {
+        for (const model of this.models) {
+            const hasKey = await this._hasApiKey(model);
+            this.apiKeyStatuses.set(model.id, hasKey);
+        }
+        this.requestUpdate();
+    }
+
+    _getApiKeyStatus(model) {
+        return this.apiKeyStatuses.get(model.id) || false;
     }
 
     _resetToDefaults() {
@@ -358,7 +436,15 @@ class BuddyModelsView extends LitElement {
                                                       ? html` <span class="default-indicator" title="Recommended by default">⭐</span> `
                                                       : ''}
                                               </div>
+                                              <div class="model-provider">${model.provider}</div>
                                               ${model.badge ? html` <div class="model-badge">${model.badge}</div> ` : ''}
+                                              ${model.description ? html` <div class="model-description">${model.description}</div> ` : ''}
+                                              <div class="api-key-status">
+                                                  <div class="api-key-indicator ${this._getApiKeyStatus(model) ? 'configured' : ''}"></div>
+                                                  <span class="api-key-text">
+                                                      ${this._getApiKeyStatus(model) ? 'API Key Configured' : `${this._getEnvironmentKeyName(model.provider)} Required`}
+                                                  </span>
+                                              </div>
                                           </div>
                                       </div>
                                       <button
