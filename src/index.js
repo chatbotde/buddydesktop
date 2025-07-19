@@ -335,7 +335,7 @@ ipcMain.handle('create-consistent-window', async (event, options = {}) => {
 });
 }
 
-async function initializeAISession(provider, apiKey, customPrompt = '', profile = 'interview', language = 'en-US', model = '') {
+async function initializeAISession(provider, apiKey, customPrompt = '', profile = 'default', language = 'en-US', model = '') {
     try {
         if (!model) {
             throw new Error('Model must be specified');
@@ -523,7 +523,7 @@ app.on('activate', () => {
     }
 });
 
-ipcMain.handle('initialize-ai', async (event, provider, apiKey, customPrompt, profile = 'interview', language = 'en-US', model = '') => {
+ipcMain.handle('initialize-ai', async (event, provider, apiKey, customPrompt, profile = 'default', language = 'en-US', model = '') => {
     return await initializeAISession(provider, apiKey, customPrompt, profile, language, model);
 });
 

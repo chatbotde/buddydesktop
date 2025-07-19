@@ -44,6 +44,7 @@ class BuddyApp extends LitElement {
         isAuthenticated: { type: Boolean },
         isGuest: { type: Boolean },
         enabledModels: { type: Array },
+        customProfiles: { type: Array },
     };
 
     static styles = [buddyAppStyles];
@@ -54,7 +55,7 @@ class BuddyApp extends LitElement {
         this.statusText = '';
         this.startTime = null;
         this.sessionActive = false;
-        this.selectedProfile = 'interview';
+        this.selectedProfile = 'default';
         this.selectedLanguage = 'en-US';
         this.selectedProvider = 'google';
         this.responses = [];
@@ -81,6 +82,7 @@ class BuddyApp extends LitElement {
         this.isGuest = false;
         // Load enabled models from localStorage or use defaults
         this.enabledModels = this.loadEnabledModels();
+        this.customProfiles = this.loadCustomProfiles();
         
         this.initializeAuth();
     }
@@ -98,7 +100,7 @@ class BuddyApp extends LitElement {
                     
                     // Load user preferences
                     if (this.user.preferences) {
-                        this.selectedProfile = this.user.preferences.selectedProfile || 'interview';
+                        this.selectedProfile = this.user.preferences.selectedProfile || 'default';
                         this.selectedLanguage = this.user.preferences.selectedLanguage || 'en-US';
                         this.selectedProvider = this.user.preferences.selectedProvider || 'google';
                         this.currentTheme = this.user.preferences.theme || 'dark';
@@ -198,6 +200,57 @@ class BuddyApp extends LitElement {
         }
     }
 
+    loadCustomProfiles() {
+        try {
+            const saved = localStorage.getItem('customProfiles');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // Validate that it's an array
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to load custom profiles from localStorage:', error);
+        }
+        
+        // Return empty array if no saved data or error
+        return [];
+    }
+
+    saveCustomProfiles() {
+        try {
+            localStorage.setItem('customProfiles', JSON.stringify(this.customProfiles));
+        } catch (error) {
+            console.warn('Failed to save custom profiles to localStorage:', error);
+        }
+    }
+
+    createCustomProfile(profileData) {
+        // Add the new profile to the array
+        this.customProfiles = [...this.customProfiles, profileData];
+        this.saveCustomProfiles();
+        this.requestUpdate();
+    }
+
+    deleteCustomProfile(profileValue) {
+        // Remove the profile from the array
+        this.customProfiles = this.customProfiles.filter(p => p.value !== profileValue);
+        this.saveCustomProfiles();
+        
+        // If the deleted profile was selected, switch to default
+        if (this.selectedProfile === profileValue) {
+            this.selectedProfile = 'default';
+            if (this.isGuest) {
+                localStorage.setItem('selectedProfile', this.selectedProfile);
+            } else {
+                this.saveUserPreferences();
+            }
+        }
+        
+        this.requestUpdate();
+    }
+
     getModelsByProviderForHeader() {
         const modelsByProvider = {};
         this.providers.forEach(provider => {
@@ -260,7 +313,7 @@ class BuddyApp extends LitElement {
                 this.isAuthenticated = false;
                 this.user = null;
                 // Load local storage preferences for guest
-                this.selectedProfile = localStorage.getItem('selectedProfile') || 'interview';
+                this.selectedProfile = localStorage.getItem('selectedProfile') || 'default';
                 this.selectedLanguage = localStorage.getItem('selectedLanguage') || 'en-US';
                 this.selectedProvider = localStorage.getItem('selectedProvider') || 'google';
                 this.currentTheme = localStorage.getItem('theme') || 'dark';
@@ -274,7 +327,7 @@ class BuddyApp extends LitElement {
                 
                 // Load user preferences
                 if (this.user.preferences) {
-                    this.selectedProfile = this.user.preferences.selectedProfile || 'interview';
+                    this.selectedProfile = this.user.preferences.selectedProfile || 'default';
                     this.selectedLanguage = this.user.preferences.selectedLanguage || 'en-US';
                     this.selectedProvider = this.user.preferences.selectedProvider || 'google';
                     this.currentTheme = this.user.preferences.theme || 'dark';
@@ -429,6 +482,15 @@ class BuddyApp extends LitElement {
             this.enabledModels = [...e.detail.defaultModels];
             this.saveEnabledModels();
             this.requestUpdate();
+        });
+        
+        // Custom profile event handlers
+        this.addEventListener('create-profile', (e) => {
+            this.createCustomProfile(e.detail.profile);
+        });
+        
+        this.addEventListener('delete-profile', (e) => {
+            this.deleteCustomProfile(e.detail.profileValue);
         });
     }
 
@@ -1082,6 +1144,7 @@ class BuddyApp extends LitElement {
                 .selectedProfile=${this.selectedProfile}
                 .selectedLanguage=${this.selectedLanguage}
                 .customPrompt=${this.customizeViewCustomPrompt}
+                .customProfiles=${this.customProfiles}
             ></buddy-customize-view>`,
             help: html`<buddy-help-view
                 .isMacOS=${this.isMacOS}

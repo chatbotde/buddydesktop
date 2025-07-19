@@ -121,7 +121,7 @@ class AuthService {
                     createdAt: new Date(),
                     lastLogin: new Date(),
                     preferences: {
-                        selectedProfile: 'interview',
+                        selectedProfile: 'default',
                         selectedLanguage: 'en-US',
                         selectedProvider: 'google',
                         theme: 'dark'

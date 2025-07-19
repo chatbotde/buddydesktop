@@ -56,7 +56,7 @@ function arrayBufferToBase64(buffer) {
     return btoa(binary);
 }
 
-async function initializeAI(provider = 'google', profile = 'interview', language = 'en-US', model = '') {
+async function initializeAI(provider = 'google', profile = 'default', language = 'en-US', model = '') {
     const apiKey = localStorage.getItem(`apiKey_${provider}`)?.trim();
     
     // Always attempt to initialize, even without API key
