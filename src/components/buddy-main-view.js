@@ -23,8 +23,8 @@ class BuddyMainView extends LitElement {
     _onApiKeyInput(e) {
         this.dispatchEvent(new CustomEvent('api-key-input', { detail: { apiKey: e.target.value }, bubbles: true, composed: true }));
     }
-    _onStartSession() {
-        this.dispatchEvent(new CustomEvent('start-session', { bubbles: true, composed: true }));
+    _onGoToChat() {
+        this.dispatchEvent(new CustomEvent('navigate', { detail: { view: 'assistant' }, bubbles: true, composed: true }));
     }
 
     async _openExternalLink(url) {
@@ -96,7 +96,7 @@ class BuddyMainView extends LitElement {
                                 @input=${this._onApiKeyInput}
                             />
                             <button 
-                                @click=${this._onStartSession} 
+                                @click=${this._onGoToChat} 
                                 class="button start-button liquid-glass"
                                 style="
                                     display: flex;
@@ -130,7 +130,7 @@ class BuddyMainView extends LitElement {
                                     margin-right: 12px;
                                     position: relative;
                                     z-index: 1;
-                                ">Start Chat</span>
+                                ">Go to Chat</span>
                                 <svg 
                                     xmlns="http://www.w3.org/2000/svg" 
                                     width="24" 

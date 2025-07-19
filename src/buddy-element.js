@@ -319,8 +319,8 @@ class BuddyApp extends LitElement {
             this.requestUpdate();
         });
         
-        this.addEventListener('start-session', async () => {
-            await this.handleStart();
+        this.addEventListener('new-chat', async () => {
+            await this.handleNewChat();
         });
         
         // Settings view now works exactly like main view, no separate save needed
@@ -362,6 +362,11 @@ class BuddyApp extends LitElement {
             const message = e.detail.text;
             const screenshots = e.detail.screenshots;
             
+            // Auto-start session if not active
+            if (!this.sessionActive) {
+                await this.autoStartSession();
+            }
+            
             // Add user message with screenshots if provided
             this.addChatMessage(message, 'user', false, screenshots);
             await this.scrollToUserMessage();
@@ -388,9 +393,7 @@ class BuddyApp extends LitElement {
         this.addEventListener('navigate', (e) => {
             this.currentView = e.detail.view;
         });
-        this.addEventListener('end-session', async () => {
-            await this.handleEndSession();
-        });
+
         this.addEventListener('toggle-audio', async () => {
             await this.toggleAudioCapture();
         });
@@ -702,42 +705,80 @@ class BuddyApp extends LitElement {
         }
     }
 
-    async handleStart() { // This is the main "Start Session" from the main view
+    async handleNewChat() {
+        // Save current conversation if it exists
+        if (this.sessionActive && this.chatMessages.length > 1) {
+            await this.saveHistory();
+        }
+        
+        // Reset chat state
+        this.responses = [];
+        this.currentResponseIndex = -1;
+        this.chatMessages = [];
+        this.sessionActive = false;
+        this.isAudioActive = false;
+        this.isScreenActive = false;
+        this.startTime = null;
+        this.statusText = '';
+        this.isStreamingActive = false;
+        this.streamingResponseText = '';
+        
+        // Navigate to assistant view
+        this.currentView = 'assistant';
+        this.requestUpdate();
+    }
+
+    async autoStartSession() {
         // Validate that a model is selected
         if (!this.selectedModel) {
             this.setStatus('Error: Please select a model first');
-            return;
+            return false;
         }
 
-        await buddy.initializeAI(this.selectedProvider, this.selectedProfile, this.selectedLanguage, this.selectedModel);
-        this.disableAllFeatures();
-        
-        if (this.isSelectedModelRealTime) {
-            // Real-time: enable all real-time features
-            this.enableRealTimeFeatures();
-        } else {
-            // Non-real-time: enable only supported features
-            this.enableFeaturesForCapabilities(this.selectedModelCapabilities);
+        try {
+            await buddy.initializeAI(this.selectedProvider, this.selectedProfile, this.selectedLanguage, this.selectedModel);
+            this.disableAllFeatures();
+            
+            if (this.isSelectedModelRealTime) {
+                // Real-time: enable all real-time features
+                this.enableRealTimeFeatures();
+            } else {
+                // Non-real-time: enable only supported features
+                this.enableFeaturesForCapabilities(this.selectedModelCapabilities);
+            }
+            
+            this.sessionActive = true;
+            this.startTime = Date.now();
+            this.setStatus('Ready');
+            
+            return true;
+        } catch (error) {
+            this.setStatus('Error starting session: ' + error.message);
+            return false;
         }
-        
-        this.responses = [];
-        this.currentResponseIndex = -1;
-        this.chatMessages = []; // Clear chat messages
-        this.currentView = 'assistant';
-        this.sessionActive = true;
-        this.startTime = Date.now();
-        
-        // Add welcome message to chat
-        const welcomeText = `<div style="text-align: center"><strong>Hi, How Can I Help You?</strong></div>`;
-        this.addChatMessage(welcomeText, 'assistant');
+    }
+
+    async handleStart() { // This is the main "Start Session" from the main view - kept for compatibility
+        const success = await this.autoStartSession();
+        if (success) {
+            this.responses = [];
+            this.currentResponseIndex = -1;
+            this.chatMessages = []; // Clear chat messages
+            this.currentView = 'assistant';
+            
+            // Add welcome message to chat
+            const welcomeText = `<div style="text-align: center"><strong>Hi, How Can I Help You?</strong></div>`;
+            this.addChatMessage(welcomeText, 'assistant');
+        }
     }
 
     async handleClose() {
         if (this.currentView === 'customize' || this.currentView === 'help' || this.currentView === 'history' || this.currentView === 'settings' || this.currentView === 'models' || this.currentView === 'prompt-manager') {
             this.currentView = 'assistant';
         } else if (this.currentView === 'assistant') {
-            if (this.sessionActive) {
-                await this.handleEndSession(); // This will set isAudioActive/isScreenActive to false
+            // Auto-save conversation if there are messages
+            if (this.sessionActive && this.chatMessages.length > 1) {
+                await this.saveHistory();
             }
             // Quit the entire application
             const { ipcRenderer } = window.require('electron');

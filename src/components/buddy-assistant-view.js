@@ -1,4 +1,4 @@
-import { html, css, LitElement } from '../lit-core-2.7.4.min.js';
+import { html, LitElement } from '../lit-core-2.7.4.min.js';
 import './buddy-chat-message.js';
 import { assistantStyles } from './ui/assistant-css.js';
 
@@ -493,7 +493,7 @@ class BuddyAssistantView extends LitElement {
                     ${!this.chatMessages || this.chatMessages.length === 0 
                         ? html`
                             <div class="welcome-message">
-                                <p>Welcome! Start a session to begin chatting with your AI assistant.</p>
+                                <p>Hi! How can I help you today?</p>
                                 <p style="font-size: 12px; opacity: 0.7; margin-top: 8px;">
                                     📷 <strong>Image support:</strong> Take screenshots, upload files, paste images with Ctrl+V, or drag & drop!
                                 </p>

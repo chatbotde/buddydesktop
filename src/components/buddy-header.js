@@ -120,11 +120,8 @@ class BuddyHeader extends LitElement {
         }
     }
 
-    _handleEndSession() {
-        this.dispatchEvent(new CustomEvent('end-session', { bubbles: true, composed: true }));
-    }
-    _handleStartSession() {
-        this.dispatchEvent(new CustomEvent('start-session', { bubbles: true, composed: true }));
+    _handleNewChat() {
+        this.dispatchEvent(new CustomEvent('new-chat', { bubbles: true, composed: true }));
     }
     _handleToggleAudio() {
         this._closeControlsMenu();
@@ -152,14 +149,9 @@ class BuddyHeader extends LitElement {
         this.dispatchEvent(new CustomEvent('toggle-screen', { bubbles: true, composed: true }));
     }
     
-    _handleMenuStartSession() {
+    _handleMenuNewChat() {
         this._closeMainMenu();
-        this.dispatchEvent(new CustomEvent('start-session', { bubbles: true, composed: true }));
-    }
-    
-    _handleMenuEndSession() {
-        this._closeMainMenu();
-        this.dispatchEvent(new CustomEvent('end-session', { bubbles: true, composed: true }));
+        this.dispatchEvent(new CustomEvent('new-chat', { bubbles: true, composed: true }));
     }
     
     _handleToggleContentProtection() {
@@ -354,24 +346,15 @@ class BuddyHeader extends LitElement {
 
                                 <div class="menu-divider"></div>
 
-                                <!-- Session Controls (only show in assistant view) -->
+                                <!-- Chat Controls (only show in assistant view) -->
                                 ${this.currentView === 'assistant' ? html`
-                                    ${this.sessionActive ? html`
-                                        <button class="menu-item" @click=${this._handleMenuEndSession}>
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="6" y="4" width="4" height="16"/>
-                                                <rect x="14" y="4" width="4" height="16"/>
-                                            </svg>
-                                            <span class="menu-item-label">End Session</span>
-                                        </button>
-                                    ` : html`
-                                        <button class="menu-item" @click=${this._handleMenuStartSession}>
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <polygon points="5,3 19,12 5,21"/>
-                                            </svg>
-                                            <span class="menu-item-label">Start Session</span>
-                                        </button>
-                                    `}
+                                    <button class="menu-item" @click=${this._handleMenuNewChat}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                            <path d="M12 7v6m-3-3h6"/>
+                                        </svg>
+                                        <span class="menu-item-label">New Chat</span>
+                                    </button>
                                     
                                     <button class="menu-item ${this.isAudioActive ? 'active' : 'inactive'}" @click=${this._handleMenuToggleAudio}>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
