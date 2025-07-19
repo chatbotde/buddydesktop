@@ -5,7 +5,6 @@ class BuddyHeader extends LitElement {
     static properties = {
         currentView: { type: String },
         sessionActive: { type: Boolean },
-        startTime: { type: Number },
         isAudioActive: { type: Boolean },
         isScreenActive: { type: Boolean },
         isControlsMenuOpen: { type: Boolean },
@@ -217,11 +216,6 @@ class BuddyHeader extends LitElement {
             settings: 'AI Settings',
             models: 'Models',
         };
-        let elapsedTime = '';
-        if (this.currentView === 'assistant' && this.startTime) {
-            const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
-            elapsedTime = `${elapsed}s`;
-        }
         const statusIndicator = this.sessionActive ? 'status-live' : 'status-idle';
         return html`
             <div class="header">
@@ -242,9 +236,8 @@ class BuddyHeader extends LitElement {
                     ` : ''}
                 </div>
                 <div class="header-actions">
-                    <!-- Session Timer (only for assistant view) -->
+                    <!-- Session Status (only for assistant view) -->
                     ${this.currentView === 'assistant' ? html`
-                        <span>${elapsedTime}</span>
                         <span class="status-indicator ${statusIndicator}"></span>
                     ` : ''}
                     
