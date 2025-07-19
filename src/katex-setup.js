@@ -22,18 +22,24 @@ document.head.appendChild(katexScript);
 // Add enhanced styling for math equations with professional appearance
 const style = document.createElement('style');
 style.textContent = `
-    /* KaTeX Display Math - Professional styling */
+    /* KaTeX Display Math - Ultra Professional styling */
     .katex-display {
-        margin: 1.5em 0;
+        margin: 2em 0;
         overflow-x: auto;
         overflow-y: hidden;
         text-align: center;
-        padding: 1em;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 2em;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+        border-radius: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
         position: relative;
+        font-size: 1.4em;
+        line-height: 1.6;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .katex-display::before {
@@ -42,8 +48,9 @@ style.textContent = `
         top: 0;
         left: 0;
         right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(0, 122, 255, 0.3), transparent);
+        height: 3px;
+        background: linear-gradient(90deg, #007aff, #5856d6, #007aff);
+        border-radius: 16px 16px 0 0;
     }
     
     /* KaTeX Inline Math - Enhanced styling */

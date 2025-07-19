@@ -264,6 +264,75 @@ class BuddyModelsView extends LitElement {
                 font-weight: 500;
             }
 
+            .section-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 16px 20px 12px 20px;
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text-color);
+                opacity: 0.8;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-top: 24px;
+            }
+
+            .section-header:first-child {
+                margin-top: 0;
+            }
+
+            .section-icon {
+                font-size: 16px;
+            }
+
+            .live-indicator {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 10px;
+                font-weight: 600;
+                color: #ef4444;
+                background: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                border-radius: 4px;
+                padding: 2px 6px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .live-pulse {
+                width: 6px;
+                height: 6px;
+                background: #ef4444;
+                border-radius: 50%;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                50% {
+                    opacity: 0.5;
+                    transform: scale(1.2);
+                }
+                100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            .model-item.live {
+                border-left: 3px solid #ef4444;
+                background: rgba(239, 68, 68, 0.02);
+            }
+
+            .model-item.live:hover {
+                background: rgba(239, 68, 68, 0.05);
+            }
+
             @media (max-width: 640px) {
                 .models-container {
                     padding: 16px;
@@ -326,6 +395,14 @@ class BuddyModelsView extends LitElement {
         return this.models.filter(
             model => model.name.toLowerCase().includes(this.searchQuery) || model.provider.toLowerCase().includes(this.searchQuery)
         );
+    }
+
+    _getLiveModels() {
+        return this._getFilteredModels().filter(model => model.live === true);
+    }
+
+    _getRegularModels() {
+        return this._getFilteredModels().filter(model => model.live !== true);
     }
 
     _getDefaultEnabledModels() {
@@ -422,45 +499,108 @@ class BuddyModelsView extends LitElement {
                     </button>
                 </div>
 
-                <div class="models-list">
-                    ${filteredModels.length > 0
-                        ? filteredModels.map(
-                              model => html`
-                                  <div class="model-item" @click=${() => this._toggleModel(model.id)}>
-                                      <div class="model-info">
-                                          ${model.icon ? html` <div class="model-icon">${model.icon}</div> ` : ''}
-                                          <div class="model-details">
-                                              <div class="model-name">
-                                                  ${model.name}
-                                                  ${this._isDefaultEnabled(model.id)
-                                                      ? html` <span class="default-indicator" title="Recommended by default">⭐</span> `
-                                                      : ''}
-                                              </div>
-                                              <div class="model-provider">${model.provider}</div>
-                                              ${model.badge ? html` <div class="model-badge">${model.badge}</div> ` : ''}
-                                              ${model.description ? html` <div class="model-description">${model.description}</div> ` : ''}
-                                              <div class="api-key-status">
-                                                  <div class="api-key-indicator ${this._getApiKeyStatus(model) ? 'configured' : ''}"></div>
-                                                  <span class="api-key-text">
-                                                      ${this._getApiKeyStatus(model) ? 'API Key Configured' : `${this._getEnvironmentKeyName(model.provider)} Required`}
-                                                  </span>
-                                              </div>
-                                          </div>
-                                      </div>
-                                      <button
-                                          class="toggle-switch ${this.enabledModels.includes(model.id) ? 'enabled' : ''}"
-                                          @click=${e => {
-                                              e.stopPropagation();
-                                              this._toggleModel(model.id);
-                                          }}
-                                      >
-                                          <div class="toggle-knob"></div>
-                                      </button>
-                                  </div>
-                              `
-                          )
-                        : html` <div class="no-results">No models found matching "${this.searchQuery}"</div> `}
-                </div>
+                ${filteredModels.length > 0
+                    ? html`
+                          ${this._getLiveModels().length > 0
+                              ? html`
+                                    <div class="section-header">
+                                        <span class="section-icon">🔴</span>
+                                        <span>Live Models</span>
+                                        <span class="live-indicator">
+                                            <span class="live-pulse"></span>
+                                            Real-time
+                                        </span>
+                                    </div>
+                                    <div class="models-list">
+                                        ${this._getLiveModels().map(
+                                            model => html`
+                                                <div class="model-item live" @click=${() => this._toggleModel(model.id)}>
+                                                    <div class="model-info">
+                                                        ${model.icon ? html` <div class="model-icon">${model.icon}</div> ` : ''}
+                                                        <div class="model-details">
+                                                            <div class="model-name">
+                                                                ${model.name}
+                                                                ${this._isDefaultEnabled(model.id)
+                                                                    ? html` <span class="default-indicator" title="Recommended by default">⭐</span> `
+                                                                    : ''}
+                                                                <span class="live-indicator">
+                                                                    <span class="live-pulse"></span>
+                                                                    LIVE
+                                                                </span>
+                                                            </div>
+                                                            <div class="model-provider">${model.provider}</div>
+                                                            ${model.badge ? html` <div class="model-badge">${model.badge}</div> ` : ''}
+                                                            ${model.description ? html` <div class="model-description">${model.description}</div> ` : ''}
+                                                            <div class="api-key-status">
+                                                                <div class="api-key-indicator ${this._getApiKeyStatus(model) ? 'configured' : ''}"></div>
+                                                                <span class="api-key-text">
+                                                                    ${this._getApiKeyStatus(model) ? 'API Key Configured' : `${this._getEnvironmentKeyName(model.provider)} Required`}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        class="toggle-switch ${this.enabledModels.includes(model.id) ? 'enabled' : ''}"
+                                                        @click=${e => {
+                                                            e.stopPropagation();
+                                                            this._toggleModel(model.id);
+                                                        }}
+                                                    >
+                                                        <div class="toggle-knob"></div>
+                                                    </button>
+                                                </div>
+                                            `
+                                        )}
+                                    </div>
+                                `
+                              : ''}
+                          ${this._getRegularModels().length > 0
+                              ? html`
+                                    <div class="section-header">
+                                        <span class="section-icon">💬</span>
+                                        <span>Chat Models</span>
+                                    </div>
+                                    <div class="models-list">
+                                        ${this._getRegularModels().map(
+                                            model => html`
+                                                <div class="model-item" @click=${() => this._toggleModel(model.id)}>
+                                                    <div class="model-info">
+                                                        ${model.icon ? html` <div class="model-icon">${model.icon}</div> ` : ''}
+                                                        <div class="model-details">
+                                                            <div class="model-name">
+                                                                ${model.name}
+                                                                ${this._isDefaultEnabled(model.id)
+                                                                    ? html` <span class="default-indicator" title="Recommended by default">⭐</span> `
+                                                                    : ''}
+                                                            </div>
+                                                            <div class="model-provider">${model.provider}</div>
+                                                            ${model.badge ? html` <div class="model-badge">${model.badge}</div> ` : ''}
+                                                            ${model.description ? html` <div class="model-description">${model.description}</div> ` : ''}
+                                                            <div class="api-key-status">
+                                                                <div class="api-key-indicator ${this._getApiKeyStatus(model) ? 'configured' : ''}"></div>
+                                                                <span class="api-key-text">
+                                                                    ${this._getApiKeyStatus(model) ? 'API Key Configured' : `${this._getEnvironmentKeyName(model.provider)} Required`}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        class="toggle-switch ${this.enabledModels.includes(model.id) ? 'enabled' : ''}"
+                                                        @click=${e => {
+                                                            e.stopPropagation();
+                                                            this._toggleModel(model.id);
+                                                        }}
+                                                    >
+                                                        <div class="toggle-knob"></div>
+                                                    </button>
+                                                </div>
+                                            `
+                                        )}
+                                    </div>
+                                `
+                              : ''}
+                      `
+                    : html` <div class="no-results">No models found matching "${this.searchQuery}"</div> `}
             </div>
         `;
     }

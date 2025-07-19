@@ -3,6 +3,7 @@ import { chatMessageStyles } from './ui/chat-message-css.js';
 import { ThemeMixin, themeManager } from './theme.js';
 import { EquationMixin, equationRenderer } from './equations.js';
 import { CodeBlockProcessor } from './code-block.js';
+import { enhancedContentProcessor } from './enhanced-content-processor.js';
 
 class BuddyChatMessage extends EquationMixin(ThemeMixin(LitElement)) {
     static properties = {
@@ -59,15 +60,12 @@ class BuddyChatMessage extends EquationMixin(ThemeMixin(LitElement)) {
         }
     }
 
-    // Override the mixin's _processMessageContent to add code block processing and link handling
+    // Override the mixin's _processMessageContent to use enhanced content processor
     _processMessageContent(text) {
         if (!text) return '';
 
-        // First, format code blocks using the new CodeBlockProcessor
-        const withCodeBlocks = CodeBlockProcessor.formatCodeBlocksToHTML(text);
-
-        // Then call the parent mixin method with processed code blocks
-        const processedContent = super._processMessageContent(withCodeBlocks);
+        // Use the enhanced content processor for comprehensive rendering
+        const processedContent = enhancedContentProcessor.processContent(text);
 
         // Add event listeners to links after processing
         setTimeout(() => this._setupLinkHandlers(), 0);

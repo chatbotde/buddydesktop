@@ -11,6 +11,7 @@ export const MODELS_CONFIG = [
         capabilities: ['text', 'vision', 'code'],
         contextWindow: 200000,
         maxTokens: 4096,
+        live: false,
     },
     {
         id: 'claude-4-opus',
@@ -25,6 +26,7 @@ export const MODELS_CONFIG = [
         contextWindow: 200000,
         maxTokens: 4096,
         premium: true,
+        live: false,
     },
     {
         id: 'claude-3.5-sonnet',
@@ -37,6 +39,7 @@ export const MODELS_CONFIG = [
         capabilities: ['text', 'vision', 'code'],
         contextWindow: 200000,
         maxTokens: 4096,
+        live: false,
     },
     {
         id: 'o3',
@@ -48,6 +51,7 @@ export const MODELS_CONFIG = [
         capabilities: ['text', 'code', 'reasoning'],
         contextWindow: 128000,
         maxTokens: 4096,
+        live: false,
     },
     {
         id: 'gpt-4o',
@@ -59,6 +63,7 @@ export const MODELS_CONFIG = [
         capabilities: ['text', 'vision', 'code'],
         contextWindow: 128000,
         maxTokens: 4096,
+        live: false,
     },
     {
         id: 'gemini-2.5-pro',
@@ -72,6 +77,7 @@ export const MODELS_CONFIG = [
         contextWindow: 1000000,
         maxTokens: 8192,
         premium: true,
+        live: false,
     },
     {
         id: 'gemini-2.5-flash',
@@ -84,6 +90,21 @@ export const MODELS_CONFIG = [
         capabilities: ['text', 'vision', 'code'],
         contextWindow: 1000000,
         maxTokens: 8192,
+        live: false,
+    },
+    {
+        id: 'gemini-2.0-flash-live-001',
+        name: 'Gemini 2.0 Flash Live',
+        provider: 'google',
+        apiKeyEnv: 'GOOGLE_API_KEY',
+        apiKeyEnvAlt: 'GEMINI_API_KEY',
+        icon: '🔴',
+        badge: 'LIVE',
+        description: 'Real-time Google model with live audio/video capabilities',
+        capabilities: ['text', 'vision', 'code', 'audio', 'video', 'realtime'],
+        contextWindow: 1000000,
+        maxTokens: 8192,
+        live: true,
     },
     {
         id: 'deepseek-v3',
@@ -95,6 +116,7 @@ export const MODELS_CONFIG = [
         capabilities: ['text', 'code', 'reasoning'],
         contextWindow: 64000,
         maxTokens: 4096,
+        live: false,
     },
     {
         id: 'grok-2',
@@ -106,6 +128,7 @@ export const MODELS_CONFIG = [
         capabilities: ['text', 'code', 'realtime'],
         contextWindow: 128000,
         maxTokens: 4096,
+        live: false,
     },
     {
         id: 'moonshot-v1',
@@ -117,6 +140,7 @@ export const MODELS_CONFIG = [
         capabilities: ['text', 'code'],
         contextWindow: 200000,
         maxTokens: 4096,
+        live: false,
     },
 ];
 
@@ -218,4 +242,4 @@ export function getEnabledModels(enabledModelIds) {
 }
 
 // Default enabled models (recommended presets)
-export const DEFAULT_ENABLED_MODELS = ['claude-4-sonnet', 'claude-3.5-sonnet', 'gemini-2.5-flash', 'o3', 'gpt-4o', 'deepseek-v3'];
+export const DEFAULT_ENABLED_MODELS = ['claude-4-sonnet', 'claude-3.5-sonnet', 'gemini-2.5-flash', 'gemini-2.0-flash-live-001', 'o3', 'gpt-4o', 'deepseek-v3'];
