@@ -25,10 +25,20 @@ class BuddyModelsView extends LitElement {
     static styles = [
         modelsStyles,
         css`
+            :host {
+                background: transparent !important;
+                min-height: auto !important;
+            }
+
+            :host::before {
+                display: none !important;
+            }
+
             .models-container {
                 max-width: 800px;
                 margin: 0 auto;
                 padding: 20px;
+                background: transparent;
             }
 
             .search-container {
@@ -419,7 +429,7 @@ class BuddyModelsView extends LitElement {
         if (localApiKey && localApiKey.trim().length > 0) {
             return true;
         }
-        
+
         // Check if environment key exists for this provider
         try {
             const hasEnvKey = await window.buddy.checkEnvironmentKey(model.provider);
@@ -432,11 +442,11 @@ class BuddyModelsView extends LitElement {
 
     _getEnvironmentKeyName(provider) {
         const envKeyMap = {
-            'google': 'GOOGLE_API_KEY or GEMINI_API_KEY',
-            'openai': 'OPENAI_API_KEY',
-            'anthropic': 'ANTHROPIC_API_KEY or CLAUDE_API_KEY',
-            'deepseek': 'DEEPSEEK_API_KEY',
-            'openrouter': 'OPENROUTER_API_KEY'
+            google: 'GOOGLE_API_KEY or GEMINI_API_KEY',
+            openai: 'OPENAI_API_KEY',
+            anthropic: 'ANTHROPIC_API_KEY or CLAUDE_API_KEY',
+            deepseek: 'DEEPSEEK_API_KEY',
+            openrouter: 'OPENROUTER_API_KEY',
         };
         return envKeyMap[provider] || 'API_KEY';
     }
@@ -530,11 +540,17 @@ class BuddyModelsView extends LitElement {
                                                             </div>
                                                             <div class="model-provider">${model.provider}</div>
                                                             ${model.badge ? html` <div class="model-badge">${model.badge}</div> ` : ''}
-                                                            ${model.description ? html` <div class="model-description">${model.description}</div> ` : ''}
+                                                            ${model.description
+                                                                ? html` <div class="model-description">${model.description}</div> `
+                                                                : ''}
                                                             <div class="api-key-status">
-                                                                <div class="api-key-indicator ${this._getApiKeyStatus(model) ? 'configured' : ''}"></div>
+                                                                <div
+                                                                    class="api-key-indicator ${this._getApiKeyStatus(model) ? 'configured' : ''}"
+                                                                ></div>
                                                                 <span class="api-key-text">
-                                                                    ${this._getApiKeyStatus(model) ? 'API Key Configured' : `${this._getEnvironmentKeyName(model.provider)} Required`}
+                                                                    ${this._getApiKeyStatus(model)
+                                                                        ? 'API Key Configured'
+                                                                        : `${this._getEnvironmentKeyName(model.provider)} Required`}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -575,11 +591,17 @@ class BuddyModelsView extends LitElement {
                                                             </div>
                                                             <div class="model-provider">${model.provider}</div>
                                                             ${model.badge ? html` <div class="model-badge">${model.badge}</div> ` : ''}
-                                                            ${model.description ? html` <div class="model-description">${model.description}</div> ` : ''}
+                                                            ${model.description
+                                                                ? html` <div class="model-description">${model.description}</div> `
+                                                                : ''}
                                                             <div class="api-key-status">
-                                                                <div class="api-key-indicator ${this._getApiKeyStatus(model) ? 'configured' : ''}"></div>
+                                                                <div
+                                                                    class="api-key-indicator ${this._getApiKeyStatus(model) ? 'configured' : ''}"
+                                                                ></div>
                                                                 <span class="api-key-text">
-                                                                    ${this._getApiKeyStatus(model) ? 'API Key Configured' : `${this._getEnvironmentKeyName(model.provider)} Required`}
+                                                                    ${this._getApiKeyStatus(model)
+                                                                        ? 'API Key Configured'
+                                                                        : `${this._getEnvironmentKeyName(model.provider)} Required`}
                                                                 </span>
                                                             </div>
                                                         </div>
