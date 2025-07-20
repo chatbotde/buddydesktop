@@ -136,7 +136,7 @@ function createWindow() {
 
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
-    const moveIncrement = Math.floor(Math.min(width, height) * 0.15);
+    const moveIncrement = Math.floor(Math.min(width, height) * 0.10);
 
     const isMac = process.platform === 'darwin';
     const modifier = isMac ? 'Alt' : 'Ctrl';

@@ -21,6 +21,7 @@ class BuddyAssistantView extends LitElement {
         this.isActionsMenuOpen = false;
         this.isWaitingForResponse = false; // Initialize loading state
         this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
+        this.boundGlobalKeydownHandler = this._handleGlobalKeydown.bind(this);
         // Simple auto-scroll for input/output visibility
         this.isUserScrolledUp = false;
     }
@@ -31,11 +32,15 @@ class BuddyAssistantView extends LitElement {
         this.updateComplete.then(() => {
             this._setupScrollListener();
         });
+        
+        // Add global keydown listener for auto-focus functionality
+        document.addEventListener('keydown', this.boundGlobalKeydownHandler);
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         document.removeEventListener('click', this.boundOutsideClickHandler);
+        document.removeEventListener('keydown', this.boundGlobalKeydownHandler);
         this._cleanupScrollListener();
     }
 
@@ -62,6 +67,64 @@ class BuddyAssistantView extends LitElement {
     _handleOutsideClick(e) {
         if (!this.renderRoot.querySelector('.actions-dropdown-container')?.contains(e.target)) {
             this._closeActionsMenu();
+        }
+    }
+
+    _handleGlobalKeydown(e) {
+        // Check if the event target is already an input, textarea, or contenteditable element
+        const isInputElement = e.target.tagName === 'INPUT' || 
+                              e.target.tagName === 'TEXTAREA' || 
+                              e.target.isContentEditable ||
+                              e.target.closest('input, textarea, [contenteditable]');
+        
+        // Ignore if already in an input field or if it's a special key
+        if (isInputElement) return;
+        
+        // Ignore modifier keys, arrow keys, function keys, etc.
+        const ignoredKeys = [
+            'Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Escape',
+            'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+            'Home', 'End', 'PageUp', 'PageDown', 'Insert', 'Delete',
+            'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'
+        ];
+        
+        if (ignoredKeys.includes(e.key)) return;
+        
+        // Ignore shortcuts (Ctrl+, Cmd+, Alt+)
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        
+        // Only handle printable characters
+        if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Enter') {
+            const textarea = this.renderRoot.querySelector('#textInput');
+            if (textarea) {
+                // Focus the textarea
+                textarea.focus();
+                
+                // If it's a printable character, add it to the textarea
+                if (e.key.length === 1) {
+                    e.preventDefault(); // Prevent the character from being typed in the wrong place
+                    const currentValue = textarea.value;
+                    const selectionStart = textarea.selectionStart;
+                    const selectionEnd = textarea.selectionEnd;
+                    
+                    // Insert the character at the cursor position
+                    const newValue = currentValue.substring(0, selectionStart) + 
+                                   e.key + 
+                                   currentValue.substring(selectionEnd);
+                    
+                    textarea.value = newValue;
+                    
+                    // Set cursor position after the inserted character
+                    textarea.setSelectionRange(selectionStart + 1, selectionStart + 1);
+                    
+                    // Trigger input event to handle any resize logic
+                    const inputEvent = new Event('input', { bubbles: true });
+                    textarea.dispatchEvent(inputEvent);
+                    
+                    // Handle auto screenshot on first keystroke
+                    this._onTextInput({ target: textarea });
+                }
+            }
         }
     }
 
