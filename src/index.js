@@ -172,7 +172,7 @@ function createWindow() {
         if (mainWindow.isVisible()) {
             mainWindow.hide();
         } else {
-            mainWindow.show();
+            mainWindow.showInactive();
         }
     });
 
