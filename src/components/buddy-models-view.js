@@ -1,6 +1,7 @@
 import { html, css, LitElement } from '../lit-core-2.7.4.min.js';
 import { modelsStyles } from './ui/models-css.js';
-import { MODELS_CONFIG, DEFAULT_ENABLED_MODELS } from '../services/models-service.js';
+import { getAllModels, getCustomModels, saveCustomModel, deleteCustomModel, isCustomModel, DEFAULT_ENABLED_MODELS } from '../services/models-service.js';
+import './buddy-custom-model-form.js';
 
 class BuddyModelsView extends LitElement {
     static properties = {
@@ -11,7 +12,7 @@ class BuddyModelsView extends LitElement {
 
     constructor() {
         super();
-        this.models = MODELS_CONFIG;
+        this.models = getAllModels();
         this.searchQuery = '';
         this.enabledModels = [];
         this.apiKeyStatuses = new Map(); // Cache for API key statuses
@@ -343,6 +344,83 @@ class BuddyModelsView extends LitElement {
                 background: rgba(239, 68, 68, 0.05);
             }
 
+            .model-item.custom {
+                border-left: 3px solid #8b5cf6;
+                background: rgba(139, 92, 246, 0.02);
+            }
+
+            .model-item.custom:hover {
+                background: rgba(139, 92, 246, 0.05);
+            }
+
+            .custom-indicator {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 10px;
+                font-weight: 600;
+                color: #8b5cf6;
+                background: rgba(139, 92, 246, 0.1);
+                border: 1px solid rgba(139, 92, 246, 0.3);
+                border-radius: 4px;
+                padding: 2px 6px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .add-model-button {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 12px 16px;
+                background: linear-gradient(135deg, #4ade80, #22c55e);
+                border: 1px solid #22c55e;
+                border-radius: 8px;
+                color: white;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                margin-right: 12px;
+            }
+
+            .add-model-button:hover {
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+            }
+
+            .model-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-left: 12px;
+            }
+
+            .model-action-btn {
+                background: none;
+                border: none;
+                color: var(--text-color);
+                opacity: 0.6;
+                cursor: pointer;
+                padding: 4px;
+                border-radius: 4px;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .model-action-btn:hover {
+                opacity: 1;
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            .model-action-btn.delete:hover {
+                color: #ef4444;
+                background: rgba(239, 68, 68, 0.1);
+            }
+
             @media (max-width: 640px) {
                 .models-container {
                     padding: 16px;
@@ -412,7 +490,11 @@ class BuddyModelsView extends LitElement {
     }
 
     _getRegularModels() {
-        return this._getFilteredModels().filter(model => model.live !== true);
+        return this._getFilteredModels().filter(model => model.live !== true && !model.custom);
+    }
+
+    _getCustomModels() {
+        return this._getFilteredModels().filter(model => model.custom === true);
     }
 
     _getDefaultEnabledModels() {
@@ -473,6 +555,106 @@ class BuddyModelsView extends LitElement {
         );
     }
 
+    _onAddCustomModel() {
+        const form = this.shadowRoot.querySelector('buddy-custom-model-form');
+        if (form) {
+            form.open();
+        }
+    }
+
+    _onEditCustomModel(model) {
+        const form = this.shadowRoot.querySelector('buddy-custom-model-form');
+        if (form) {
+            form.open(model);
+        }
+    }
+
+    _onDeleteCustomModel(modelId) {
+        if (confirm('Are you sure you want to delete this custom model?')) {
+            if (deleteCustomModel(modelId)) {
+                // Remove from enabled models if it was enabled
+                this.enabledModels = this.enabledModels.filter(id => id !== modelId);
+                
+                // Refresh models list
+                this.models = getAllModels();
+                
+                // Dispatch event to update parent
+                this.dispatchEvent(
+                    new CustomEvent('model-deleted', {
+                        detail: { modelId },
+                        bubbles: true,
+                        composed: true,
+                    })
+                );
+                
+                this.requestUpdate();
+            }
+        }
+    }
+
+    _onSaveCustomModel(e) {
+        const { model, isEdit } = e.detail;
+        
+        console.log('💾 Saving custom model:', model);
+        
+        if (saveCustomModel(model)) {
+            console.log('✅ Custom model saved successfully');
+            
+            // Refresh models list
+            this.models = getAllModels();
+            
+            // If it's a new model, enable it by default
+            if (!isEdit && !this.enabledModels.includes(model.id)) {
+                this.enabledModels = [...this.enabledModels, model.id];
+                
+                console.log('🔄 Auto-enabling new custom model:', model.id);
+                
+                this.dispatchEvent(
+                    new CustomEvent('model-toggle', {
+                        detail: { modelId: model.id, enabled: true },
+                        bubbles: true,
+                        composed: true,
+                    })
+                );
+            }
+            
+            // Dispatch event to update parent
+            this.dispatchEvent(
+                new CustomEvent('custom-model-saved', {
+                    detail: { model, isEdit },
+                    bubbles: true,
+                    composed: true,
+                })
+            );
+            
+            this.requestUpdate();
+        } else {
+            console.error('❌ Failed to save custom model');
+        }
+    }
+
+    async _hasApiKey(model) {
+        // For custom models, check if they have their own API key
+        if (model.custom && model.apiKey) {
+            return true;
+        }
+
+        // Check if API key is stored in localStorage for this provider
+        const localApiKey = localStorage.getItem(`apiKey_${model.provider}`);
+        if (localApiKey && localApiKey.trim().length > 0) {
+            return true;
+        }
+
+        // Check if environment key exists for this provider
+        try {
+            const hasEnvKey = await window.buddy.checkEnvironmentKey(model.provider);
+            return hasEnvKey;
+        } catch (error) {
+            console.error('Failed to check environment key:', error);
+            return false;
+        }
+    }
+
     render() {
         const filteredModels = this._getFilteredModels();
 
@@ -489,6 +671,13 @@ class BuddyModelsView extends LitElement {
                 </div>
 
                 <div class="controls-container">
+                    <button class="add-model-button" @click=${this._onAddCustomModel}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Add Custom Model
+                    </button>
                     <button class="reset-button" @click=${this._resetToDefaults}>
                         <svg
                             width="16"
@@ -621,8 +810,81 @@ class BuddyModelsView extends LitElement {
                                     </div>
                                 `
                               : ''}
+                          ${this._getCustomModels().length > 0
+                              ? html`
+                                    <div class="section-header">
+                                        <span class="section-icon">⚙️</span>
+                                        <span>Custom Models</span>
+                                    </div>
+                                    <div class="models-list">
+                                        ${this._getCustomModels().map(
+                                            model => html`
+                                                <div class="model-item custom" @click=${() => this._toggleModel(model.id)}>
+                                                    <div class="model-info">
+                                                        ${model.icon ? html` <div class="model-icon">${model.icon}</div> ` : ''}
+                                                        <div class="model-details">
+                                                            <div class="model-name">
+                                                                ${model.name}
+                                                                <span class="custom-indicator">CUSTOM</span>
+                                                            </div>
+                                                            <div class="model-provider">${model.provider}</div>
+                                                            ${model.badge ? html` <div class="model-badge">${model.badge}</div> ` : ''}
+                                                            ${model.description
+                                                                ? html` <div class="model-description">${model.description}</div> `
+                                                                : ''}
+                                                            <div class="api-key-status">
+                                                                <div class="api-key-indicator configured"></div>
+                                                                <span class="api-key-text">Custom API Key Configured</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="model-actions">
+                                                        <button
+                                                            class="model-action-btn"
+                                                            @click=${e => {
+                                                                e.stopPropagation();
+                                                                this._onEditCustomModel(model);
+                                                            }}
+                                                            title="Edit model"
+                                                        >
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                                <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                            </svg>
+                                                        </button>
+                                                        <button
+                                                            class="model-action-btn delete"
+                                                            @click=${e => {
+                                                                e.stopPropagation();
+                                                                this._onDeleteCustomModel(model.id);
+                                                            }}
+                                                            title="Delete model"
+                                                        >
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                                <polyline points="3,6 5,6 21,6"></polyline>
+                                                                <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                    <button
+                                                        class="toggle-switch ${this.enabledModels.includes(model.id) ? 'enabled' : ''}"
+                                                        @click=${e => {
+                                                            e.stopPropagation();
+                                                            this._toggleModel(model.id);
+                                                        }}
+                                                    >
+                                                        <div class="toggle-knob"></div>
+                                                    </button>
+                                                </div>
+                                            `
+                                        )}
+                                    </div>
+                                `
+                              : ''}
                       `
                     : html` <div class="no-results">No models found matching "${this.searchQuery}"</div> `}
+
+                <buddy-custom-model-form @save-custom-model=${this._onSaveCustomModel}></buddy-custom-model-form>
             </div>
         `;
     }

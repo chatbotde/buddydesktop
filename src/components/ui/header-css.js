@@ -811,6 +811,26 @@ export const headerStyles = css`
         font-weight: 400;
     }
 
+    .model-dropdown-item .custom-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 9px;
+        font-weight: 600;
+        color: #8b5cf6;
+        background: rgba(139, 92, 246, 0.1);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 3px;
+        padding: 1px 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-left: 6px;
+    }
+
+    .model-dropdown-item.custom {
+        border-left: 2px solid #8b5cf6;
+    }
+
     @media (max-width: 768px) {
         .models-dropdown-btn {
             max-width: 150px;

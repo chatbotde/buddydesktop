@@ -10,7 +10,7 @@ import './components/buddy-assistant-view.js';
 import './components/buddy-settings-view.js';
 import './components/buddy-models-view.js';
 import './components/buddy-system-prompt-manager.js';
-import { getModelsByProvider } from './lib/models/models.js';
+import { getAllModels, getModelsByProvider, getEnabledModels } from './services/models-service.js';
 import { buddyAppStyles } from './components/ui/buddy-app-style.js';
 
 
@@ -491,6 +491,45 @@ class BuddyApp extends LitElement {
         
         this.addEventListener('delete-profile', (e) => {
             this.deleteCustomProfile(e.detail.profileValue);
+        });
+
+        // Custom model event handlers
+        this.addEventListener('custom-model-saved', (e) => {
+            const { model, isEdit } = e.detail;
+            console.log('🔄 Custom model saved event received:', model.name);
+            
+            // If it's a new model and no model is currently selected, select this one
+            if (!isEdit && !this.selectedModel) {
+                this.selectedModel = model.id;
+                console.log('🎯 Auto-selecting new custom model:', model.id);
+                
+                if (this.isGuest) {
+                    localStorage.setItem('selectedModel', this.selectedModel);
+                } else {
+                    this.saveUserPreferences();
+                }
+            }
+            
+            // Refresh models list and update UI
+            this.requestUpdate();
+        });
+
+        this.addEventListener('model-deleted', (e) => {
+            const { modelId } = e.detail;
+            console.log('🗑️ Custom model deleted:', modelId);
+            
+            // If the deleted model was selected, reset to default
+            if (this.selectedModel === modelId) {
+                this.selectedModel = this.getDefaultModelForProvider(this.selectedProvider);
+                console.log('🔄 Resetting selected model to:', this.selectedModel);
+                
+                if (this.isGuest) {
+                    localStorage.setItem('selectedModel', this.selectedModel);
+                } else {
+                    this.saveUserPreferences();
+                }
+            }
+            this.requestUpdate();
         });
     }
 

@@ -1,5 +1,6 @@
 import { html, css, LitElement } from '../lit-core-2.7.4.min.js';
 import { headerStyles } from './ui/header-css.js';
+import { getEnabledModels } from '../services/models-service.js';
 
 class BuddyHeader extends LitElement {
     static properties = {
@@ -186,17 +187,12 @@ class BuddyHeader extends LitElement {
 
 
     _getEnabledModelsData() {
-        // Sample model data - in a real app this would come from a models service
-        const allModels = [
-            { id: 'claude-4-sonnet', name: 'Claude 4 Sonnet', provider: 'anthropic', icon: '🤖' },
-            { id: 'claude-4-opus', name: 'Claude 4 Opus', provider: 'anthropic', icon: '🤖', badge: 'MAX Only' },
-            { id: 'claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'anthropic' },
-            { id: 'o3', name: 'O3', provider: 'openai', icon: '🤖' },
-            { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'google', icon: '🤖' },
-            { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'google', icon: '🤖' }
-        ];
+        if (!this.enabledModels || this.enabledModels.length === 0) {
+            return [];
+        }
         
-        return allModels.filter(model => this.enabledModels?.includes(model.id)) || [];
+        // Get enabled models from the models service
+        return getEnabledModels(this.enabledModels);
     }
 
     render() {
@@ -258,12 +254,15 @@ class BuddyHeader extends LitElement {
                                 <div class="models-dropdown">
                                     ${this._getEnabledModelsData().map(model => html`
                                         <button 
-                                            class="model-dropdown-item ${this.selectedModel === model.id ? 'selected' : ''}"
+                                            class="model-dropdown-item ${this.selectedModel === model.id ? 'selected' : ''} ${model.custom ? 'custom' : ''}"
                                             @click=${() => this._handleModelSelect(model.id)}
                                         >
                                             ${model.icon ? html`<span class="model-icon">${model.icon}</span>` : ''}
                                             <div class="model-info">
-                                                <span class="model-name">${model.name}</span>
+                                                <span class="model-name">
+                                                    ${model.name}
+                                                    ${model.custom ? html`<span class="custom-indicator">CUSTOM</span>` : ''}
+                                                </span>
                                                 ${model.badge ? html`<span class="model-badge">${model.badge}</span>` : ''}
                                             </div>
                                             ${this.selectedModel === model.id ? html`

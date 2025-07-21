@@ -57,28 +57,64 @@ function arrayBufferToBase64(buffer) {
 }
 
 async function initializeAI(provider = 'google', profile = 'default', language = 'en-US', model = '') {
-    const apiKey = localStorage.getItem(`apiKey_${provider}`)?.trim();
+    let apiKey = localStorage.getItem(`apiKey_${provider}`)?.trim();
+    let baseUrl = null;
+    let actualModelId = model;
+    let actualProvider = provider;
     
-    // Always attempt to initialize, even without API key
+    console.log('🚀 Initializing AI with:', { provider, model, hasApiKey: !!apiKey });
+    
+    // Check if this is a custom model
+    const customModels = JSON.parse(localStorage.getItem('buddy_custom_models') || '[]');
+    const customModel = customModels.find(m => m.id === model);
+    
+    if (customModel) {
+        // Use custom model's API key and settings
+        apiKey = customModel.apiKey;
+        baseUrl = customModel.baseUrl;
+        actualModelId = customModel.modelId; // Use the actual model ID for API calls
+        actualProvider = customModel.provider; // Use the custom model's provider
+        
+        console.log('✅ Using custom model:', {
+            name: customModel.name,
+            provider: actualProvider,
+            modelId: actualModelId,
+            hasApiKey: !!apiKey,
+            hasBaseUrl: !!baseUrl
+        });
+    } else {
+        console.log('📋 Using built-in model:', { provider, model });
+    }
+    
+    // Validate that we have an API key for custom models
+    if (customModel && (!apiKey || apiKey.trim() === '')) {
+        console.error('❌ Custom model requires API key but none provided');
+        buddy.e().setStatus('Error: Custom model requires API key');
+        return;
+    }
+    
+    // Always attempt to initialize, even without API key for built-in models
     // The main process will handle environment variables and fallbacks
     const success = await ipcRenderer.invoke(
         'initialize-ai',
-        provider,
-        apiKey || '', // Pass empty string if no API key
+        actualProvider,
+        apiKey || '', // Pass custom API key or empty string
         localStorage.getItem('customPrompt') || '',
         profile,
         language,
-        model // Pass the model to the main process
+        actualModelId, // Pass the actual model ID for API calls
+        baseUrl // Pass custom base URL if available
     );
     
     if (success) {
         buddy.e().setStatus('Live');
-        if (!apiKey) {
-            console.log('Session started without user-provided API key (using environment or demo mode)');
+        console.log('✅ AI session initialized successfully');
+        if (!apiKey && !customModel) {
+            console.log('ℹ️ Session started without user-provided API key (using environment or demo mode)');
         }
     } else {
         buddy.e().setStatus('error');
-        console.error('Failed to initialize AI session');
+        console.error('❌ Failed to initialize AI session');
     }
 }
 

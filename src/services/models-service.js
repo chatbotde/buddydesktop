@@ -199,11 +199,11 @@ export const PROVIDERS_CONFIG = {
 
 // Helper functions
 export function getModelById(modelId) {
-    return MODELS_CONFIG.find(model => model.id === modelId);
+    return getAllModels().find(model => model.id === modelId);
 }
 
 export function getModelsByProvider(providerId) {
-    return MODELS_CONFIG.filter(model => model.provider === providerId);
+    return getAllModels().filter(model => model.provider === providerId);
 }
 
 export function getProviderByModel(modelId) {
@@ -238,7 +238,60 @@ export function getAllProviders() {
 }
 
 export function getEnabledModels(enabledModelIds) {
-    return MODELS_CONFIG.filter(model => enabledModelIds.includes(model.id));
+    return getAllModels().filter(model => enabledModelIds.includes(model.id));
+}
+
+// Custom models storage key
+const CUSTOM_MODELS_STORAGE_KEY = 'buddy_custom_models';
+
+// Custom models management
+export function getCustomModels() {
+    try {
+        const stored = localStorage.getItem(CUSTOM_MODELS_STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+        console.error('Failed to load custom models:', error);
+        return [];
+    }
+}
+
+export function saveCustomModel(customModel) {
+    try {
+        const customModels = getCustomModels();
+        const existingIndex = customModels.findIndex(m => m.id === customModel.id);
+        
+        if (existingIndex >= 0) {
+            customModels[existingIndex] = customModel;
+        } else {
+            customModels.push(customModel);
+        }
+        
+        localStorage.setItem(CUSTOM_MODELS_STORAGE_KEY, JSON.stringify(customModels));
+        return true;
+    } catch (error) {
+        console.error('Failed to save custom model:', error);
+        return false;
+    }
+}
+
+export function deleteCustomModel(modelId) {
+    try {
+        const customModels = getCustomModels();
+        const filtered = customModels.filter(m => m.id !== modelId);
+        localStorage.setItem(CUSTOM_MODELS_STORAGE_KEY, JSON.stringify(filtered));
+        return true;
+    } catch (error) {
+        console.error('Failed to delete custom model:', error);
+        return false;
+    }
+}
+
+export function getAllModels() {
+    return [...MODELS_CONFIG, ...getCustomModels()];
+}
+
+export function isCustomModel(modelId) {
+    return getCustomModels().some(m => m.id === modelId);
 }
 
 // Default enabled models (recommended presets)
