@@ -7,7 +7,7 @@ require('dotenv').config();
 
 /**
  * Buddy Desktop Application
- * 
+ *
  * This application provides consistent window properties across all windows:
  * - Frameless windows (frame: false)
  * - Transparent background (transparent: true)
@@ -16,7 +16,7 @@ require('dotenv').config();
  * - Hidden from mission control (hiddenInMissionControl: true)
  * - Content protection enabled
  * - Visible on all workspaces
- * 
+ *
  * All windows created through createConsistentWindow() or createImageWindow()
  * will inherit these properties automatically.
  */
@@ -64,48 +64,18 @@ function ensureDataDirectories() {
 }
 
 // Utility function to create windows with consistent properties
+// Import the new window system
+const { createWindow: createManagedWindow } = require('./window');
+
 function createConsistentWindow(options = {}) {
-    const defaultOptions = {
-        width: 800,
-        height: 600,
-        frame: false,
-        transparent: true,
-        hasShadow: false,
-        alwaysOnTop: true,
-        skipTaskbar: true,
-        hiddenInMissionControl: true,
-        roundedCorners: true, // Additional feature: rounded corners (Electron 25+)
-        vibrancy: 'ultra-dark', // Additional feature: macOS vibrancy effect
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
-            backgroundThrottling: false,
-            webSecurity: true,
-            allowRunningInsecureContent: false,
-            spellcheck: true, // Additional feature: enable spellcheck
-        },
-        backgroundColor: '#00000000',
-        titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : undefined, // Additional: better macOS titlebar
-    };
-
-    const windowOptions = { ...defaultOptions, ...options };
-    const newWindow = new BrowserWindow(windowOptions);
-
-    // Apply consistent window properties
-    newWindow.setContentProtection(true);
-    newWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true});
-
-    if (process.platform === 'win32') {
-        newWindow.setAlwaysOnTop(true, 'screen-saver', 1);
-    }
-
-    return newWindow;
+    // Use the new window system with backward compatibility
+    return createManagedWindow(options);
 }
 
-function createWindow() {
+function createMainWindow() {
     // Initialize authentication service
     authService = new AuthService();
-    
+
     const mainWindow = createConsistentWindow({
         width: 600,
         height: 700,
@@ -116,7 +86,7 @@ function createWindow() {
             enableBlinkFeatures: 'GetDisplayMedia',
             webSecurity: true,
             allowRunningInsecureContent: false,
-        }
+        },
     });
 
     session.defaultSession.setDisplayMediaRequestHandler(
@@ -136,7 +106,7 @@ function createWindow() {
 
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
-    const moveIncrement = Math.floor(Math.min(width, height) * 0.10);
+    const moveIncrement = Math.floor(Math.min(width, height) * 0.1);
 
     const isMac = process.platform === 'darwin';
     const modifier = isMac ? 'Alt' : 'Ctrl';
@@ -225,27 +195,27 @@ function createWindow() {
     });
 
     ipcMain.handle('window-minimize', () => {
-    mainWindow.minimize();
-});
+        mainWindow.minimize();
+    });
 
-// IPC handler for creating image windows with consistent properties
-ipcMain.handle('create-image-window', async (event, imageData, title = 'Screenshot') => {
-    try {
-        const imageWindow = createConsistentWindow({
-            width: 400,
-            height: 200,
-            title: title,
-            webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false,
-                backgroundThrottling: false,
-                webSecurity: true,
-                allowRunningInsecureContent: false,
-            }
-        });
+    // IPC handler for creating image windows with consistent properties
+    ipcMain.handle('create-image-window', async (event, imageData, title = 'Screenshot') => {
+        try {
+            const imageWindow = createConsistentWindow({
+                width: 400,
+                height: 200,
+                title: title,
+                webPreferences: {
+                    nodeIntegration: true,
+                    contextIsolation: false,
+                    backgroundThrottling: false,
+                    webSecurity: true,
+                    allowRunningInsecureContent: false,
+                },
+            });
 
-        // Create HTML content for the image window
-        const htmlContent = `
+            // Create HTML content for the image window
+            const htmlContent = `
             <!DOCTYPE html>
             <html>
                 <head>
@@ -302,37 +272,37 @@ ipcMain.handle('create-image-window', async (event, imageData, title = 'Screensh
             </html>
         `;
 
-        // Load the HTML content
-        imageWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`);
+            // Load the HTML content
+            imageWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`);
 
-        // Handle window close
-        imageWindow.on('closed', () => {
-            // Window will be garbage collected
-        });
+            // Handle window close
+            imageWindow.on('closed', () => {
+                // Window will be garbage collected
+            });
 
-        return { success: true, windowId: imageWindow.id };
-    } catch (error) {
-        console.error('Failed to create image window:', error);
-        return { success: false, error: error.message };
-    }
-});
+            return { success: true, windowId: imageWindow.id };
+        } catch (error) {
+            console.error('Failed to create image window:', error);
+            return { success: false, error: error.message };
+        }
+    });
 
-// General IPC handler for creating any window with consistent properties
-ipcMain.handle('create-consistent-window', async (event, options = {}) => {
-    try {
-        const window = createConsistentWindow(options);
-        
-        // Handle window close
-        window.on('closed', () => {
-            // Window will be garbage collected
-        });
+    // General IPC handler for creating any window with consistent properties
+    ipcMain.handle('create-consistent-window', async (event, options = {}) => {
+        try {
+            const window = createConsistentWindow(options);
 
-        return { success: true, windowId: window.id };
-    } catch (error) {
-        console.error('Failed to create consistent window:', error);
-        return { success: false, error: error.message };
-    }
-});
+            // Handle window close
+            window.on('closed', () => {
+                // Window will be garbage collected
+            });
+
+            return { success: true, windowId: window.id };
+        } catch (error) {
+            console.error('Failed to create consistent window:', error);
+            return { success: false, error: error.message };
+        }
+    });
 }
 
 async function initializeAISession(provider, apiKey, customPrompt = '', profile = 'default', language = 'en-US', model = '') {
@@ -340,19 +310,19 @@ async function initializeAISession(provider, apiKey, customPrompt = '', profile 
         if (!model) {
             throw new Error('Model must be specified');
         }
-        
+
         // If no API key provided, try to get from environment variables
         if (!apiKey || apiKey.trim() === '') {
             apiKey = getApiKeyFromEnvironment(provider);
             console.log(`Using environment API key for ${provider}:`, apiKey ? 'Found' : 'Not found');
         }
-        
+
         // Allow session to start even without API key (for demo/testing purposes)
         if (!apiKey || apiKey.trim() === '') {
             console.warn(`No API key found for ${provider}. Session will start in demo mode.`);
             // You can still create the provider but it might fail on actual API calls
         }
-        
+
         currentAIProvider = createAIProvider(provider, apiKey, profile, language, customPrompt, model);
         const success = await currentAIProvider.initialize();
         return success;
@@ -365,13 +335,13 @@ async function initializeAISession(provider, apiKey, customPrompt = '', profile 
 function getApiKeyFromEnvironment(provider) {
     // Map provider names to common environment variable names
     const envKeyMap = {
-        'google': process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY,
-        'openai': process.env.OPENAI_API_KEY,
-        'anthropic': process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY,
-        'deepseek': process.env.DEEPSEEK_API_KEY,
-        'openrouter': process.env.OPENROUTER_API_KEY
+        google: process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY,
+        openai: process.env.OPENAI_API_KEY,
+        anthropic: process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY,
+        deepseek: process.env.DEEPSEEK_API_KEY,
+        openrouter: process.env.OPENROUTER_API_KEY,
     };
-    
+
     return envKeyMap[provider] || null;
 }
 
@@ -416,34 +386,34 @@ function startMacOSAudioCapture() {
     let audioBuffer = Buffer.alloc(0);
 
     // Update the audio callback to use the new system
-            systemAudioProc.stdout.on('data', data => {
-            audioBuffer = Buffer.concat([audioBuffer, data]);
+    systemAudioProc.stdout.on('data', data => {
+        audioBuffer = Buffer.concat([audioBuffer, data]);
 
-            while (audioBuffer.length >= CHUNK_SIZE) {
-                const chunk = audioBuffer.slice(0, CHUNK_SIZE);
-                audioBuffer = audioBuffer.slice(CHUNK_SIZE);
+        while (audioBuffer.length >= CHUNK_SIZE) {
+            const chunk = audioBuffer.slice(0, CHUNK_SIZE);
+            audioBuffer = audioBuffer.slice(CHUNK_SIZE);
 
-                const monoChunk = CHANNELS === 2 ? convertStereoToMono(chunk) : chunk;
-                
-                try {
-                    // Process audio for optimal Gemini 2.0 realtime quality
-                    const processed = processRealtimeAudio(monoChunk, {
-                        enableDebugging: !!process.env.DEBUG_AUDIO
-                    });
-                    const base64Data = processed.buffer.toString('base64');
-                    sendAudioToAI(base64Data);
-                } catch (error) {
-                    console.error('Error processing audio for realtime:', error);
-                    // Fallback to original processing
-                    const base64Data = monoChunk.toString('base64');
-                    sendAudioToAI(base64Data);
-                }
+            const monoChunk = CHANNELS === 2 ? convertStereoToMono(chunk) : chunk;
 
-                if (process.env.DEBUG_AUDIO) {
-                    console.log(`Processed audio chunk: ${chunk.length} bytes`);
-                    saveDebugAudio(monoChunk, 'system_audio');
-                }
+            try {
+                // Process audio for optimal Gemini 2.0 realtime quality
+                const processed = processRealtimeAudio(monoChunk, {
+                    enableDebugging: !!process.env.DEBUG_AUDIO,
+                });
+                const base64Data = processed.buffer.toString('base64');
+                sendAudioToAI(base64Data);
+            } catch (error) {
+                console.error('Error processing audio for realtime:', error);
+                // Fallback to original processing
+                const base64Data = monoChunk.toString('base64');
+                sendAudioToAI(base64Data);
             }
+
+            if (process.env.DEBUG_AUDIO) {
+                console.log(`Processed audio chunk: ${chunk.length} bytes`);
+                saveDebugAudio(monoChunk, 'system_audio');
+            }
+        }
 
         const maxBufferSize = SAMPLE_RATE * BYTES_PER_SAMPLE * 1;
         if (audioBuffer.length > maxBufferSize) {
@@ -504,7 +474,7 @@ async function sendAudioToAI(base64Data) {
     }
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(createMainWindow);
 
 app.on('window-all-closed', () => {
     stopMacOSAudioCapture();
@@ -519,7 +489,7 @@ app.on('before-quit', () => {
 
 app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow();
+        createMainWindow();
     }
 });
 
@@ -647,10 +617,10 @@ ipcMain.handle('send-text-message', async (event, messageData) => {
             input.screenshots = screenshots;
         }
 
-        console.log('Sending message:', { 
-            hasText: !!input.text, 
-            hasScreenshots: !!input.screenshots, 
-            screenshotCount: input.screenshots ? input.screenshots.length : 0 
+        console.log('Sending message:', {
+            hasText: !!input.text,
+            hasScreenshots: !!input.screenshots,
+            screenshotCount: input.screenshots ? input.screenshots.length : 0,
         });
         await currentAIProvider.sendRealtimeInput(input);
         return { success: true };
@@ -745,7 +715,7 @@ ipcMain.handle('quit-application', async event => {
 });
 
 // Authentication handlers
-ipcMain.handle('get-google-auth-url', async (event) => {
+ipcMain.handle('get-google-auth-url', async event => {
     try {
         if (!authService) {
             throw new Error('Authentication service not initialized');
@@ -762,27 +732,27 @@ ipcMain.handle('handle-google-auth-callback', async (event, code) => {
         if (!authService) {
             throw new Error('Authentication service not initialized');
         }
-        
+
         const tokenResult = await authService.exchangeCodeForTokens(code);
         if (!tokenResult.success) {
             return { success: false, error: tokenResult.error };
         }
-        
+
         const user = await authService.createOrUpdateUser(tokenResult.userInfo);
         const token = authService.generateJWT(user);
-        
+
         // Store current user
         currentUser = user;
-        
-        return { 
-            success: true, 
+
+        return {
+            success: true,
             user: {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                picture: user.picture
+                picture: user.picture,
             },
-            token 
+            token,
         };
     } catch (error) {
         console.error('Failed to handle Google auth callback:', error);
@@ -795,7 +765,7 @@ ipcMain.handle('verify-auth-token', async (event, token) => {
         if (!authService) {
             throw new Error('Authentication service not initialized');
         }
-        
+
         // Ensure the database connection is established before we try to use it.
         if (!authService.db) {
             try {
@@ -804,27 +774,27 @@ ipcMain.handle('verify-auth-token', async (event, token) => {
                 console.error('Failed to (re)initialize database:', dbErr);
             }
         }
-        
+
         const decoded = authService.verifyJWT(token);
         if (!decoded) {
             return { success: false, error: 'Invalid token' };
         }
-        
+
         const user = await authService.getUserById(decoded.userId);
         if (!user) {
             return { success: false, error: 'User not found' };
         }
-        
+
         currentUser = user;
-        return { 
-            success: true, 
+        return {
+            success: true,
             user: {
                 id: user._id,
                 name: user.name,
                 email: user.email,
                 picture: user.picture,
-                preferences: user.preferences
-            }
+                preferences: user.preferences,
+            },
         };
     } catch (error) {
         console.error('Failed to verify auth token:', error);
@@ -837,7 +807,7 @@ ipcMain.handle('update-user-preferences', async (event, preferences) => {
         if (!authService || !currentUser) {
             return { success: false, error: 'User not authenticated' };
         }
-        
+
         const success = await authService.updateUserPreferences(currentUser._id, preferences);
         return { success };
     } catch (error) {
@@ -852,7 +822,7 @@ ipcMain.handle('save-chat-session', async (event, sessionData) => {
             // If not authenticated, return success but don't save
             return { success: true, message: 'Session not saved (guest mode)' };
         }
-        
+
         const sessionId = await authService.saveChatSession(currentUser._id, sessionData);
         return { success: true, sessionId };
     } catch (error) {
@@ -866,7 +836,7 @@ ipcMain.handle('get-chat-history', async (event, limit = 10) => {
         if (!authService || !currentUser) {
             return { success: true, history: [] };
         }
-        
+
         const history = await authService.getChatHistory(currentUser._id, limit);
         return { success: true, history };
     } catch (error) {
@@ -880,7 +850,7 @@ ipcMain.handle('delete-chat-session', async (event, sessionId) => {
         if (!authService || !currentUser) {
             return { success: false, error: 'User not authenticated' };
         }
-        
+
         const success = await authService.deleteChatSession(currentUser._id, sessionId);
         return { success };
     } catch (error) {
@@ -889,7 +859,7 @@ ipcMain.handle('delete-chat-session', async (event, sessionId) => {
     }
 });
 
-ipcMain.handle('logout', async (event) => {
+ipcMain.handle('logout', async event => {
     try {
         currentUser = null;
         return { success: true };
@@ -899,7 +869,7 @@ ipcMain.handle('logout', async (event) => {
     }
 });
 
-ipcMain.handle('start-guest-session', async (event) => {
+ipcMain.handle('start-guest-session', async event => {
     try {
         // Guest mode - no authentication required
         currentUser = null;
