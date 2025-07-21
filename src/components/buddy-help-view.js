@@ -1,4 +1,4 @@
-import { html,  LitElement } from '../lit-core-2.7.4.min.js';
+import { html, LitElement } from '../lit-core-2.7.4.min.js';
 import { helpStyles } from './ui/help-css.js';
 
 class BuddyHelpView extends LitElement {
@@ -12,8 +12,6 @@ class BuddyHelpView extends LitElement {
 
     static styles = [helpStyles];
 
-    
-
     constructor() {
         super();
         this.currentVersion = '';
@@ -25,7 +23,7 @@ class BuddyHelpView extends LitElement {
 
     setupIpcListeners() {
         const { ipcRenderer } = require('electron');
-        
+
         ipcRenderer.on('update-checking-for-update', () => {
             this.updateStatus = 'checking';
             this.requestUpdate();
@@ -78,94 +76,154 @@ class BuddyHelpView extends LitElement {
         }
     }
 
+    closeWindow() {
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.invoke('close-help-window');
+    }
+
     render() {
         // Platform detection fallback (if not passed as prop)
         const isMacOS = this.isMacOS ?? navigator.platform.toLowerCase().includes('mac');
         const isLinux = this.isLinux ?? navigator.platform.toLowerCase().includes('linux');
+
+        const shortcuts = [
+            {
+                label: 'Move window up',
+                keys: [isMacOS ? 'Option' : 'Ctrl', '↑'],
+            },
+            {
+                label: 'Move window down',
+                keys: [isMacOS ? 'Option' : 'Ctrl', '↓'],
+            },
+            {
+                label: 'Move window left',
+                keys: [isMacOS ? 'Option' : 'Ctrl', '←'],
+            },
+            {
+                label: 'Move window right',
+                keys: [isMacOS ? 'Option' : 'Ctrl', '→'],
+            },
+            {
+                label: 'Toggle mouse events',
+                keys: [isMacOS ? 'Cmd' : 'Ctrl', 'M'],
+            },
+            {
+                label: 'Close window',
+                keys: [isMacOS ? 'Cmd' : 'Ctrl', '\\'],
+            },
+            {
+                label: 'Send message',
+                keys: ['Enter'],
+            },
+            {
+                label: 'New line',
+                keys: ['Shift', 'Enter'],
+            },
+            {
+                label: 'Screen analysis',
+                keys: ['Alt', 'A'],
+            },
+        ];
+
+        const profiles = [
+            { name: 'General Assistant', desc: 'Ask anything - general knowledge, problem solving, creative tasks' },
+            { name: 'Math Teacher', desc: 'Comprehensive mathematics instruction with step-by-step solutions' },
+            { name: 'Physics Teacher', desc: 'Physics concepts with real-world applications and mathematical approach' },
+            { name: 'Chemistry Teacher', desc: 'Chemistry instruction with molecular understanding and safety notes' },
+            { name: 'Advanced Math Teacher', desc: 'Advanced mathematics with multi-step problem solving' },
+            { name: 'Advanced Physics Teacher', desc: 'Advanced physics with experimental design, unit conversion, and error analysis' },
+            { name: 'Advanced Chemistry Teacher', desc: 'Advanced chemistry with stoichiometry, pH analysis, and thermodynamics' },
+            { name: 'JEE Advanced Teacher', desc: 'Educational explanations and teaching for JEE Advanced topics' },
+        ];
+
         return html`
-            <div>
-                <div class="option-group">
-                    <span class="option-label">Community & Support</span>
+            <div class="help-container">
+                <div class="help-header">
+                    <h1 class="help-title">Keyboard shortcuts</h1>
+                    <button class="close-btn" @click=${this.closeWindow}>×</button>
                 </div>
 
-                <div class="option-group">
-                    <span class="option-label">Keyboard Shortcuts</span>
-                    <div class="description">
-                        <strong>Window Movement:</strong><br />
-                        <span class="key">${isMacOS ? 'Option' : 'Ctrl'}</span> + Arrow Keys - Move the window in 45px increments<br /><br />
-
-                        <strong>Window Control:</strong><br />
-                        <span class="key">${isMacOS ? 'Cmd' : 'Ctrl'}</span> + <span class="key">M</span> - Toggle mouse events (click-through
-                        mode)<br />
-                        <span class="key">${isMacOS ? 'Cmd' : 'Ctrl'}</span> + <span class="key">&bsol;</span> - Close window or go back<br /><br />
-
-                        <strong>Text Input:</strong><br />
-                        <span class="key">Enter</span> - Send text message to AI<br />
-                        <span class="key">Shift</span> + <span class="key">Enter</span> - New line in text input
-                        <span class="key">Ctrl</span> + <span class="key">Alt</span> + <span class="key">N</span> - Direct send message
+                <div class="section">
+                    <div class="section-title">Keyboard Shortcuts</div>
+                    <div class="shortcuts-grid">
+                        ${shortcuts.map(
+                            shortcut => html`
+                                <div class="shortcut-item">
+                                    <span class="shortcut-label">${shortcut.label}</span>
+                                    <div class="shortcut-keys">
+                                        ${shortcut.keys.map(
+                                            (key, index) => html`
+                                                ${index > 0 ? html`<span class="key-separator">+</span>` : ''}
+                                                <span class="key">${key}</span>
+                                            `
+                                        )}
+                                    </div>
+                                </div>
+                            `
+                        )}
                     </div>
                 </div>
 
-                <div class="option-group">
-                    <span class="option-label">How to Use</span>
+                <div class="section">
+                    <div class="section-title">How to Use</div>
                     <div class="description">
-                        1. <strong>Start a Session:</strong> Enter your Gemini API key and click "Start Session"<br />
-                        2. <strong>Customize:</strong> Choose your profile and language in the settings<br />
-                        3. <strong>Position Window:</strong> Use keyboard shortcuts to move the window to your desired location<br />
-                        4. <strong>Click-through Mode:</strong> Use <span class="key">${isMacOS ? 'Cmd' : 'Ctrl'}</span> +
+                        <strong>1. Start a Session:</strong> Enter your API key and click "Start Session"<br />
+                        <strong>2. Customize:</strong> Choose your profile and language in the settings<br />
+                        <strong>3. Position Window:</strong> Use keyboard shortcuts to move the window to your desired location<br />
+                        <strong>4. Click-through Mode:</strong> Use <span class="key">${isMacOS ? 'Cmd' : 'Ctrl'}</span> +
                         <span class="key">M</span> to make the window click-through<br />
-                        5. <strong>Get AI Help:</strong> The AI will analyze your screen and audio to provide assistance<br />
-                        6. <strong>Text Messages:</strong> Type questions or requests to the AI using the text input
+                        <strong>5. Get AI Help:</strong> The AI will analyze your screen and audio to provide assistance<br />
+                        <strong>6. Text Messages:</strong> Type questions or requests to the AI using the text input
                     </div>
                 </div>
 
-                <div class="option-group">
-                    <span class="option-label">Supported Profiles</span>
-                    <div class="description">
-                        <strong>General Assistant:</strong> Ask anything - general knowledge, problem solving, creative tasks<br />
-                       
-                        <strong>Math Teacher:</strong> Comprehensive mathematics instruction with step-by-step solutions<br />
-                        <strong>Physics Teacher:</strong> Physics concepts with real-world applications and mathematical approach<br />
-                        <strong>Chemistry Teacher:</strong> Chemistry instruction with molecular understanding and safety notes<br />
-                        <strong>Advanced Math Teacher:</strong> Advanced mathematics with multi-step problem solving<br />
-                        <strong>Advanced Physics Teacher:</strong> Advanced physics with experimental design, unit conversion, and error analysis<br />
-                        <strong>Advanced Chemistry Teacher:</strong> Advanced chemistry with stoichiometry, pH analysis, and thermodynamics<br />
-                        <strong>JEE Advanced Teacher:</strong> Educational explanations and teaching for JEE Advanced topics
+                <div class="section">
+                    <div class="section-title">Supported Profiles</div>
+                    <div class="profile-list">
+                        ${profiles.map(
+                            profile => html`
+                                <div class="profile-item">
+                                    <div class="profile-name">${profile.name}</div>
+                                    <div class="profile-desc">${profile.desc}</div>
+                                </div>
+                            `
+                        )}
                     </div>
                 </div>
 
-                <div class="option-group">
-                    <span class="option-label">Audio Input</span>
+                <div class="section">
+                    <div class="section-title">Audio Input</div>
                     <div class="description">
-                        ${isMacOS 
+                        ${isMacOS
                             ? html`<strong>macOS:</strong> Uses SystemAudioDump for system audio capture`
                             : isLinux
-                              ? html`<strong>Linux:</strong> Uses microphone input`
-                              : html`<strong>Windows:</strong> Uses loopback audio capture`}<br />
-                        The AI listens to conversations and provides contextual assistance based on what it hears.
+                            ? html`<strong>Linux:</strong> Uses microphone input`
+                            : html`<strong>Windows:</strong> Uses loopback audio capture`}
+                        <div class="platform-info">${isMacOS ? '🍎 macOS' : isLinux ? '🐧 Linux' : '🪟 Windows'}</div>
                     </div>
+                    <div class="description">The AI listens to conversations and provides contextual assistance based on what it hears.</div>
                 </div>
 
                 <div class="update-section">
-                    <span class="option-label">App Updates</span>
-                    <div class="version-info">
-                        Current Version: ${this.currentVersion || 'Loading...'}
-                    </div>
+                    <div class="section-title">App Updates</div>
+                    <div class="version-info">Current Version: ${this.currentVersion || 'Loading...'}</div>
                     <button class="update-button" @click=${this.checkForUpdates} ?disabled=${this.updateStatus === 'checking'}>
                         ${this.updateStatus === 'checking' ? 'Checking...' : 'Check for Updates'}
                     </button>
-                    ${this.updateStatus ? html`
-                        <div class="update-status ${this.updateStatus}">
-                            ${this.updateStatus === 'checking' ? 'Checking for updates...' : ''}
-                            ${this.updateStatus === 'available' ? `Update available: ${this.updateInfo?.version}` : ''}
-                            ${this.updateStatus === 'not-available' ? 'No updates available' : ''}
-                            ${this.updateStatus === 'error' ? `Error: ${this.updateInfo?.error || 'Unknown error'}` : ''}
-                        </div>
-                    ` : ''}
+                    ${this.updateStatus
+                        ? html`
+                              <div class="update-status ${this.updateStatus}">
+                                  ${this.updateStatus === 'checking' ? 'Checking for updates...' : ''}
+                                  ${this.updateStatus === 'available' ? `Update available: ${this.updateInfo?.version}` : ''}
+                                  ${this.updateStatus === 'not-available' ? 'No updates available' : ''}
+                                  ${this.updateStatus === 'error' ? `Error: ${this.updateInfo?.error || 'Unknown error'}` : ''}
+                              </div>
+                          `
+                        : ''}
                 </div>
             </div>
         `;
     }
 }
 
-customElements.define('buddy-help-view', BuddyHelpView); 
+customElements.define('buddy-help-view', BuddyHelpView);
