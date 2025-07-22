@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Control</title>
+    <link rel="stylesheet" href="audio-window.css">
+</head>
+<body>
+    <div class="audio-container" id="audioContainer">
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <button class="control-btn start-btn" id="startBtn">
+                <svg class="btn-icon" viewBox="0 0 24 24">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                </svg>
+                <span>Start</span>
+            </button>
+            
+            <button class="control-btn stop-btn" id="stopBtn" disabled>
+                <svg class="btn-icon" viewBox="0 0 24 24">
+                    <rect x="6" y="6" width="12" height="12" rx="2"/>
+                </svg>
+                <span>Stop</span>
+            </button>
+            
+            <div class="status-indicator" id="statusIndicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span class="status-text" id="statusText">Ready</span>
+            </div>
+        </div>
+        
+        <!-- Transcription Area -->
+        <div class="transcription-section" id="transcriptionSection">
+            <div class="transcription-header">
+                <span>Transcription</span>
+                <button class="clear-btn" id="clearBtn" title="Clear text">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="transcription-content" id="transcriptionContent">
+                <div class="placeholder-text" id="placeholderText">
+                    Audio transcription will appear here...
+                </div>
+                <div class="transcription-text" id="transcriptionText"></div>
+            </div>
+        </div>
+        
+        <!-- Toggle Expand Button -->
+        <div class="toggle-expand" id="toggleExpand" title="Toggle transcription view">
+            <svg viewBox="0 0 24 24">
+                <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+            </svg>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        
+        class AudioWindowController {
+            constructor() {
+                this.isRecording = false;
+                this.isExpanded = false;
+                this.container = document.getElementById('audioContainer');
+                this.startBtn = document.getElementById('startBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.statusDot = document.getElementById('statusDot');
+                this.statusText = document.getElementById('statusText');
+                this.toggleExpand = document.getElementById('toggleExpand');
+                this.clearBtn = document.getElementById('clearBtn');
+                this.transcriptionText = document.getElementById('transcriptionText');
+                this.placeholderText = document.getElementById('placeholderText');
+                
+                this.init();
+            }
+            
+            init() {
+                // Set up button handlers
+                this.startBtn.addEventListener('click', this.handleStartClick.bind(this));
+                this.stopBtn.addEventListener('click', this.handleStopClick.bind(this));
+                this.clearBtn.addEventListener('click', this.handleClearClick.bind(this));
+                this.toggleExpand.addEventListener('click', this.handleToggleExpand.bind(this));
+                
+                // Set up context menu prevention
+                this.container.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                });
+                
+                // Listen for IPC messages
+                ipcRenderer.on('toggle-recording-state', this.handleToggleRecording.bind(this));
+                ipcRenderer.on('update-recording-state', this.handleUpdateRecordingState.bind(this));
+                ipcRenderer.on('transcription-update', this.handleTranscriptionUpdate.bind(this));
+                
+                // Set up drag functionality
+                this.setupDragFunctionality();
+                
+                console.log('Audio window controller initialized');
+            }
+            
+            handleStartClick(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                if (!this.isRecording) {
+                    // Send start recording message to main process
+                    ipcRenderer.send('audio-window-start-recording');
+                    this.setRecordingState(true);
+                }
+            }
+            
+            handleStopClick(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                if (this.isRecording) {
+                    // Send stop recording message to main process
+                    ipcRenderer.send('audio-window-stop-recording');
+                    this.setRecordingState(false);
+                }
+            }
+            
+            handleClearClick(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                this.clearTranscription();
+            }
+            
+            handleToggleExpand(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                this.toggleExpandState();
+            }
+            
+            toggleExpandState() {
+                this.isExpanded = !this.isExpanded;
+                document.body.classList.toggle('expanded', this.isExpanded);
+                
+                // Notify main process about size change
+                ipcRenderer.send('audio-window-resize', { expanded: this.isExpanded });
+            }
+            
+            handleToggleRecording() {
+                this.toggleRecordingState();
+            }
+            
+            handleUpdateRecordingState(event, data) {
+                this.setRecordingState(data.isRecording);
+            }
+            
+            handleTranscriptionUpdate(event, data) {
+                this.updateTranscription(data.text);
+                
+                // Auto-expand window when transcription starts
+                if (data.text && !this.isExpanded) {
+                    this.toggleExpandState();
+                }
+            }
+            
+            toggleRecordingState() {
+                this.setRecordingState(!this.isRecording);
+            }
+            
+            setRecordingState(recording) {
+                this.isRecording = recording;
+                
+                if (recording) {
+                    this.container.classList.add('recording');
+                    this.statusDot.classList.add('recording');
+                    this.statusText.textContent = 'Recording...';
+                    this.startBtn.disabled = true;
+                    this.stopBtn.disabled = false;
+                } else {
+                    this.container.classList.remove('recording');
+                    this.statusDot.classList.remove('recording');
+                    this.statusText.textContent = 'Ready';
+                    this.startBtn.disabled = false;
+                    this.stopBtn.disabled = true;
+                }
+                
+                console.log('Recording state:', recording);
+            }
+            
+            updateTranscription(text) {
+                if (text && text.trim().length > 0) {
+                    this.transcriptionText.textContent = text;
+                    this.placeholderText.style.display = 'none';
+                    this.transcriptionText.style.display = 'block';
+                } else {
+                    this.placeholderText.style.display = 'block';
+                    this.transcriptionText.style.display = 'none';
+                }
+            }
+            
+            clearTranscription() {
+                this.transcriptionText.textContent = '';
+                this.placeholderText.style.display = 'block';
+                this.transcriptionText.style.display = 'none';
+                
+                // Notify main process
+                ipcRenderer.send('audio-window-clear-transcription');
+            }
+            
+            setupDragFunctionality() {
+                let isDragging = false;
+                let dragOffset = { x: 0, y: 0 };
+                
+                this.container.addEventListener('mousedown', (e) => {
+                    // Only start drag if not clicking on a button or control
+                    if (e.button === 0 && 
+                        !e.target.closest('.control-btn') && 
+                        !e.target.closest('.toggle-expand') &&
+                        !e.target.closest('.clear-btn')) {
+                        isDragging = true;
+                        dragOffset.x = e.clientX;
+                        dragOffset.y = e.clientY;
+                        
+                        ipcRenderer.send('window-drag-start', dragOffset);
+                        e.preventDefault();
+                    }
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        const screenX = e.screenX;
+                        const screenY = e.screenY;
+                        
+                        ipcRenderer.send('window-drag-move', { x: screenX, y: screenY });
+                    }
+                });
+                
+                document.addEventListener('mouseup', (e) => {
+                    if (isDragging && e.button === 0) {
+                        isDragging = false;
+                        ipcRenderer.send('window-drag-end');
+                    }
+                });
+                
+                // Prevent text selection during drag
+                document.addEventListener('selectstart', (e) => {
+                    if (isDragging) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        }
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new AudioWindowController();
+        });
+        
+        // Handle window close
+        window.addEventListener('beforeunload', () => {
+            console.log('Audio window closing');
+        });
+    </script>
+</body>
+</html>

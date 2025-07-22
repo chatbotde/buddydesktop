@@ -459,6 +459,9 @@ class BuddyApp extends LitElement {
         this.addEventListener('toggle-workspace-visibility', async (e) => {
             await this.toggleWorkspaceVisibility(e.detail.enabled);
         });
+        this.addEventListener('open-audio-window', async () => {
+            await this.openAudioWindow();
+        });
         this.addEventListener('delete-session', (e) => {
             this.deleteSession(e.detail.index);
         });
@@ -1003,6 +1006,50 @@ class BuddyApp extends LitElement {
             }
         } catch (error) {
             console.error('Error toggling workspace visibility:', error);
+        }
+    }
+
+    async openAudioWindow() {
+        try {
+            const { ipcRenderer } = window.require('electron');
+            
+            // Send IPC message to main process to create audio window
+            const result = await ipcRenderer.invoke('create-audio-window', {
+                width: 50,
+                height: 50,
+                // Position in top-right corner by default
+                x: undefined,
+                y: undefined
+            });
+            
+            if (result.success) {
+                console.log('Audio window opened successfully');
+                
+                // Show brief notification
+                this.statusText = 'Audio window opened';
+                setTimeout(() => {
+                    if (this.statusText === 'Audio window opened') {
+                        this.statusText = '';
+                    }
+                }, 2000);
+            } else {
+                throw new Error(result.error || 'Failed to create audio window');
+            }
+            
+            this.requestUpdate();
+            
+        } catch (error) {
+            console.error('Failed to open audio window:', error);
+            
+            // Show error message
+            this.statusText = 'Failed to open audio window';
+            setTimeout(() => {
+                if (this.statusText === 'Failed to open audio window') {
+                    this.statusText = '';
+                }
+            }, 3000);
+            
+            this.requestUpdate();
         }
     }
     // --- End Updated Toggle Handlers ---

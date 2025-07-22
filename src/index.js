@@ -303,6 +303,82 @@ function createMainWindow() {
             return { success: false, error: error.message };
         }
     });
+
+    // IPC handler for creating audio window
+    ipcMain.handle('create-audio-window', async (event, options = {}) => {
+        try {
+            const audioWindowOptions = {
+                width: 50,
+                height: 50,
+                frame: false,
+                transparent: true,
+                hasShadow: true,
+                alwaysOnTop: true,
+                skipTaskbar: true,
+                hiddenInMissionControl: true,
+                resizable: false,
+                minimizable: false,
+                maximizable: false,
+                closable: true,
+                roundedCorners: true,
+                vibrancy: 'ultra-dark',
+                webPreferences: {
+                    nodeIntegration: true,
+                    contextIsolation: false,
+                    backgroundThrottling: false,
+                    webSecurity: true,
+                    allowRunningInsecureContent: false,
+                },
+                backgroundColor: '#00000000',
+                titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : undefined,
+                ...options
+            };
+
+            const audioWindow = createConsistentWindow(audioWindowOptions);
+
+            // Load the audio window HTML
+            const htmlPath = path.join(__dirname, 'features', 'audio', 'audio-window.html');
+            await audioWindow.loadFile(htmlPath);
+
+            // Position window (default to center-right of screen)
+            if (!options.x || !options.y) {
+                const primaryDisplay = screen.getPrimaryDisplay();
+                const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
+                
+                const x = options.x ?? screenWidth - 70; // 20px from right edge
+                const y = options.y ?? 20; // 20px from top
+                
+                audioWindow.setPosition(x, y);
+            }
+
+            // Handle IPC messages from the audio window
+            audioWindow.webContents.on('ipc-message', (event, channel, data) => {
+                switch (channel) {
+                    case 'audio-window-toggle-recording':
+                        console.log('Audio window toggle recording requested');
+                        // Here you could integrate with your existing audio system
+                        // For now, just log the action
+                        break;
+                    case 'audio-window-close':
+                        audioWindow.close();
+                        break;
+                    default:
+                        console.log('Unknown audio window IPC message:', channel, data);
+                }
+            });
+
+            // Handle window close
+            audioWindow.on('closed', () => {
+                console.log('Audio window closed');
+            });
+
+            console.log('Audio window created successfully');
+            return { success: true, windowId: audioWindow.id };
+        } catch (error) {
+            console.error('Failed to create audio window:', error);
+            return { success: false, error: error.message };
+        }
+    });
 }
 
 async function initializeAISession(provider, apiKey, customPrompt = '', profile = 'default', language = 'en-US', model = '') {
