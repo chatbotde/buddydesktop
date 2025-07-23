@@ -386,11 +386,13 @@ function createMainWindow() {
             const marketplaceWindowOptions = {
                 width: options.width || 800,
                 height: options.height || 600,
-                frame: true,
-                transparent: false,
-                hasShadow: true,
-                alwaysOnTop: false,
-                skipTaskbar: false,
+                frame: false,
+                transparent: true,
+                hasShadow: false,
+                alwaysOnTop: true,
+                skipTaskbar: true,
+                hiddenInMissionControl: true,
+                roundedCorners: true,
                 resizable: true,
                 minimizable: true,
                 maximizable: true,
@@ -436,11 +438,19 @@ function createMainWindow() {
                 }
             });
 
+            // Handle marketplace window close request
+            ipcMain.on('marketplace-close-window', (event) => {
+                if (event.sender === marketplaceWindow.webContents) {
+                    marketplaceWindow.close();
+                }
+            });
+
             // Handle window close
             marketplaceWindow.on('closed', () => {
                 console.log('Marketplace window closed');
                 // Clean up IPC listeners
                 ipcMain.removeAllListeners('marketplace-apply');
+                ipcMain.removeAllListeners('marketplace-close-window');
             });
 
             console.log('Marketplace window created successfully');

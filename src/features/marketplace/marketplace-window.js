@@ -121,8 +121,6 @@ class MarketplaceWindow extends LitElement {
         .marketplace-window {
             position: absolute;
             background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 16px;
             width: 90vw;
             max-width: 800px;
             height: 80vh;
@@ -130,7 +128,6 @@ class MarketplaceWindow extends LitElement {
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             transform: scale(0.9);
             transition: transform 0.3s ease;
             cursor: move;
@@ -143,7 +140,6 @@ class MarketplaceWindow extends LitElement {
         .marketplace-window.dragging {
             transition: none;
             user-select: none;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
             z-index: 1001;
         }
 

@@ -453,10 +453,9 @@
         // Close window
         function closeWindow() {
             if (isElectron) {
-                // Use Electron to close window
-                const { remote } = window.require('electron');
-                const currentWindow = remote.getCurrentWindow();
-                currentWindow.close();
+                // Use Electron IPC to close window
+                const { ipcRenderer } = window.require('electron');
+                ipcRenderer.send('marketplace-close-window');
             } else {
                 // Regular browser window
                 window.close();
