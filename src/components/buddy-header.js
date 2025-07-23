@@ -1,7 +1,7 @@
 import { html, css, LitElement } from '../lit-core-2.7.4.min.js';
 import { headerStyles } from './ui/header-css.js';
 import { getEnabledModels } from '../services/models-service.js';
-import '../features/marketplace/marketplace-window.js';
+
 
 class BuddyHeader extends LitElement {
     static properties = {
@@ -19,7 +19,7 @@ class BuddyHeader extends LitElement {
         enabledModels: { type: Array },
         selectedModel: { type: String },
         isModelsDropdownOpen: { type: Boolean },
-        isMarketplaceOpen: { type: Boolean },
+
         customMenuButtons: { type: Array },
     };
 
@@ -28,7 +28,7 @@ class BuddyHeader extends LitElement {
         this.isControlsMenuOpen = false;
         this.isMainMenuOpen = false;
         this.isModelsDropdownOpen = false;
-        this.isMarketplaceOpen = false;
+
         this.isContentProtected = true;
         this.isVisibleOnAllWorkspaces = true;
         this.customMenuButtons = ['home', 'chat', 'history', 'models', 'customize', 'help'];
@@ -196,49 +196,10 @@ class BuddyHeader extends LitElement {
 
     _handleOpenMarketplace() {
         this._closeMainMenu();
-        
-        // Import the marketplace window class
-        import('../features/marketplace/marketplace-window.js').then((module) => {
-            const MarketplaceWindow = module.default || window.customElements.get('marketplace-window');
-            
-            // Open external marketplace window
-            const marketplaceWindow = MarketplaceWindow.openExternalWindow(
-                this.customMenuButtons || []
-            );
-
-            if (marketplaceWindow) {
-                // Listen for messages from the marketplace window
-                const messageHandler = (event) => {
-                    if (event.source === marketplaceWindow) {
-                        if (event.data.type === 'marketplace-apply') {
-                            this._handleMarketplaceApply(event.data.selectedButtons);
-                            window.removeEventListener('message', messageHandler);
-                        } else if (event.data.type === 'marketplace-close') {
-                            window.removeEventListener('message', messageHandler);
-                        }
-                    }
-                };
-
-                window.addEventListener('message', messageHandler);
-            }
-        });
+        this.dispatchEvent(new CustomEvent('open-marketplace-window', { bubbles: true, composed: true }));
     }
 
-    _handleMarketplaceClose() {
-        // This method is now handled by the external window
-    }
 
-    _handleMarketplaceApply(selectedButtons) {
-        this.customMenuButtons = selectedButtons;
-        this.requestUpdate();
-        
-        // Dispatch event to save the configuration
-        this.dispatchEvent(new CustomEvent('marketplace-buttons-updated', { 
-            detail: { buttons: this.customMenuButtons }, 
-            bubbles: true, 
-            composed: true 
-        }));
-    }
 
 
 
@@ -520,14 +481,7 @@ class BuddyHeader extends LitElement {
                         ` : ''}
                     </div>
                 </div>
-                
-                <!-- Marketplace Window -->
-                <marketplace-window 
-                    .isOpen=${this.isMarketplaceOpen}
-                    .selectedButtons=${this.customMenuButtons || []}
-                    @marketplace-close=${this._handleMarketplaceClose}
-                    @marketplace-apply=${this._handleMarketplaceApply}
-                ></marketplace-window>
+
             </div>
         `;
     }

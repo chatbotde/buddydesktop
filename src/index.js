@@ -379,6 +379,77 @@ function createMainWindow() {
             return { success: false, error: error.message };
         }
     });
+
+    // IPC handler for creating marketplace window
+    ipcMain.handle('create-marketplace-window', async (event, options = {}) => {
+        try {
+            const marketplaceWindowOptions = {
+                width: options.width || 800,
+                height: options.height || 600,
+                frame: true,
+                transparent: false,
+                hasShadow: true,
+                alwaysOnTop: false,
+                skipTaskbar: false,
+                resizable: true,
+                minimizable: true,
+                maximizable: true,
+                closable: true,
+                webPreferences: {
+                    nodeIntegration: true,
+                    contextIsolation: false,
+                    backgroundThrottling: false,
+                    webSecurity: true,
+                    allowRunningInsecureContent: false,
+                },
+                backgroundColor: '#1a1a1a',
+                titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : undefined,
+                title: 'Marketplace - Customize Menu'
+            };
+
+            const marketplaceWindow = createConsistentWindow(marketplaceWindowOptions);
+
+            // Load the marketplace window HTML
+            const htmlPath = path.join(__dirname, 'features', 'marketplace', 'marketplace.html');
+            await marketplaceWindow.loadFile(htmlPath);
+
+            // Pass the selected buttons to the window
+            await marketplaceWindow.webContents.executeJavaScript(`
+                window.selectedButtons = ${JSON.stringify(options.selectedButtons || [])};
+            `);
+
+            // Handle IPC messages from the marketplace window
+            ipcMain.on('marketplace-apply', (event, selectedButtons) => {
+                if (event.sender === marketplaceWindow.webContents) {
+                    // Find the main window and send the update
+                    const allWindows = BrowserWindow.getAllWindows();
+                    const mainWindow = allWindows.find(w => w.id !== marketplaceWindow.id);
+                    
+                    if (mainWindow) {
+                        mainWindow.webContents.send('marketplace-buttons-updated', { 
+                            selectedButtons 
+                        });
+                    }
+                    
+                    // Close the marketplace window
+                    marketplaceWindow.close();
+                }
+            });
+
+            // Handle window close
+            marketplaceWindow.on('closed', () => {
+                console.log('Marketplace window closed');
+                // Clean up IPC listeners
+                ipcMain.removeAllListeners('marketplace-apply');
+            });
+
+            console.log('Marketplace window created successfully');
+            return { success: true, windowId: marketplaceWindow.id };
+        } catch (error) {
+            console.error('Failed to create marketplace window:', error);
+            return { success: false, error: error.message };
+        }
+    });
 }
 
 async function initializeAISession(provider, apiKey, customPrompt = '', profile = 'default', language = 'en-US', model = '') {

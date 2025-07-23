@@ -45,6 +45,7 @@ class BuddyApp extends LitElement {
         isGuest: { type: Boolean },
         enabledModels: { type: Array },
         customProfiles: { type: Array },
+        customMenuButtons: { type: Array },
     };
 
     static styles = [buddyAppStyles];
@@ -83,6 +84,7 @@ class BuddyApp extends LitElement {
         // Load enabled models from localStorage or use defaults
         this.enabledModels = this.loadEnabledModels();
         this.customProfiles = this.loadCustomProfiles();
+        this.customMenuButtons = this.loadUserPreference('customMenuButtons') || ['home', 'chat', 'history', 'models', 'customize', 'help'];
         
         this.initializeAuth();
     }
@@ -150,6 +152,24 @@ class BuddyApp extends LitElement {
             } catch (error) {
                 console.error('Failed to save user preferences:', error);
             }
+        }
+    }
+
+    saveUserPreference(key, value) {
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+            console.error(`Failed to save user preference ${key}:`, error);
+        }
+    }
+
+    loadUserPreference(key) {
+        try {
+            const value = localStorage.getItem(key);
+            return value ? JSON.parse(value) : null;
+        } catch (error) {
+            console.error(`Failed to load user preference ${key}:`, error);
+            return null;
         }
     }
 
@@ -462,6 +482,9 @@ class BuddyApp extends LitElement {
         this.addEventListener('open-audio-window', async () => {
             await this.openAudioWindow();
         });
+        this.addEventListener('open-marketplace-window', async () => {
+            await this.openMarketplaceWindow();
+        });
         this.addEventListener('delete-session', (e) => {
             this.deleteSession(e.detail.index);
         });
@@ -603,6 +626,15 @@ class BuddyApp extends LitElement {
     connectedCallback() {
         super.connectedCallback();
         this.setAttribute('theme', this.currentTheme);
+        
+        // Set up IPC listeners for marketplace
+        if (window.require) {
+            const { ipcRenderer } = window.require('electron');
+            ipcRenderer.on('marketplace-buttons-updated', (event, data) => {
+                this._handleMarketplaceButtonsUpdated(data.selectedButtons);
+            });
+        }
+        
         // Add event listener for link clicks to open in external browser
         this._linkClickHandler = (event) => {
             // Only handle left-clicks, no modifier keys
@@ -746,9 +778,13 @@ class BuddyApp extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback();
 
-        const { ipcRenderer } = window.require('electron');
-        ipcRenderer.removeAllListeners('update-response');
-        ipcRenderer.removeAllListeners('update-status');
+        if (window.require) {
+            const { ipcRenderer } = window.require('electron');
+            ipcRenderer.removeAllListeners('update-response');
+            ipcRenderer.removeAllListeners('update-status');
+            ipcRenderer.removeAllListeners('marketplace-buttons-updated');
+        }
+        
         if (this.currentView === 'assistant') {
             this.scrollToBottom(false);
         }
@@ -1052,6 +1088,73 @@ class BuddyApp extends LitElement {
             this.requestUpdate();
         }
     }
+
+    async openMarketplaceWindow() {
+        try {
+            const { ipcRenderer } = window.require('electron');
+            
+            // Send IPC message to main process to create marketplace window
+            const result = await ipcRenderer.invoke('create-marketplace-window', {
+                selectedButtons: this.customMenuButtons || [],
+                width: 800,
+                height: 600
+            });
+            
+            if (result.success) {
+                console.log('Marketplace window opened successfully');
+                
+                // Show brief notification
+                this.statusText = 'Marketplace window opened';
+                setTimeout(() => {
+                    if (this.statusText === 'Marketplace window opened') {
+                        this.statusText = '';
+                    }
+                }, 2000);
+            } else {
+                throw new Error(result.error || 'Failed to create marketplace window');
+            }
+            
+            this.requestUpdate();
+            
+        } catch (error) {
+            console.error('Failed to open marketplace window:', error);
+            
+            // Show error message
+            this.statusText = 'Failed to open marketplace window';
+            setTimeout(() => {
+                if (this.statusText === 'Failed to open marketplace window') {
+                    this.statusText = '';
+                }
+            }, 3000);
+            
+            this.requestUpdate();
+        }
+    }
+
+    _handleMarketplaceButtonsUpdated(selectedButtons) {
+        // Update the custom menu buttons
+        this.customMenuButtons = selectedButtons;
+        
+        // Save the configuration
+        this.saveUserPreference('customMenuButtons', selectedButtons);
+        
+        // Update header component
+        const header = this.shadowRoot.querySelector('buddy-header');
+        if (header) {
+            header.customMenuButtons = selectedButtons;
+            header.requestUpdate();
+        }
+        
+        // Show brief notification
+        this.statusText = 'Menu buttons updated';
+        setTimeout(() => {
+            if (this.statusText === 'Menu buttons updated') {
+                this.statusText = '';
+            }
+        }, 2000);
+        
+        this.requestUpdate();
+    }
     // --- End Updated Toggle Handlers ---
 
     toggleTheme() {
@@ -1280,6 +1383,7 @@ class BuddyApp extends LitElement {
                         .isAuthenticated=${this.isAuthenticated}
                         .isGuest=${this.isGuest}
                         .enabledModels=${this.enabledModels}
+                        .customMenuButtons=${this.customMenuButtons}
                     ></buddy-header>
                     <div class="main-content">${views[this.currentView]}</div>
                 </div>
