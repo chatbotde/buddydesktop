@@ -1,8 +1,11 @@
-const { BrowserWindow } = require('electron');
+const { BrowserWindow, ipcMain } = require('electron');
+const fs = require('fs');
+const path = require('path');
 
 class WindowManager {
     constructor() {
         this.windows = new Map();
+        this.windowThemes = new Map();
         this.defaultOptions = {
             width: 800,
             height: 600,
@@ -29,35 +32,214 @@ class WindowManager {
             backgroundColor: '#00000000',
             titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : undefined,
         };
+
+        // Load theme configuration
+        try {
+            // Try to dynamically import the theme config
+            this.loadThemeConfig();
+        } catch (error) {
+            console.error('Failed to load theme configuration:', error);
+            // Fallback to default themes if import fails
+            this.themeConfig = {
+                themes: {
+                    standard: {
+                        name: 'Standard',
+                        windowOptions: {
+                            transparent: true,
+                            backgroundColor: '#00000000',
+                            vibrancy: 'ultra-dark',
+                        },
+                    },
+                },
+                defaults: {
+                    window: 'standard',
+                },
+            };
+        }
+    }
+
+    /**
+     * Load theme configuration from theme-config.js
+     */
+    loadThemeConfig() {
+        // For CommonJS environment, we need to use require
+        try {
+            // First try to load from the components directory
+            const themeConfigPath = path.join(__dirname, 'components', 'ui', 'theme-config.js');
+            if (fs.existsSync(themeConfigPath)) {
+                this.themeConfig = require('./components/ui/theme-config.js').ThemeConfig;
+            } else {
+                // Fallback to default themes
+                this.themeConfig = {
+                    themes: {
+                        standard: {
+                            name: 'Standard',
+                            windowOptions: {
+                                transparent: true,
+                                backgroundColor: '#00000000',
+                                vibrancy: 'ultra-dark',
+                            },
+                        },
+                    },
+                    defaults: {
+                        window: 'standard',
+                    },
+                };
+            }
+        } catch (error) {
+            console.error('Failed to load theme configuration:', error);
+            // Fallback to default themes
+            this.themeConfig = {
+                themes: {
+                    standard: {
+                        name: 'Standard',
+                        windowOptions: {
+                            transparent: true,
+                            backgroundColor: '#00000000',
+                            vibrancy: 'ultra-dark',
+                        },
+                    },
+                },
+                defaults: {
+                    window: 'standard',
+                },
+            };
+        }
     }
 
     /**
      * Create a new window with consistent properties
      * @param {Object} options - Window options to override defaults
      * @param {string} windowId - Unique identifier for the window
+     * @param {string} theme - Theme name to apply (optional)
      * @returns {BrowserWindow} - The created window instance
      */
-    createWindow(options = {}, windowId = null) {
-        const windowOptions = { ...this.defaultOptions, ...options };
+    createWindow(options = {}, windowId = null, theme = null) {
+        // Get theme options if a theme is specified
+        const themeOptions = theme ? this.getThemeOptions(theme) : {};
+
+        // Merge options with priority: defaults < theme < explicit options
+        const windowOptions = { ...this.defaultOptions, ...themeOptions, ...options };
         const newWindow = new BrowserWindow(windowOptions);
 
         // Apply consistent window properties
         this.applyConsistentProperties(newWindow);
-        
+
         // Enable drag functionality
         this.enableDragFunctionality(newWindow);
 
-        // Store window reference if ID provided
+        // Store window reference and theme if ID provided
         if (windowId) {
             this.windows.set(windowId, newWindow);
-            
-            // Clean up reference when window is closed
+
+            // Store the current theme
+            if (theme) {
+                this.windowThemes.set(windowId, theme);
+            } else {
+                // Use default theme if none specified
+                this.windowThemes.set(windowId, this.themeConfig.defaults.window || 'standard');
+            }
+
+            // Clean up references when window is closed
             newWindow.on('closed', () => {
                 this.windows.delete(windowId);
+                this.windowThemes.delete(windowId);
             });
         }
 
         return newWindow;
+    }
+
+    /**
+     * Get window options for a specific theme
+     * @param {string} themeName - Name of the theme
+     * @returns {Object} - Theme-specific window options
+     */
+    getThemeOptions(themeName) {
+        // Get theme from config
+        const theme = this.themeConfig.themes[themeName];
+
+        // Return theme options if found, otherwise empty object
+        return theme && theme.windowOptions ? theme.windowOptions : {};
+    }
+
+    /**
+     * Get available window themes
+     * @returns {Object} - Available window themes
+     */
+    getAvailableThemes() {
+        // Filter themes suitable for windows
+        const windowThemes = {};
+
+        if (this.themeConfig && this.themeConfig.themes) {
+            Object.entries(this.themeConfig.themes).forEach(([key, theme]) => {
+                if (theme.suitableFor && theme.suitableFor.includes('window')) {
+                    windowThemes[key] = {
+                        name: theme.name,
+                        description: theme.description,
+                        category: theme.category,
+                    };
+                }
+            });
+        }
+
+        return windowThemes;
+    }
+
+    /**
+     * Change theme for an existing window
+     * @param {string} windowId - ID of the window to update
+     * @param {string} themeName - Name of the theme to apply
+     * @returns {boolean} - Success status
+     */
+    changeWindowTheme(windowId, themeName) {
+        const window = this.windows.get(windowId);
+        if (!window || window.isDestroyed()) {
+            return false;
+        }
+
+        // Get theme options
+        const themeOptions = this.getThemeOptions(themeName);
+        if (!themeOptions) {
+            return false;
+        }
+
+        // Apply theme options to the window
+        if (themeOptions.transparent !== undefined) {
+            window.setTransparent(themeOptions.transparent);
+        }
+
+        if (themeOptions.backgroundColor) {
+            window.setBackgroundColor(themeOptions.backgroundColor);
+        }
+
+        if (themeOptions.vibrancy !== undefined) {
+            if (themeOptions.vibrancy === null) {
+                window.setVibrancy(null);
+            } else {
+                window.setVibrancy(themeOptions.vibrancy);
+            }
+        }
+
+        // Update stored theme
+        this.windowThemes.set(windowId, themeName);
+
+        // Notify the window content about theme change
+        window.webContents.send('window-theme-changed', {
+            theme: themeName,
+            options: themeOptions,
+        });
+
+        return true;
+    }
+
+    /**
+     * Get current theme for a window
+     * @param {string} windowId - ID of the window
+     * @returns {string|null} - Current theme name or null
+     */
+    getWindowTheme(windowId) {
+        return this.windowThemes.get(windowId) || null;
     }
 
     /**
@@ -86,7 +268,7 @@ class WindowManager {
             if (input.type === 'mouseDown' && input.button === 'left') {
                 const bounds = window.getBounds();
                 const cursorPosition = require('electron').screen.getCursorScreenPoint();
-                
+
                 dragOffset.x = cursorPosition.x - bounds.x;
                 dragOffset.y = cursorPosition.y - bounds.y;
                 isDragging = true;
@@ -191,7 +373,7 @@ class WindowManager {
         fullscreen: {
             fullscreen: true,
             frame: false,
-        }
+        },
     };
 
     /**
@@ -199,16 +381,17 @@ class WindowManager {
      * @param {string} presetName - Name of the preset
      * @param {Object} overrides - Options to override preset defaults
      * @param {string} windowId - Unique identifier for the window
+     * @param {string} theme - Theme name to apply (optional)
      * @returns {BrowserWindow} - The created window instance
      */
-    createPresetWindow(presetName, overrides = {}, windowId = null) {
+    createPresetWindow(presetName, overrides = {}, windowId = null, theme = null) {
         const preset = this.presets[presetName];
         if (!preset) {
             throw new Error(`Unknown preset: ${presetName}`);
         }
 
         const options = { ...preset, ...overrides };
-        return this.createWindow(options, windowId);
+        return this.createWindow(options, windowId, theme);
     }
 
     /**
@@ -223,14 +406,61 @@ class WindowManager {
 // Create singleton instance
 const windowManager = new WindowManager();
 
+// Set up IPC handlers for window theme changes
+ipcMain.on('change-window-theme', (event, data) => {
+    const { windowId, theme } = data;
+    if (windowId && theme) {
+        windowManager.changeWindowTheme(windowId, theme);
+    }
+});
+
+// Handle requests for available window themes
+ipcMain.handle('get-window-themes', event => {
+    try {
+        const themes = windowManager.getAvailableThemes();
+
+        // Get the window ID from the sender
+        const webContents = event.sender;
+        const window = BrowserWindow.fromWebContents(webContents);
+
+        let currentTheme = 'standard';
+        if (window) {
+            // Find the window ID in our managed windows
+            for (const [id, managedWindow] of windowManager.windows.entries()) {
+                if (managedWindow === window) {
+                    currentTheme = windowManager.getWindowTheme(id) || 'standard';
+                    break;
+                }
+            }
+        }
+
+        return {
+            success: true,
+            themes: themes,
+            currentTheme: currentTheme,
+        };
+    } catch (error) {
+        console.error('Error getting window themes:', error);
+        return {
+            success: false,
+            error: error.message,
+        };
+    }
+});
+
 module.exports = {
     WindowManager,
     windowManager,
-    
+
     // Convenience functions
-    createWindow: (options, windowId) => windowManager.createWindow(options, windowId),
-    createPresetWindow: (preset, overrides, windowId) => windowManager.createPresetWindow(preset, overrides, windowId),
-    getWindow: (windowId) => windowManager.getWindow(windowId),
-    closeWindow: (windowId) => windowManager.closeWindow(windowId),
+    createWindow: (options, windowId, theme) => windowManager.createWindow(options, windowId, theme),
+    createPresetWindow: (preset, overrides, windowId, theme) => windowManager.createPresetWindow(preset, overrides, windowId, theme),
+    getWindow: windowId => windowManager.getWindow(windowId),
+    closeWindow: windowId => windowManager.closeWindow(windowId),
     closeAllWindows: () => windowManager.closeAllWindows(),
+
+    // Theme-related functions
+    getAvailableThemes: () => windowManager.getAvailableThemes(),
+    changeWindowTheme: (windowId, theme) => windowManager.changeWindowTheme(windowId, theme),
+    getWindowTheme: windowId => windowManager.getWindowTheme(windowId),
 };

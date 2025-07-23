@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketplace Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .demo-header {
+            margin-bottom: 20px;
+        }
+        
+        .demo-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .demo-description {
+            color: #888;
+            line-height: 1.5;
+        }
+        
+        .demo-actions {
+            margin: 20px 0;
+        }
+        
+        .demo-btn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-right: 12px;
+        }
+        
+        .demo-btn:hover {
+            background: #0056CC;
+        }
+        
+        .demo-btn.secondary {
+            background: #333;
+        }
+        
+        .demo-btn.secondary:hover {
+            background: #444;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1 class="demo-title">Marketplace Demo</h1>
+            <p class="demo-description">
+                This demo shows the marketplace window where users can select buttons to customize their header dropdown menu. 
+                The interface follows your UI style with rounded tablet design and search functionality.
+                <br><br>
+                <strong>✨ New Feature:</strong> You can drag the marketplace window anywhere by clicking and dragging the header. 
+                The window will appear 10px to the right of where you drop it!
+            </p>
+        </div>
+        
+        <div class="demo-actions">
+            <button class="demo-btn" onclick="openMarketplace()">Open Marketplace</button>
+            <button class="demo-btn secondary" onclick="resetButtons()">Reset to Default</button>
+        </div>
+        
+        <!-- Import the header component -->
+        <buddy-header 
+            id="demoHeader"
+            currentView="assistant"
+            .isAuthenticated=${true}
+            .user=${{ name: 'Demo User', email: 'demo@example.com', picture: '/assets/default-avatar.png' }}
+        ></buddy-header>
+    </div>
+
+    <script type="module">
+        import '../../../components/buddy-header.js';
+        
+        window.openMarketplace = function() {
+            const header = document.getElementById('demoHeader');
+            header.isMarketplaceOpen = true;
+            header.requestUpdate();
+        };
+        
+        window.resetButtons = function() {
+            const header = document.getElementById('demoHeader');
+            header.customMenuButtons = ['home', 'chat', 'history', 'models', 'customize', 'help'];
+            header.requestUpdate();
+        };
+        
+        // Listen for marketplace events
+        document.addEventListener('marketplace-buttons-updated', (e) => {
+            console.log('Marketplace buttons updated:', e.detail.buttons);
+            alert('Menu buttons updated! Check the dropdown to see changes.');
+        });
+    </script>
+</body>
+</html>

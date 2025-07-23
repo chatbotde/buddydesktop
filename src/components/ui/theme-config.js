@@ -16,13 +16,19 @@ export const ThemeConfig = {
             name: 'Special',
             icon: '✨',
             description: 'Unique and eye-catching themes'
+        },
+        window: {
+            name: 'Window',
+            icon: '🪟',
+            description: 'Window appearance themes'
         }
     },
 
     // Default themes for input and output messages
     defaults: {
         input: 'default',  // Default theme for user input messages
-        output: 'glass'    // Default theme for assistant output messages
+        output: 'glass',   // Default theme for assistant output messages
+        window: 'standard' // Default theme for windows
     },
 
     // Theme definitions with enhanced metadata
@@ -134,6 +140,91 @@ export const ThemeConfig = {
             preview: 'neon',
             tags: ['neon', 'cyber', 'futuristic'],
             suitableFor: ['input', 'output']
+        },
+        // Window Themes
+        standard: {
+            name: 'Standard',
+            class: 'window-standard',
+            category: 'window',
+            description: 'Default window appearance',
+            preview: 'standard',
+            tags: ['window', 'default', 'standard'],
+            suitableFor: ['window'],
+            windowOptions: {
+                transparent: true,
+                backgroundColor: '#00000000',
+                vibrancy: 'ultra-dark'
+            }
+        },
+        solid: {
+            name: 'Solid',
+            class: 'window-solid',
+            category: 'window',
+            description: 'Solid window with no transparency',
+            preview: 'solid',
+            tags: ['window', 'solid', 'opaque'],
+            suitableFor: ['window'],
+            windowOptions: {
+                transparent: false,
+                backgroundColor: '#2d3748',
+                vibrancy: null
+            }
+        },
+        glass: {
+            name: 'Glass',
+            class: 'window-glass',
+            category: 'window',
+            description: 'Frosted glass effect for windows',
+            preview: 'glass',
+            tags: ['window', 'glass', 'transparent'],
+            suitableFor: ['window'],
+            windowOptions: {
+                transparent: true,
+                backgroundColor: '#ffffff20',
+                vibrancy: 'blur'
+            }
+        },
+        dark: {
+            name: 'Dark Mode',
+            class: 'window-dark',
+            category: 'window',
+            description: 'Dark themed window',
+            preview: 'dark',
+            tags: ['window', 'dark', 'night'],
+            suitableFor: ['window'],
+            windowOptions: {
+                transparent: true,
+                backgroundColor: '#121212cc',
+                vibrancy: 'dark'
+            }
+        },
+        light: {
+            name: 'Light Mode',
+            class: 'window-light',
+            category: 'window',
+            description: 'Light themed window',
+            preview: 'light',
+            tags: ['window', 'light', 'bright'],
+            suitableFor: ['window'],
+            windowOptions: {
+                transparent: true,
+                backgroundColor: '#f5f5f5cc',
+                vibrancy: 'light'
+            }
+        },
+        colorful: {
+            name: 'Colorful',
+            class: 'window-colorful',
+            category: 'window',
+            description: 'Colorful window with gradient background',
+            preview: 'colorful',
+            tags: ['window', 'colorful', 'gradient'],
+            suitableFor: ['window'],
+            windowOptions: {
+                transparent: true,
+                backgroundColor: '#4158D0cc',
+                vibrancy: null
+            }
         }
     },
 
