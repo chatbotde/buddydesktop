@@ -63,57 +63,49 @@ export const assistantStyles = css`
 .text-input-container {
     display: flex;
     flex-direction: column;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(45, 45, 45, 0.95);
     border-radius: 24px;
-    padding: 10px 10px 10px 16px;
-    box-shadow: 
-        0 4px 30px rgba(0, 0, 0, 0.1),
-        inset 0 1px 1px rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 16px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     position: sticky;
-    bottom: 8px;
+    bottom: 16px;
     z-index: 10;
-    margin: 0 8px 8px;
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    margin: 0 16px 16px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .text-input-container:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 
-        0 6px 35px rgba(0, 0, 0, 0.15),
-        inset 0 1px 1px rgba(255, 255, 255, 0.15);
+    background: rgba(50, 50, 50, 0.95);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.35);
 }
 
 .text-input-container:focus-within {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(55, 55, 55, 0.95);
+    border-color: rgba(99, 102, 241, 0.5);
     box-shadow: 
-        0 8px 40px rgba(0, 0, 0, 0.2),
-        inset 0 1px 1px rgba(255, 255, 255, 0.2),
-        0 0 0 1px rgba(255, 255, 255, 0.08);
-    transform: translateY(0);
+        0 8px 30px rgba(0, 0, 0, 0.4),
+        0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
 /* Drag and drop visual feedback */
 .text-input-container.drag-over {
-    border-color: rgba(59, 130, 246, 0.5) !important;
+    border-color: rgba(59, 130, 246, 0.6) !important;
     background: rgba(59, 130, 246, 0.1) !important;
     box-shadow: 
-        0 8px 40px rgba(59, 130, 246, 0.2),
-        inset 0 1px 1px rgba(59, 130, 246, 0.2),
-        0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+        0 8px 30px rgba(59, 130, 246, 0.3),
+        0 0 0 2px rgba(59, 130, 246, 0.4) !important;
 }
 
 .screenshots-preview {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 10px 6px 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-    margin-bottom: 8px;
+    gap: 12px;
+    padding: 0 0 16px 0;
+    margin-bottom: 16px;
 }
 
 .screenshots-header {
@@ -146,8 +138,8 @@ export const assistantStyles = css`
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-color);
     cursor: pointer;
-    padding: 4px 10px;
-    border-radius: 10px;
+    padding: 6px 12px;
+    border-radius: 12px;
     opacity: 0.7;
     font-size: 11px;
     font-weight: 500;
@@ -231,24 +223,29 @@ export const assistantStyles = css`
 
 .input-row {
     display: flex;
-    align-items: flex-end;
-    gap: 10px;
-    padding-right: 6px;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.input-row textarea {
-    flex: 1;
+.textarea-container {
+    background: transparent;
+    border-radius: 16px;
+    padding: 12px 16px;
+    border: none;
+}
+
+.textarea-container textarea {
+    width: 100%;
     background: transparent;
     border: none;
     outline: none;
     color: var(--text-color);
     font-size: 15px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    padding: 10px 0;
+    padding: 0;
     resize: none;
     min-width: 0;
     max-width: 100%;
-    width: 100%;
     max-height: 100px;
     line-height: 1.4;
     transition: all 0.2s ease;
@@ -260,66 +257,77 @@ export const assistantStyles = css`
 }
 
 /* Custom scrollbar for textarea in webkit browsers */
-.input-row textarea::-webkit-scrollbar {
+.textarea-container textarea::-webkit-scrollbar {
     width: 4px;
 }
 
-.input-row textarea::-webkit-scrollbar-track {
+.textarea-container textarea::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.input-row textarea::-webkit-scrollbar-thumb {
+.textarea-container textarea::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.3);
     border-radius: 2px;
     transition: background 0.3s ease;
 }
 
-.input-row textarea::-webkit-scrollbar-thumb:hover {
+.textarea-container textarea::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.5);
 }
 
-.input-row textarea::-webkit-scrollbar-corner {
+.textarea-container textarea::-webkit-scrollbar-corner {
     background: transparent;
 }
 
-.input-row textarea::placeholder {
-    color: var(--placeholder-color);
-    opacity: 0.6;
+.textarea-container textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    opacity: 1;
 }
 
-.input-row textarea:focus {
+.textarea-container textarea:focus {
     opacity: 1;
 }
 
 .action-buttons {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.action-buttons-left {
+    display: flex;
     gap: 8px;
     align-items: center;
-    padding-bottom: 4px;
+}
+
+.action-buttons-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
 .action-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-color);
-    font-size: 16px;
+    font-size: 14px;
     cursor: pointer;
-    border-radius: 14px;
-    width: 40px;
-    height: 40px;
+    border-radius: 10px;
+    width: 32px;
+    height: 32px;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     opacity: 0.8;
     position: relative;
-    backdrop-filter: blur(10px);
 }
 
 .action-btn:hover:not(:disabled):not(.at-limit) {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
     opacity: 1;
-    border-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.2);
     transform: translateY(-1px);
 }
 
@@ -331,30 +339,31 @@ export const assistantStyles = css`
 }
 
 .auto-screenshot-btn {
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     width: auto;
-    padding: 0 14px;
+    padding: 0 10px;
+    text-transform: uppercase;
 }
 
 .auto-screenshot-btn.active {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(99, 102, 241, 0.2);
+    border-color: rgba(99, 102, 241, 0.3);
     color: #fff;
 }
 
 .auto-screenshot-btn.active:hover {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(99, 102, 241, 0.3);
+    border-color: rgba(99, 102, 241, 0.4);
 }
 
 .screenshot-count-badge {
     position: absolute;
     top: -3px;
     right: -3px;
-    background: rgba(255, 255, 255, 0.9);
-    color: #000;
+    background: rgba(99, 102, 241, 0.9);
+    color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
     width: 16px;
@@ -369,28 +378,26 @@ export const assistantStyles = css`
 }
 
 .send-btn {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(99, 102, 241, 0.9);
+    border: 1px solid rgba(99, 102, 241, 0.5);
     color: #fff;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
-    border-radius: 16px;
-    width: 44px;
-    height: 44px;
+    border-radius: 10px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
     opacity: 0.9;
 }
 
 .send-btn:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.35);
-    transform: translateY(-1px) scale(1.05);
+    background: rgba(99, 102, 241, 1);
+    border-color: rgba(99, 102, 241, 0.7);
     opacity: 1;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
 }
 
 .send-btn:disabled {
@@ -422,11 +429,9 @@ export const assistantStyles = css`
 /* Enhanced focus states */
 .action-btn:focus-visible,
 .send-btn:focus-visible {
-    outline: 2px solid rgba(255, 255, 255, 0.4);
+    outline: 2px solid rgba(99, 102, 241, 0.5);
     outline-offset: 2px;
 }
-
-
 
 .actions-dropdown-container {
     position: relative;
@@ -436,7 +441,7 @@ export const assistantStyles = css`
     position: absolute;
     bottom: calc(100% + 8px);
     right: 0;
-    background: rgba(40, 40, 40, 0.85);
+    background: rgba(40, 40, 40, 0.95);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -546,42 +551,50 @@ export const assistantStyles = css`
 /* Mobile responsiveness */
 @media (max-width: 768px) {
     .text-input-container {
-        margin: 0 4px 4px;
-        padding: 8px 8px 8px 12px;
+        margin: 0 8px 8px;
+        padding: 12px 16px;
         border-radius: 20px;
     }
     
     .input-row {
-        gap: 6px;
-        padding-right: 4px;
+        gap: 10px;
     }
     
-    .input-row textarea {
+    .textarea-container {
+        padding: 10px 12px;
+        border-radius: 14px;
+    }
+    
+    .textarea-container textarea {
         font-size: 14px;
-        padding: 8px 0;
     }
     
     .action-buttons {
         gap: 6px;
     }
     
+    .action-buttons-left,
+    .action-buttons-right {
+        gap: 6px;
+    }
+    
     .action-btn {
-        width: 32px;
-        height: 32px;
-        border-radius: 12px;
-        font-size: 14px;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        font-size: 12px;
     }
     
     .auto-screenshot-btn {
-        padding: 0 10px;
-        font-size: 10px;
+        padding: 0 8px;
+        font-size: 9px;
     }
     
     .send-btn {
-        width: 36px;
-        height: 36px;
-        border-radius: 14px;
-        font-size: 16px;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        font-size: 14px;
     }
     
     .actions-dropdown {
@@ -616,8 +629,9 @@ export const assistantStyles = css`
     }
     
     .screenshots-preview {
-        padding: 8px 4px 10px 0;
+        padding: 0 0 12px 0;
         gap: 8px;
+        margin-bottom: 12px;
     }
     
     .screenshots-grid {
@@ -639,7 +653,7 @@ export const assistantStyles = css`
     }
     
     .clear-all-btn {
-        padding: 3px 8px;
+        padding: 4px 8px;
         font-size: 10px;
         border-radius: 8px;
     }
@@ -655,48 +669,54 @@ export const assistantStyles = css`
         border-radius: 16px;
         font-size: 13px;
     }
-    
-
 }
 
 @media (max-width: 480px) {
     .text-input-container {
-        margin: 0 2px 2px;
-        padding: 6px 6px 6px 10px;
+        margin: 0 4px 4px;
+        padding: 10px 12px;
         border-radius: 18px;
     }
     
     .input-row {
-        gap: 4px;
-        padding-right: 2px;
+        gap: 8px;
     }
     
-    .input-row textarea {
+    .textarea-container {
+        padding: 8px 10px;
+        border-radius: 12px;
+    }
+    
+    .textarea-container textarea {
         font-size: 13px;
-        padding: 6px 0;
     }
     
     .action-buttons {
         gap: 4px;
     }
     
+    .action-buttons-left,
+    .action-buttons-right {
+        gap: 4px;
+    }
+    
     .action-btn {
-        width: 28px;
-        height: 28px;
-        border-radius: 10px;
-        font-size: 12px;
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        font-size: 10px;
     }
     
     .auto-screenshot-btn {
-        padding: 0 8px;
-        font-size: 9px;
+        padding: 0 6px;
+        font-size: 8px;
     }
     
     .send-btn {
-        width: 32px;
-        height: 32px;
-        border-radius: 12px;
-        font-size: 14px;
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        font-size: 12px;
     }
     
     .actions-dropdown {
@@ -729,8 +749,9 @@ export const assistantStyles = css`
     }
     
     .screenshots-preview {
-        padding: 6px 2px 8px 0;
+        padding: 0 0 10px 0;
         gap: 6px;
+        margin-bottom: 10px;
     }
     
     .screenshots-grid {
@@ -776,7 +797,5 @@ export const assistantStyles = css`
         width: 5px;
         height: 5px;
     }
-    
-
 }
 `;

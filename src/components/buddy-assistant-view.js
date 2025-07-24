@@ -71,11 +71,10 @@ class BuddyAssistantView extends LitElement {
     }
 
     _handleGlobalKeydown(e) {
-        // Check if the event target is already an input, textarea, or contenteditable element
-        const isInputElement = e.target.tagName === 'INPUT' || 
-                              e.target.tagName === 'TEXTAREA' || 
-                              e.target.isContentEditable ||
-                              e.target.closest('input, textarea, [contenteditable]');
+        // More robust check for input elements
+        const isInputElement = e.target.matches('input, textarea, [contenteditable], [contenteditable="true"]') ||
+                              e.target.closest('input, textarea, [contenteditable], [contenteditable="true"]') ||
+                              e.target.isContentEditable;
         
         // Ignore if already in an input field or if it's a special key
         if (isInputElement) return;
@@ -87,47 +86,45 @@ class BuddyAssistantView extends LitElement {
             'Home', 'End', 'PageUp', 'PageDown', 'Insert', 'Delete',
             'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'
         ];
-        
         if (ignoredKeys.includes(e.key)) return;
         
         // Ignore shortcuts (Ctrl+, Cmd+, Alt+)
         if (e.ctrlKey || e.metaKey || e.altKey) return;
         
-        // Only handle printable characters
-        if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Enter') {
-            const textarea = this.renderRoot.querySelector('#textInput');
-            if (textarea) {
-                // Focus the textarea
-                textarea.focus();
-                
-                // If it's a printable character, add it to the textarea
-                if (e.key.length === 1) {
-                    e.preventDefault(); // Prevent the character from being typed in the wrong place
-                    const currentValue = textarea.value;
-                    const selectionStart = textarea.selectionStart;
-                    const selectionEnd = textarea.selectionEnd;
-                    
-                    // Insert the character at the cursor position
-                    const newValue = currentValue.substring(0, selectionStart) + 
-                                   e.key + 
-                                   currentValue.substring(selectionEnd);
-                    
-                    textarea.value = newValue;
-                    
-                    // Set cursor position after the inserted character
-                    textarea.setSelectionRange(selectionStart + 1, selectionStart + 1);
-                    
-                    // Trigger input event to handle any resize logic
-                    const inputEvent = new Event('input', { bubbles: true });
-                    textarea.dispatchEvent(inputEvent);
-                    
-                    // Handle auto screenshot on first keystroke
-                    this._onTextInput({ target: textarea });
-                }
-            }
+        // Cache textarea reference for performance
+        const textarea = this.renderRoot.querySelector('#textInput');
+        if (!textarea) return;
+        
+        // Handle printable characters only for input injection
+        if (e.key.length === 1) {
+            e.preventDefault(); // Prevent typing in the wrong place
+            textarea.focus();
+            
+            const currentValue = textarea.value;
+            const selectionStart = textarea.selectionStart;
+            const selectionEnd = textarea.selectionEnd;
+            
+            // Insert the character at the cursor position
+            const newValue = currentValue.substring(0, selectionStart) + 
+                              e.key + 
+                              currentValue.substring(selectionEnd);
+            textarea.value = newValue;
+            
+            // Set cursor after the inserted character
+            textarea.setSelectionRange(selectionStart + 1, selectionStart + 1);
+            
+            // Trigger input event to handle any resize logic
+            const inputEvent = new Event('input', { bubbles: true });
+            textarea.dispatchEvent(inputEvent);
+            
+            // Handle auto screenshot on first keystroke
+            this._onTextInput({ target: textarea });
+        }
+        // Handle special keys for focus only (no input injection)
+        else if (e.key === 'Backspace' || e.key === 'Enter') {
+            textarea.focus();
         }
     }
-
     _setupScrollListener() {
         const chatContainer = this.renderRoot.querySelector('.chat-container');
         if (!chatContainer) return;
@@ -627,67 +624,74 @@ class BuddyAssistantView extends LitElement {
                         </div>
                     ` : ''}
                     <div class="input-row">
-                        <textarea
-                            id="textInput"
-                            rows="1"
-                            placeholder="${this.autoScreenshotEnabled ? 'Ask me anything... (auto-screenshot enabled) - Paste images with Ctrl+V or drag & drop' : 'Ask me anything... - Paste images with Ctrl+V or drag & drop'}"
-                            @keydown=${this._onKeydown}
-                            @input=${this._onTextInput}
-                            @paste=${this._handlePaste}
-                        ></textarea>
+                        <div class="textarea-container">
+                            <textarea
+                                id="textInput"
+                                rows="1"
+                                placeholder="${this.autoScreenshotEnabled ? 'Ask me anything... (auto-screenshot enabled) - Paste images with Ctrl+V or drag & drop' : 'Ask me anything... - Paste images with Ctrl+V or drag & drop'}"
+                                @keydown=${this._onKeydown}
+                                @input=${this._onTextInput}
+                                @paste=${this._handlePaste}
+                            ></textarea>
+                        </div>
                         <div class="action-buttons">
-                             <div class="actions-dropdown-container">
-                                <button 
-                                    class="action-btn"
-                                    @click=${this._toggleActionsMenu}
-                                    title="More actions"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-                                    ${this.attachedScreenshots.length > 0 ? html`
-                                        <span class="screenshot-count-badge">${this.attachedScreenshots.length}</span>
-                                    ` : ''}
-                                </button>
-
-                                ${this.isActionsMenuOpen ? html`
-                                    <div class="actions-dropdown">
-                                        <button class="dropdown-item" @click=${this._toggleAutoScreenshot}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5v3m0 9v3m4.5-10.5l-2.12 2.12M6.62 17.38l-2.12 2.12M19.5 12h-3m-9 0H4.5m10.5 2.12-2.12 2.12M6.62 6.62 4.5 4.5"/></svg>
-                                            <span class="dropdown-item-label">Auto-screenshot</span>
-                                            <span class="dropdown-item-value">${this.autoScreenshotEnabled ? 'ON' : 'OFF'}</span>
-                                        </button>
-                                        <button
-                                            class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
-                                            @click=${this._onUploadImageClick}
-                                            ?disabled=${this.isStreamingActive || isAtLimit}
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-                                            <span class="dropdown-item-label">Attach image</span>
-                                        </button>
-                                        <button
-                                            class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
-                                            @click=${this._onCaptureScreenshot}
-                                            ?disabled=${this.isStreamingActive || isAtLimit}
-                                        >
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
-                                                <circle cx="12" cy="13" r="3"></circle>
-                                            </svg>
-                                            <span class="dropdown-item-label">Capture screenshot</span>
-                                        </button>
-                                    </div>
-                                ` : ''}
+                            <div class="action-buttons-left">
+                                <!-- Left side buttons can be added here if needed -->
                             </div>
-                           
-                            <button
-                                class="send-btn"
-                                @click=${this._onSend}
-                                title="Send message"
-                                ?disabled=${this.isStreamingActive || this.isWaitingForResponse}
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M9 18v-6H5l7-7 7 7h-4v6H9z"/>
-                                </svg>
-                            </button>
+                            <div class="action-buttons-right">
+                                <div class="actions-dropdown-container">
+                                    <button 
+                                        class="action-btn"
+                                        @click=${this._toggleActionsMenu}
+                                        title="More actions"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+                                        ${this.attachedScreenshots.length > 0 ? html`
+                                            <span class="screenshot-count-badge">${this.attachedScreenshots.length}</span>
+                                        ` : ''}
+                                    </button>
+
+                                    ${this.isActionsMenuOpen ? html`
+                                        <div class="actions-dropdown">
+                                            <button class="dropdown-item" @click=${this._toggleAutoScreenshot}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5v3m0 9v3m4.5-10.5l-2.12 2.12M6.62 17.38l-2.12 2.12M19.5 12h-3m-9 0H4.5m10.5 2.12-2.12 2.12M6.62 6.62 4.5 4.5"/></svg>
+                                                <span class="dropdown-item-label">Auto-screenshot</span>
+                                                <span class="dropdown-item-value">${this.autoScreenshotEnabled ? 'ON' : 'OFF'}</span>
+                                            </button>
+                                            <button
+                                                class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
+                                                @click=${this._onUploadImageClick}
+                                                ?disabled=${this.isStreamingActive || isAtLimit}
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                                                <span class="dropdown-item-label">Attach image</span>
+                                            </button>
+                                            <button
+                                                class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
+                                                @click=${this._onCaptureScreenshot}
+                                                ?disabled=${this.isStreamingActive || isAtLimit}
+                                            >
+                                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                                                    <circle cx="12" cy="13" r="3"></circle>
+                                                </svg>
+                                                <span class="dropdown-item-label">Capture screenshot</span>
+                                            </button>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                               
+                                <button
+                                    class="send-btn"
+                                    @click=${this._onSend}
+                                    title="Send message"
+                                    ?disabled=${this.isStreamingActive || this.isWaitingForResponse}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M9 18v-6H5l7-7 7 7h-4v6H9z"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
