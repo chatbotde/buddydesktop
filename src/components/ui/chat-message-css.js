@@ -3,59 +3,177 @@ import { css } from '../../lit-core-2.7.4.min.js';
 export const chatMessageStyles = css`
         :host { 
             display: block; 
-            margin: 6px 0;
+            margin: 0;
+            width: 100%;
         }
         
         .message-wrapper {
             display: flex;
             width: 100%;
             position: relative;
+            align-items: flex-start;
+            gap: 0;
+            padding: 16px 0;
+            background: transparent;
+            transition: background-color 0.2s ease;
+        }
+
+        .message-wrapper:hover {
+            background: rgba(255, 255, 255, 0.02);
         }
         
         .message-wrapper.user {
-            justify-content: flex-end;
+            justify-content: center;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .message-wrapper.user:hover {
+            background: rgba(255, 255, 255, 0.04);
         }
         
         .message-wrapper.assistant {
-            justify-content: flex-start;
+            justify-content: center;
+            flex-direction: column;
+            background: transparent;
+        }
+
+        /* Message actions container - ChatGPT style */
+        .message-actions {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            position: absolute;
+            right: 24px;
+            top: 8px;
+            z-index: 10;
+        }
+
+        .message-wrapper:hover .message-actions {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .message-wrapper.user .message-actions {
+            right: 24px;
+            top: 8px;
+        }
+
+        .message-wrapper.assistant .message-actions {
+            right: 24px;
+            top: 8px;
+        }
+
+        /* Copy button for message content */
+        .message-copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            position: absolute;
+            right: 24px;
+            top: 8px;
+            z-index: 10;
+        }
+
+        .message-wrapper:hover .message-copy-btn {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .message-copy-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .message-copy-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .message-copy-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Copy success feedback */
+        .message-copy-btn.copied {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+        }
+
+        .message-copy-btn.copied:hover {
+            background: rgba(34, 197, 94, 0.25);
+            border-color: rgba(34, 197, 94, 0.4);
         }
         
         .message-bubble {
-            max-width:100%;
-            padding: 12px 16px;
-            border-radius: 18px;
+            max-width: 100%;
+            width: 100%;
+            padding: 0;
+            border-radius: 0;
             word-wrap: break-word;
             word-break: break-word;
             overflow-wrap: break-word;
             position: relative;
-            animation: messageSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            transition: all 0.3s ease;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            transition: none;
             box-sizing: border-box;
         }
         
         .message-bubble:hover {
-            transform: translateY(-1px);
+            transform: none;
         }
         
         .message-bubble.user {
-            max-width: 75%;
-            background: oklch(44.4% 0.011 73.639);
-            border: 1px solid oklch(98.5% 0.001 106.423 / 0.2);
+            max-width: 100%;
+            width: 100%;
+            background: transparent;
+            border: none;
             color: var(--text-color);
-            border-radius: 18px 18px 6px 18px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            border-radius: 0;
+            box-shadow: none;
+            overflow: visible;
+            position: relative;
+            padding: 0 24px;
+            margin: 0 auto;
+            max-width: 800px;
         }
+
+
         
         .message-bubble.assistant {
-            background: oklch(14.7% 0.004 49.25);
-            border: 1px solid oklch(98.5% 0.001 106.423 / 0.15);
+            background: transparent;
+            border: none;
             color: var(--text-color);
-            border-radius: 18px 18px 18px 6px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            border-radius: 0;
+            box-shadow: none;
+            padding: 0 24px;
+            margin: 0 auto;
+            max-width: 800px;
+            width: 100%;
         }
 
         /* Background Theme Styles */
@@ -65,58 +183,7 @@ export const chatMessageStyles = css`
             backdrop-filter: none !important;
         }
 
-        .message-bubble.bg-glass {
-            background: rgba(255, 255, 255, 0.1) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            backdrop-filter: blur(20px) !important;
-        }
 
-        .message-bubble.bg-dark {
-            background: rgba(0, 0, 0, 0.8) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        }
-
-        .message-bubble.bg-light {
-            background: rgba(255, 255, 255, 0.9) !important;
-            color: #333 !important;
-            border: 1px solid rgba(0, 0, 0, 0.1) !important;
-        }
-
-        .message-bubble.bg-blue {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.8)) !important;
-            border: 1px solid rgba(59, 130, 246, 0.3) !important;
-        }
-
-        .message-bubble.bg-green {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(22, 163, 74, 0.8)) !important;
-            border: 1px solid rgba(34, 197, 94, 0.3) !important;
-        }
-
-        .message-bubble.bg-purple {
-            background: linear-gradient(135deg, rgba(147, 51, 234, 0.8), rgba(126, 34, 206, 0.8)) !important;
-            border: 1px solid rgba(147, 51, 234, 0.3) !important;
-        }
-
-        .message-bubble.bg-orange {
-            background: linear-gradient(135deg, rgba(249, 115, 22, 0.8), rgba(234, 88, 12, 0.8)) !important;
-            border: 1px solid rgba(249, 115, 22, 0.3) !important;
-        }
-
-        .message-bubble.bg-pink {
-            background: linear-gradient(135deg, rgba(236, 72, 153, 0.8), rgba(219, 39, 119, 0.8)) !important;
-            border: 1px solid rgba(236, 72, 153, 0.3) !important;
-        }
-
-        .message-bubble.bg-gradient {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        }
-
-        .message-bubble.bg-neon {
-            background: rgba(0, 0, 0, 0.9) !important;
-            border: 1px solid #00ff00 !important;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3) !important;
-        }
 
         /* Override default styles for themed messages */
         .message-bubble.bg-light .message-content {
@@ -145,24 +212,21 @@ export const chatMessageStyles = css`
 
         .background-dropdown-btn {
             background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: var(--text-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
             cursor: pointer;
-            padding: 6px 8px;
-            border-radius: 8px;
-            margin-left: 4px;
-            font-size: 11px;
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 14px;
             font-weight: 500;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 4px;
-            backdrop-filter: blur(16px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            position: relative;
-            min-width: 24px;
-            height: 24px;
             justify-content: center;
+            gap: 4px;
+            position: relative;
+            min-width: 28px;
+            height: 28px;
         }
 
         /* Compact mode for smaller screens */
@@ -208,9 +272,8 @@ export const chatMessageStyles = css`
 
         .background-dropdown-btn:hover {
             background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .background-dropdown-btn:active {
@@ -235,48 +298,7 @@ export const chatMessageStyles = css`
             border: 1px dashed rgba(255, 255, 255, 0.3);
         }
 
-        .current-theme-preview.bg-glass {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-        }
 
-        .current-theme-preview.bg-dark {
-            background: rgba(0, 0, 0, 0.8);
-        }
-
-        .current-theme-preview.bg-light {
-            background: rgba(255, 255, 255, 0.9);
-        }
-
-        .current-theme-preview.bg-blue {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.8));
-        }
-
-        .current-theme-preview.bg-green {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(22, 163, 74, 0.8));
-        }
-
-        .current-theme-preview.bg-purple {
-            background: linear-gradient(135deg, rgba(147, 51, 234, 0.8), rgba(126, 34, 206, 0.8));
-        }
-
-        .current-theme-preview.bg-orange {
-            background: linear-gradient(135deg, rgba(249, 115, 22, 0.8), rgba(234, 88, 12, 0.8));
-        }
-
-        .current-theme-preview.bg-pink {
-            background: linear-gradient(135deg, rgba(236, 72, 153, 0.8), rgba(219, 39, 119, 0.8));
-        }
-
-        .current-theme-preview.bg-gradient {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .current-theme-preview.bg-neon {
-            background: rgba(0, 0, 0, 0.9);
-            border: 1px solid #00ff00;
-            box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
-        }
 
         /* Popup Dialog Styles */
         .background-popup-overlay {
@@ -413,48 +435,7 @@ export const chatMessageStyles = css`
             border: 1px dashed rgba(255, 255, 255, 0.3);
         }
 
-        .theme-preview.bg-glass {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-        }
 
-        .theme-preview.bg-dark {
-            background: rgba(0, 0, 0, 0.8);
-        }
-
-        .theme-preview.bg-light {
-            background: rgba(255, 255, 255, 0.9);
-        }
-
-        .theme-preview.bg-blue {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.8));
-        }
-
-        .theme-preview.bg-green {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(22, 163, 74, 0.8));
-        }
-
-        .theme-preview.bg-purple {
-            background: linear-gradient(135deg, rgba(147, 51, 234, 0.8), rgba(126, 34, 206, 0.8));
-        }
-
-        .theme-preview.bg-orange {
-            background: linear-gradient(135deg, rgba(249, 115, 22, 0.8), rgba(234, 88, 12, 0.8));
-        }
-
-        .theme-preview.bg-pink {
-            background: linear-gradient(135deg, rgba(236, 72, 153, 0.8), rgba(219, 39, 119, 0.8));
-        }
-
-        .theme-preview.bg-gradient {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .theme-preview.bg-neon {
-            background: rgba(0, 0, 0, 0.9);
-            border: 1px solid #00ff00;
-            box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
-        }
 
         @keyframes dropdownSlideIn {
             from {
@@ -635,14 +616,15 @@ export const chatMessageStyles = css`
         }
         
         .message-content {
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 6px;
+            font-size: 16px;
+            line-height: 1.7;
+            margin: 0;
+            padding: 12px 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             position: relative;
             user-select: text;
             -webkit-user-select: text;
-            font-weight: 600;
+            font-weight: 400;
             width: 100%;
             max-width: 100%;
             overflow-wrap: break-word;
@@ -650,6 +632,7 @@ export const chatMessageStyles = css`
             word-break: break-word;
             hyphens: auto;
             box-sizing: border-box;
+            color: var(--text-color);
         }
         
         .message-content h1, .message-content h2, .message-content h3 {
@@ -683,148 +666,131 @@ export const chatMessageStyles = css`
             max-width: 100%;
         }
         
-        /* Enhanced code block styles - Ultra Professional & Responsive */
+        /* Code Editor Style - Professional Look */
         .code-block-container {
-            margin: 1.5em 0;
-            border-radius: 16px;
+            margin: 16px 0;
+            border-radius: 8px;
             overflow: hidden;
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
-            border: 2px solid rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(20px);
+            background: rgba(30, 30, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             position: relative;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s ease;
             max-width: 100%;
             width: 100%;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
+            font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .code-block-container:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
-            border-color: rgba(255, 255, 255, 0.18);
+            background: rgba(30, 30, 30, 0.9);
+            border-color: rgba(255, 255, 255, 0.16);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
         
         .code-block-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 16px;
-            background: linear-gradient(135deg, rgba(0, 122, 255, 0.15), rgba(88, 86, 214, 0.15));
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 16px;
+            background: rgba(40, 40, 40, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
-            min-height: 44px;
+            min-height: 40px;
             flex-shrink: 0;
         }
 
+        /* Code editor window controls */
         .code-block-header::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #007aff, #5856d6, #007aff);
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff5f57;
+            box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #28ca42;
         }
         
         .code-language {
             font-size: 13px;
-            font-weight: 700;
-            color: #ffffff;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: capitalize;
+            letter-spacing: 0;
             position: relative;
-            padding-left: 1.5em;
             display: flex;
             align-items: center;
-        }
-
-        .code-language::before {
-            content: '◉';
-            position: absolute;
-            left: 0;
-            color: #4fc3f7;
-            font-size: 0.9em;
+            font-family: inherit;
+            margin-left: 70px;
         }
         
         .code-copy-btn {
-            position: absolute;
-            top: 8px;
-            right: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #ffffff;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             opacity: 0;
             pointer-events: none;
-            backdrop-filter: blur(10px);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
             z-index: 10;
         }
 
         .code-block-container:hover .code-copy-btn {
-            opacity: 0.8;
+            opacity: 1;
             pointer-events: all;
         }
         
         .code-copy-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.3);
-            opacity: 1;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .code-copy-btn:active {
-            transform: translateY(0);
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .code-copy-btn svg {
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             flex-shrink: 0;
         }
         
         .code-block {
             margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.3);
             overflow: auto;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
             font-size: 14px;
             line-height: 1.6;
             border: none;
-            white-space: pre;
+            white-space: pre-wrap;
             max-width: 100%;
             box-sizing: border-box;
-            color: #e5e5e7;
-            font-weight: 500;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 400;
             position: relative;
             min-height: 60px;
             flex: 1;
-        }
-
-        .code-block::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 3px;
-            height: 100%;
-            background: linear-gradient(180deg, #4fc3f7, #007aff);
-            border-radius: 0 2px 2px 0;
+            border-radius: 0 0 8px 8px;
+            tab-size: 4;
+            -moz-tab-size: 4;
+            counter-reset: line-number;
+            word-break: keep-all;
+            overflow-wrap: normal;
         }
         
         .code-block code {
@@ -834,19 +800,158 @@ export const chatMessageStyles = css`
             font-size: inherit;
             color: inherit;
             font-family: inherit;
-            white-space: inherit;
-            overflow-wrap: break-word;
-            word-break: break-all;
+            white-space: pre-wrap;
+            overflow-wrap: normal;
+            word-break: keep-all;
+            display: block;
+            width: 100%;
+            min-width: max-content;
+            tab-size: inherit;
+            -moz-tab-size: inherit;
         }
 
-        /* Enhanced scrollbar for code blocks */
+        /* Code editor with line numbers */
+        .code-block.with-line-numbers {
+            padding-left: 60px;
+            position: relative;
+        }
+
+        .code-block.with-line-numbers::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50px;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+        }
+
+        .code-block.with-line-numbers code {
+            position: relative;
+            display: block;
+            counter-reset: line-number;
+        }
+
+        .code-block.with-line-numbers code::before {
+            content: counter(line-number);
+            counter-increment: line-number;
+            position: absolute;
+            left: -50px;
+            width: 40px;
+            text-align: right;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            line-height: inherit;
+            padding-right: 8px;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        /* Line number styling for multi-line code */
+        .code-block.with-line-numbers .code-line {
+            display: block;
+            position: relative;
+            min-height: 1.6em;
+            white-space: pre-wrap;
+            tab-size: 4;
+            -moz-tab-size: 4;
+        }
+
+        .code-block.with-line-numbers .code-line::before {
+            content: counter(line-number);
+            counter-increment: line-number;
+            position: absolute;
+            left: -50px;
+            width: 40px;
+            text-align: right;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            line-height: inherit;
+            padding-right: 8px;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        /* Better indentation visualization */
+        .code-block .hljs-keyword + * {
+            margin-left: 0;
+        }
+
+        /* Preserve indentation for nested code blocks */
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            white-space: pre-wrap;
+            tab-size: 4;
+            -moz-tab-size: 4;
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
+        }
+
+        /* Ensure proper spacing for code structure */
+        .code-block .hljs {
+            white-space: pre-wrap;
+            tab-size: 4;
+            -moz-tab-size: 4;
+            word-break: keep-all;
+            overflow-wrap: normal;
+        }
+
+        /* Visual indentation guides */
+        .code-block {
+            background-image: 
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 15px,
+                    rgba(255, 255, 255, 0.03) 16px,
+                    rgba(255, 255, 255, 0.03) 17px,
+                    transparent 18px,
+                    transparent 31px,
+                    rgba(255, 255, 255, 0.03) 32px,
+                    rgba(255, 255, 255, 0.03) 33px,
+                    transparent 34px,
+                    transparent 47px,
+                    rgba(255, 255, 255, 0.03) 48px,
+                    rgba(255, 255, 255, 0.03) 49px,
+                    transparent 50px,
+                    transparent 63px,
+                    rgba(255, 255, 255, 0.03) 64px,
+                    rgba(255, 255, 255, 0.03) 65px
+                );
+            background-size: 80px 100%;
+            background-repeat: repeat-x;
+            background-position: 0 0;
+        }
+
+        /* Better spacing for code blocks */
+        .code-block span {
+            display: inline;
+            white-space: pre-wrap;
+        }
+
+        /* Improve readability of nested structures */
+        .code-block .hljs-comment {
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        .code-block .hljs-string {
+            word-break: break-all;
+            overflow-wrap: anywhere;
+        }
+
+        /* Code editor scrollbars - better for horizontal scrolling */
         .code-block::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
 
         .code-block::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.1);
             border-radius: 4px;
         }
 
@@ -861,131 +966,173 @@ export const chatMessageStyles = css`
         }
 
         .code-block::-webkit-scrollbar-corner {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.1);
         }
 
-        /* Enhanced syntax highlighting */
+        /* Firefox scrollbar */
+        .code-block {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.1);
+        }
+
+        /* Notion-style syntax highlighting */
         .hljs {
             background: transparent !important;
-            color: #e6e6e6;
-            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 400;
         }
 
         .hljs-keyword {
-            color: #c792ea;
-            font-weight: 600;
+            color: #ff7b72;
+            font-weight: 500;
         }
 
         .hljs-string {
-            color: #c3e88d;
+            color: #a5d6ff;
         }
 
         .hljs-number {
-            color: #f78c6c;
+            color: #79c0ff;
         }
 
         .hljs-comment {
-            color: #546e7a;
+            color: rgba(255, 255, 255, 0.5);
             font-style: italic;
-            opacity: 0.8;
         }
 
         .hljs-function {
-            color: #82aaff;
-            font-weight: 600;
+            color: #d2a8ff;
+            font-weight: 500;
         }
 
         .hljs-variable {
-            color: #eeffff;
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .hljs-attr {
-            color: #ffcb6b;
+            color: #79c0ff;
         }
 
         .hljs-tag {
-            color: #f07178;
+            color: #7ee787;
         }
 
         .hljs-type {
-            color: #4ec9b0;
+            color: #ffa657;
         }
 
         .hljs-built_in {
-            color: #4fc1ff;
+            color: #79c0ff;
         }
 
         .hljs-operator {
-            color: #89ddff;
+            color: #ff7b72;
         }
 
         .hljs-punctuation {
-            color: #89ddff;
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .hljs-title {
-            color: #82aaff;
-            font-weight: 600;
+            color: #d2a8ff;
+            font-weight: 500;
         }
 
         .hljs-literal {
-            color: #ff5370;
+            color: #79c0ff;
         }
 
         .hljs-regexp {
-            color: #c3e88d;
+            color: #a5d6ff;
         }
 
         .hljs-meta {
-            color: #ffcb6b;
+            color: #ffa657;
         }
 
-        /* Responsive design for code blocks */
+        /* Responsive design for code editor */
         @media (max-width: 768px) {
             .code-block-container {
-                margin: 1em 0;
-                border-radius: 12px;
+                margin: 12px 0;
+                border-radius: 6px;
             }
 
             .code-block-header {
-                padding: 10px 12px;
-                min-height: 40px;
+                padding: 8px 12px;
+                min-height: 36px;
+            }
+
+            .code-block-header::before {
+                left: 12px;
+                width: 10px;
+                height: 10px;
+                box-shadow: 16px 0 0 #ffbd2e, 32px 0 0 #28ca42;
             }
 
             .code-language {
                 font-size: 12px;
+                margin-left: 60px;
             }
 
             .code-block {
-                padding: 16px 12px;
+                padding: 12px 14px;
                 font-size: 13px;
                 line-height: 1.5;
             }
 
-            .code-copy-btn {
-                padding: 4px 8px;
-                font-size: 11px;
-                top: 6px;
-                right: 8px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .code-block {
-                padding: 12px 8px;
-                font-size: 12px;
-                overflow-x: auto;
-                white-space: pre;
+            .code-block.with-line-numbers {
+                padding-left: 50px;
             }
 
-            .code-language {
-                font-size: 11px;
-                padding-left: 1.2em;
+            .code-block.with-line-numbers::before {
+                width: 40px;
             }
 
             .code-copy-btn {
                 padding: 3px 6px;
                 font-size: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .code-block-header {
+                padding: 6px 10px;
+                min-height: 32px;
+            }
+
+            .code-block-header::before {
+                left: 10px;
+                width: 8px;
+                height: 8px;
+                box-shadow: 14px 0 0 #ffbd2e, 28px 0 0 #28ca42;
+            }
+
+            .code-language {
+                font-size: 11px;
+                margin-left: 50px;
+            }
+
+            .code-block {
+                padding: 10px 12px;
+                font-size: 12px;
+                overflow-x: auto;
+                white-space: pre-wrap;
+                tab-size: 2;
+                -moz-tab-size: 2;
+                background-size: 40px 100%;
+            }
+
+            .code-block.with-line-numbers {
+                padding-left: 45px;
+            }
+
+            .code-block.with-line-numbers::before {
+                width: 35px;
+            }
+
+            .code-copy-btn {
+                padding: 2px 4px;
+                font-size: 9px;
             }
         }
 
@@ -1053,42 +1200,39 @@ export const chatMessageStyles = css`
         }
         
         .message-time {
-            font-size: 11px;
-            opacity: 0.6;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 6px;
-            justify-content: flex-end;
-            font-weight: 500;
-        }
-        
-        .message-bubble.assistant .message-time {
-            text-align: left;
-            justify-content: flex-start;
+            display: none;
         }
         
         .msg-action-btn {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-color);
-            opacity: 0.6;
+            color: rgba(255, 255, 255, 0.7);
             cursor: pointer;
-            padding: 4px 6px;
-            border-radius: 8px;
-            margin-left: 4px;
-            font-size: 13px;
-            transition: all 0.3s ease;
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            backdrop-filter: blur(10px);
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+            white-space: nowrap;
         }
         
         .msg-action-btn:hover {
-            opacity: 1;
             background: rgba(255, 255, 255, 0.15);
             border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .msg-action-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Hide edit button specifically */
+        .msg-action-btn.edit-btn {
+            display: none;
         }
         
         .selection-copy-btn {
@@ -1359,10 +1503,10 @@ export const chatMessageStyles = css`
             display: block;
         }
 
-        /* Enhanced Dropdown Header */
+        /* Simplified Dropdown Header */
         .dropdown-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             padding: 8px 12px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -1378,90 +1522,13 @@ export const chatMessageStyles = css`
             gap: 6px;
         }
 
-        /* Message type indicator */
-        .message-type-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .message-type-indicator.input {
-            background: rgba(59, 130, 246, 0.2);
-            color: #60a5fa;
-            border: 1px solid rgba(59, 130, 246, 0.3);
-        }
-
-        .message-type-indicator.output {
-            background: rgba(34, 197, 94, 0.2);
-            color: #4ade80;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-
-        .dropdown-search {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-color);
-            padding: 3px 6px;
-            border-radius: 4px;
-            font-size: 10px;
-            width: 80px;
-            transition: all 0.2s ease;
-        }
-
-        .dropdown-search:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.12);
-        }
-
-        .dropdown-search::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        /* Category Sections - Horizontal Layout */
+        /* Simplified Theme Selection */
         .dropdown-categories {
-            max-height: 80px;
-            overflow-x: auto;
-            overflow-y: hidden;
             padding: 12px 16px;
             display: flex;
-            gap: 8px;
+            gap: 12px;
             align-items: center;
-            flex-wrap: nowrap;
-            scroll-behavior: smooth;
-            scrollbar-width: thin;
-        }
-
-        .category-section {
-            margin-bottom: 0;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .category-header {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
-            white-space: nowrap;
-        }
-
-        .category-icon {
-            font-size: 14px;
+            justify-content: center;
         }
 
         /* Enhanced Theme Items - Horizontal Circle Layout */
@@ -1664,5 +1731,143 @@ export const chatMessageStyles = css`
             font-size: 15px;
             line-height: 1.6; /* Increased line spacing for better readability */
             letter-spacing: 0.02em;
+        }
+
+        /* Responsive design for ChatGPT-style layout */
+        @media (max-width: 768px) {
+            .message-bubble.user,
+            .message-bubble.assistant {
+                padding: 0 16px;
+                max-width: 100%;
+            }
+
+            .message-content {
+                font-size: 15px;
+                line-height: 1.6;
+                padding: 10px 0;
+            }
+
+            .message-actions {
+                right: 16px;
+                top: 6px;
+            }
+
+            .message-copy-btn {
+                right: 16px;
+                top: 6px;
+                min-width: 26px;
+                height: 26px;
+                padding: 5px;
+                font-size: 13px;
+            }
+
+            .message-copy-btn svg {
+                width: 14px;
+                height: 14px;
+            }
+
+            .msg-action-btn,
+            .background-dropdown-btn {
+                min-width: 26px;
+                height: 26px;
+                padding: 5px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .message-bubble.user,
+            .message-bubble.assistant {
+                padding: 0 12px;
+            }
+
+            .message-content {
+                font-size: 14px;
+                line-height: 1.5;
+                padding: 8px 0;
+            }
+
+            .message-wrapper {
+                padding: 12px 0;
+            }
+
+            .message-actions {
+                right: 12px;
+                top: 4px;
+                gap: 6px;
+            }
+
+            .message-copy-btn {
+                right: 12px;
+                top: 4px;
+                min-width: 24px;
+                height: 24px;
+                padding: 4px;
+                font-size: 12px;
+            }
+
+            .message-copy-btn svg {
+                width: 12px;
+                height: 12px;
+            }
+
+            .msg-action-btn,
+            .background-dropdown-btn {
+                min-width: 24px;
+                height: 24px;
+                padding: 4px;
+                font-size: 12px;
+            }
+        }
+
+        /* Enhanced user message container with better spacing */
+        .message-wrapper.user .message-bubble {
+            background: linear-gradient(135deg, 
+                oklch(44.4% 0.011 73.639) 0%, 
+                oklch(42% 0.015 73.639) 100%);
+            border: 1px solid oklch(98.5% 0.001 106.423 / 0.25);
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Hover effects for user messages */
+        .message-bubble.user:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 20px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            border-color: oklch(98.5% 0.001 106.423 / 0.35);
+        }
+
+        /* Fade effect for long content */
+        .message-bubble.user::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: linear-gradient(transparent, oklch(44.4% 0.011 73.639));
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .message-bubble.user.has-scroll::after {
+            opacity: 1;
+        }
+
+        /* Improved text selection for user messages */
+        .message-bubble.user .message-content ::selection {
+            background: rgba(255, 255, 255, 0.3);
+            color: inherit;
+        }
+
+        .message-bubble.user .message-content ::-moz-selection {
+            background: rgba(255, 255, 255, 0.3);
+            color: inherit;
         }
     `;

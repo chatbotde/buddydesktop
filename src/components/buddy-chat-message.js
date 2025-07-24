@@ -195,6 +195,47 @@ class BuddyChatMessage extends EquationMixin(ThemeMixin(LitElement)) {
             });
     }
 
+    _onCopyMessage() {
+        const textToCopy = this.text || '';
+        const copyBtn = this.shadowRoot.querySelector('.message-copy-btn');
+        
+        navigator.clipboard
+            .writeText(textToCopy)
+            .then(() => {
+                console.log('Message copied to clipboard');
+                
+                // Show success feedback
+                if (copyBtn) {
+                    copyBtn.classList.add('copied');
+                    const originalHTML = copyBtn.innerHTML;
+                    
+                    copyBtn.innerHTML = `
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <polyline points="20,6 9,17 4,12"></polyline>
+                        </svg>
+                    `;
+                    
+                    setTimeout(() => {
+                        copyBtn.classList.remove('copied');
+                        copyBtn.innerHTML = originalHTML;
+                    }, 2000);
+                }
+            })
+            .catch(err => {
+                console.error('Failed to copy message:', err);
+            });
+    }
+
     _onEdit() {
         this.isEditing = true;
         this.editableContent = this.text || '';
@@ -440,6 +481,23 @@ class BuddyChatMessage extends EquationMixin(ThemeMixin(LitElement)) {
 
         return html`
             <div class="message-wrapper ${this.sender}">
+                <!-- Copy button that appears on hover -->
+                <button class="message-copy-btn" @click=${this._onCopyMessage} title="Copy message">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h1"></path>
+                    </svg>
+                </button>
                 <div class="message-bubble ${this.sender} ${backgroundClass}">
                     ${hasScreenshots
                         ? html`

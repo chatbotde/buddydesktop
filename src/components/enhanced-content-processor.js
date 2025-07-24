@@ -152,21 +152,42 @@ export class EnhancedContentProcessor {
                 highlightedCode = this._escapeHtml(trimmedCode);
             }
 
-            const header = `<div class="code-block-header"><span class="code-language">${detectedLang}</span></div>`;
-            const preformattedCode = `<pre class="code-block"><code id="${codeId}" class="hljs ${detectedLang}">${highlightedCode}</code></pre>`;
-            const copyButton = `<button class="code-copy-btn" onclick="this.getRootNode().host._copyCode('${codeId}')" title="Copy code">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"></path>
-                                    </svg>
-                                    Copy
-                                </button>`;
+            // Add line numbers for better code editor appearance
+            const lines = highlightedCode.split('\n');
+            const hasMultipleLines = lines.length > 1;
+            
+            let processedCode;
+            if (hasMultipleLines) {
+                // Create line-numbered version
+                const numberedLines = lines.map((line, index) => {
+                    return `<span class="code-line">${line || ' '}</span>`;
+                }).join('\n');
+                processedCode = numberedLines;
+            } else {
+                // Single line - no line numbers needed
+                processedCode = highlightedCode;
+            }
+
+            const header = `
+                <div class="code-block-header">
+                    <span class="code-language">${detectedLang}</span>
+                    <button class="code-copy-btn" onclick="this.getRootNode().host._copyCode('${codeId}')" title="Copy code">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2h1"></path>
+                        </svg>
+                        Copy
+                    </button>
+                </div>
+            `;
+            
+            const codeBlockClass = hasMultipleLines ? 'code-block with-line-numbers' : 'code-block';
+            const preformattedCode = `<pre class="${codeBlockClass}"><code id="${codeId}" class="hljs ${detectedLang}">${processedCode}</code></pre>`;
 
             return `
                 <div class="code-block-container">
                     ${header}
                     ${preformattedCode}
-                    ${copyButton}
                 </div>
             `;
         });
