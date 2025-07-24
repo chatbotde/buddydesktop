@@ -287,8 +287,35 @@
         // Check if we're in Electron environment
         const isElectron = typeof window.require === 'function';
         
-        // Get selected buttons from window object
-        let selectedButtons = window.selectedButtons || [];
+        // Load selected buttons from localStorage or window object
+        function loadSelectedButtons() {
+            try {
+                const saved = localStorage.getItem('buddy-custom-menu-buttons');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    console.log('Marketplace: Loaded buttons from localStorage:', parsed);
+                    return parsed;
+                }
+            } catch (error) {
+                console.error('Error loading selected buttons:', error);
+            }
+            // Fallback to window object or default
+            const fallback = window.selectedButtons || ['home', 'chat', 'history', 'models', 'customize', 'help'];
+            console.log('Marketplace: Using fallback buttons:', fallback);
+            return fallback;
+        }
+
+        // Save selected buttons to localStorage
+        function saveSelectedButtons(buttons) {
+            try {
+                localStorage.setItem('buddy-custom-menu-buttons', JSON.stringify(buttons));
+                console.log('Marketplace: Saved buttons to localStorage:', buttons);
+            } catch (error) {
+                console.error('Error saving selected buttons:', error);
+            }
+        }
+        
+        let selectedButtons = loadSelectedButtons();
         let searchQuery = '';
         
         // Button data
@@ -362,6 +389,20 @@
                 icon: 'm16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5 M2 6h14v12H2z',
                 category: 'Video',
                 description: 'Toggle video recording'
+            },
+            {
+                id: 'content-protection',
+                name: 'Content Protection',
+                icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+                category: 'Privacy',
+                description: 'Toggle content protection and visibility'
+            },
+            {
+                id: 'workspace-visibility',
+                name: 'All Workspaces',
+                icon: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
+                category: 'Workspace',
+                description: 'Toggle visibility on all workspaces'
             }
         ];
 
@@ -418,6 +459,8 @@
             } else {
                 selectedButtons.push(buttonId);
             }
+            // Save to localStorage immediately
+            saveSelectedButtons(selectedButtons);
             renderButtons();
         }
 
@@ -436,6 +479,9 @@
 
         // Apply changes and close window
         function applyChanges() {
+            // Save to localStorage first
+            saveSelectedButtons(selectedButtons);
+            
             if (isElectron) {
                 // Use Electron IPC
                 const { ipcRenderer } = window.require('electron');
