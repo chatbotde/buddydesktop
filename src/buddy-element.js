@@ -46,6 +46,10 @@ class BuddyApp extends LitElement {
         enabledModels: { type: Array },
         customProfiles: { type: Array },
         customMenuButtons: { type: Array },
+        windowOpacity: { type: Number },
+        isOpacityControlActive: { type: Boolean },
+        currentWindowTheme: { type: String },
+        availableThemes: { type: Object },
     };
 
     static styles = [buddyAppStyles];
@@ -85,8 +89,15 @@ class BuddyApp extends LitElement {
         this.enabledModels = this.loadEnabledModels();
         this.customProfiles = this.loadCustomProfiles();
         this.customMenuButtons = this.loadUserPreference('customMenuButtons') || ['home', 'chat', 'history', 'models', 'customize', 'help'];
+        this.windowOpacity = 1.0;
+        this.isOpacityControlActive = false;
+        this.currentWindowTheme = 'transparent';
+        this.availableThemes = {};
         
         this.initializeAuth();
+        this.loadAvailableThemes();
+        this.loadSavedTheme();
+        this.loadSavedOpacity();
     }
 
     async initializeAuth() {
@@ -484,6 +495,15 @@ class BuddyApp extends LitElement {
         });
         this.addEventListener('open-marketplace-window', async () => {
             await this.openMarketplaceWindow();
+        });
+        this.addEventListener('toggle-opacity-control', async (e) => {
+            await this.toggleOpacityControl(e.detail.active);
+        });
+        this.addEventListener('opacity-change', async (e) => {
+            await this.setWindowOpacity(e.detail.opacity);
+        });
+        this.addEventListener('window-theme-change', async (e) => {
+            await this.setWindowTheme(e.detail.theme);
         });
         this.addEventListener('delete-session', (e) => {
             this.deleteSession(e.detail.index);
@@ -1155,6 +1175,162 @@ class BuddyApp extends LitElement {
         
         this.requestUpdate();
     }
+
+    async toggleOpacityControl(active) {
+        this.isOpacityControlActive = active;
+        
+        if (active) {
+            // Add scroll wheel event listener
+            this.addEventListener('wheel', this.handleOpacityScroll.bind(this), { passive: false });
+            console.log('Opacity control activated - use scroll wheel to adjust opacity');
+        } else {
+            // Remove scroll wheel event listener
+            this.removeEventListener('wheel', this.handleOpacityScroll.bind(this));
+            console.log('Opacity control deactivated');
+        }
+        
+        this.requestUpdate();
+    }
+
+    handleOpacityScroll(e) {
+        if (!this.isOpacityControlActive) return;
+        
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.05 : 0.05; // Invert scroll direction for intuitive control
+        this.adjustWindowOpacity(delta);
+    }
+
+    async adjustWindowOpacity(delta) {
+        try {
+            const { ipcRenderer } = window.require('electron');
+            const result = await ipcRenderer.invoke('adjust-window-opacity', {
+                windowId: 'main', // Assuming main window ID
+                delta: delta
+            });
+            
+            if (result.success) {
+                this.windowOpacity = result.opacity;
+                this.requestUpdate();
+                console.log(`Window opacity adjusted to: ${Math.round(this.windowOpacity * 100)}%`);
+            } else {
+                console.error('Failed to adjust window opacity:', result.error);
+            }
+        } catch (error) {
+            console.error('Error adjusting window opacity:', error);
+        }
+    }
+
+    async setWindowOpacity(opacity) {
+        try {
+            const { ipcRenderer } = window.require('electron');
+            const result = await ipcRenderer.invoke('set-window-opacity', {
+                windowId: 'main', // Assuming main window ID
+                opacity: opacity
+            });
+            
+            if (result.success) {
+                this.windowOpacity = opacity;
+                // Save opacity preference to localStorage
+                localStorage.setItem('windowOpacity', opacity.toString());
+                this.requestUpdate();
+                console.log(`Window opacity set to: ${Math.round(this.windowOpacity * 100)}%`);
+            } else {
+                console.error('Failed to set window opacity:', result.error);
+            }
+        } catch (error) {
+            console.error('Error setting window opacity:', error);
+        }
+    }
+
+    async setWindowTheme(theme) {
+        try {
+            console.log('Buddy element: Setting window theme to:', theme);
+            const { ipcRenderer } = window.require('electron');
+            const result = await ipcRenderer.invoke('set-simple-window-theme', {
+                windowId: 'main',
+                theme: theme
+            });
+            
+            console.log('IPC result:', result);
+            
+            if (result.success) {
+                this.currentWindowTheme = theme;
+                // Save theme preference to localStorage
+                localStorage.setItem('windowTheme', theme);
+                this.requestUpdate();
+                console.log(`Window theme successfully set to: ${theme}`);
+            } else {
+                console.error('Failed to set window theme:', result.error);
+            }
+        } catch (error) {
+            console.error('Error setting window theme:', error);
+        }
+    }
+
+    async loadAvailableThemes() {
+        try {
+            const { ipcRenderer } = window.require('electron');
+            const result = await ipcRenderer.invoke('get-simple-themes');
+            
+            if (result.success) {
+                this.availableThemes = result.themes;
+                this.requestUpdate();
+            } else {
+                console.error('Failed to load available themes:', result.error);
+            }
+        } catch (error) {
+            console.error('Error loading available themes:', error);
+        }
+    }
+
+    async loadSavedTheme() {
+        try {
+            // Load saved theme from localStorage
+            const savedTheme = localStorage.getItem('windowTheme');
+            
+            if (savedTheme && (savedTheme === 'transparent' || savedTheme === 'black')) {
+                console.log('Loading saved theme:', savedTheme);
+                await this.setWindowTheme(savedTheme);
+            } else {
+                // Set default theme if no valid saved theme
+                console.log('No valid saved theme found, using default: transparent');
+                await this.setWindowTheme('transparent');
+            }
+        } catch (error) {
+            console.error('Error loading saved theme:', error);
+            // Fallback to default theme on error
+            await this.setWindowTheme('transparent');
+        }
+    }
+
+    async loadSavedOpacity() {
+        try {
+            // Load saved opacity from localStorage
+            const savedOpacity = localStorage.getItem('windowOpacity');
+            
+            if (savedOpacity) {
+                const opacity = parseFloat(savedOpacity);
+                
+                // Validate opacity value (between 0.1 and 1.0)
+                if (opacity >= 0.1 && opacity <= 1.0) {
+                    console.log('Loading saved opacity:', opacity);
+                    await this.setWindowOpacity(opacity);
+                } else {
+                    // Set default opacity if saved value is invalid
+                    console.log('Invalid saved opacity, using default: 1.0');
+                    await this.setWindowOpacity(1.0);
+                }
+            } else {
+                // Set default opacity if no saved value
+                console.log('No saved opacity found, using default: 1.0');
+                await this.setWindowOpacity(1.0);
+            }
+        } catch (error) {
+            console.error('Error loading saved opacity:', error);
+            // Fallback to default opacity on error
+            await this.setWindowOpacity(1.0);
+        }
+    }
     // --- End Updated Toggle Handlers ---
 
     toggleTheme() {
@@ -1384,6 +1560,10 @@ class BuddyApp extends LitElement {
                         .isGuest=${this.isGuest}
                         .enabledModels=${this.enabledModels}
                         .customMenuButtons=${this.customMenuButtons}
+                        .windowOpacity=${this.windowOpacity}
+                        .isOpacityControlActive=${this.isOpacityControlActive}
+                        .currentWindowTheme=${this.currentWindowTheme}
+                        .availableThemes=${this.availableThemes}
                     ></buddy-header>
                     <div class="main-content">${views[this.currentView]}</div>
                 </div>

@@ -19,6 +19,12 @@ class BuddyHeader extends LitElement {
         enabledModels: { type: Array },
         selectedModel: { type: String },
         isModelsDropdownOpen: { type: Boolean },
+        windowOpacity: { type: Number },
+        isOpacityControlActive: { type: Boolean },
+        isOpacityDropdownOpen: { type: Boolean },
+        currentWindowTheme: { type: String },
+        isThemeDropdownOpen: { type: Boolean },
+        availableThemes: { type: Object },
 
         customMenuButtons: { type: Array },
     };
@@ -28,9 +34,15 @@ class BuddyHeader extends LitElement {
         this.isControlsMenuOpen = false;
         this.isMainMenuOpen = false;
         this.isModelsDropdownOpen = false;
+        this.isOpacityDropdownOpen = false;
+        this.isThemeDropdownOpen = false;
+        this.currentWindowTheme = 'transparent';
+        this.availableThemes = {};
 
         this.isContentProtected = true;
         this.isVisibleOnAllWorkspaces = true;
+        this.windowOpacity = 1.0;
+        this.isOpacityControlActive = false;
         this.customMenuButtons = ['home', 'chat', 'history', 'models', 'customize', 'help'];
         this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
     }
@@ -94,8 +106,47 @@ class BuddyHeader extends LitElement {
         }
     }
 
+    _toggleOpacityDropdown() {
+        // Close other dropdowns first
+        this._closeMainMenu();
+        this._closeControlsMenu();
+        this._closeModelsDropdown();
+        
+        this.isOpacityDropdownOpen = !this.isOpacityDropdownOpen;
+        this.requestUpdate();
+        this._manageEventListener();
+    }
+
+    _closeOpacityDropdown() {
+        if (this.isOpacityDropdownOpen) {
+            this.isOpacityDropdownOpen = false;
+            this.requestUpdate();
+            this._manageEventListener();
+        }
+    }
+
+    _toggleThemeDropdown() {
+        // Close other dropdowns first
+        this._closeMainMenu();
+        this._closeControlsMenu();
+        this._closeModelsDropdown();
+        this._closeOpacityDropdown();
+        
+        this.isThemeDropdownOpen = !this.isThemeDropdownOpen;
+        this.requestUpdate();
+        this._manageEventListener();
+    }
+
+    _closeThemeDropdown() {
+        if (this.isThemeDropdownOpen) {
+            this.isThemeDropdownOpen = false;
+            this.requestUpdate();
+            this._manageEventListener();
+        }
+    }
+
     _manageEventListener() {
-        const hasOpenDropdown = this.isMainMenuOpen || this.isControlsMenuOpen || this.isModelsDropdownOpen;
+        const hasOpenDropdown = this.isMainMenuOpen || this.isControlsMenuOpen || this.isModelsDropdownOpen || this.isOpacityDropdownOpen || this.isThemeDropdownOpen;
         
         if (hasOpenDropdown) {
             // Add event listener with a small delay to prevent immediate closure
@@ -112,6 +163,7 @@ class BuddyHeader extends LitElement {
         const controlsContainer = this.renderRoot.querySelector('.controls-dropdown-container');
         const mainMenuContainer = this.renderRoot.querySelector('.main-menu-dropdown-container');
         const modelsDropdownContainer = this.renderRoot.querySelector('.models-dropdown-container');
+        const opacityDropdownContainer = this.renderRoot.querySelector('.opacity-dropdown-container');
         
         if (controlsContainer && !controlsContainer.contains(e.target)) {
             this._closeControlsMenu();
@@ -123,6 +175,15 @@ class BuddyHeader extends LitElement {
         
         if (modelsDropdownContainer && !modelsDropdownContainer.contains(e.target)) {
             this._closeModelsDropdown();
+        }
+        
+        if (opacityDropdownContainer && !opacityDropdownContainer.contains(e.target)) {
+            this._closeOpacityDropdown();
+        }
+        
+        const themeDropdownContainer = this.renderRoot.querySelector('.theme-dropdown-container');
+        if (themeDropdownContainer && !themeDropdownContainer.contains(e.target)) {
+            this._closeThemeDropdown();
         }
     }
 
@@ -199,6 +260,53 @@ class BuddyHeader extends LitElement {
         this.dispatchEvent(new CustomEvent('open-marketplace-window', { bubbles: true, composed: true }));
     }
 
+    _handleToggleOpacityControl() {
+        this._closeMainMenu();
+        this.isOpacityControlActive = !this.isOpacityControlActive;
+        this.dispatchEvent(new CustomEvent('toggle-opacity-control', { 
+            detail: { active: this.isOpacityControlActive }, 
+            bubbles: true, 
+            composed: true 
+        }));
+    }
+
+    _handleOpacityChange(opacity) {
+        this.windowOpacity = opacity;
+        this.dispatchEvent(new CustomEvent('opacity-change', { 
+            detail: { opacity }, 
+            bubbles: true, 
+            composed: true 
+        }));
+    }
+
+    _handleOpacitySliderChange(e) {
+        const opacity = parseFloat(e.target.value);
+        this._handleOpacityChange(opacity);
+    }
+
+    _handleOpacityPreset(opacity) {
+        this._closeOpacityDropdown();
+        this._handleOpacityChange(opacity);
+    }
+
+    _handleOpacityInputChange(e) {
+        const value = parseInt(e.target.value);
+        if (value >= 10 && value <= 100) {
+            const opacity = value / 100;
+            this._handleOpacityChange(opacity);
+        }
+    }
+
+    _handleThemeSelect(theme) {
+        this._closeThemeDropdown();
+        this.currentWindowTheme = theme;
+        this.dispatchEvent(new CustomEvent('window-theme-change', { 
+            detail: { theme }, 
+            bubbles: true, 
+            composed: true 
+        }));
+    }
+
 
 
 
@@ -271,6 +379,14 @@ class BuddyHeader extends LitElement {
                 handler: '_handleMenuToggleScreen',
                 showStatus: true,
                 statusKey: 'isScreenActive'
+            },
+            'opacity-control': {
+                id: 'opacity-control',
+                name: 'Opacity Control',
+                icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z',
+                handler: '_handleToggleOpacityControl',
+                showStatus: true,
+                statusKey: 'isOpacityControlActive'
             }
         };
 
@@ -310,6 +426,146 @@ class BuddyHeader extends LitElement {
                     ${this.currentView === 'assistant' ? html`
                         <span class="status-indicator ${statusIndicator}"></span>
                     ` : ''}
+                    
+                    <!-- Opacity Control Dropdown -->
+                    <div class="opacity-dropdown-container">
+                        <button 
+                            class="opacity-control-btn ${this.isOpacityControlActive ? 'active' : ''}"
+                            @click=${this._toggleOpacityDropdown}
+                            title="Adjust Window Opacity"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 2v20"/>
+                            </svg>
+                            <span class="opacity-value">${Math.round(this.windowOpacity * 100)}%</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6,9 12,15 18,9"></polyline>
+                            </svg>
+                        </button>
+
+                        ${this.isOpacityDropdownOpen ? html`
+                            <div class="opacity-dropdown">
+                                <div class="opacity-section">
+                                    <label class="opacity-label">Window Opacity</label>
+                                    
+                                    <!-- Opacity Slider -->
+                                    <div class="opacity-slider-container">
+                                        <input 
+                                            type="range" 
+                                            class="opacity-slider"
+                                            min="0.1" 
+                                            max="1.0" 
+                                            step="0.05" 
+                                            .value=${this.windowOpacity}
+                                            @input=${this._handleOpacitySliderChange}
+                                        />
+                                        <div class="opacity-slider-labels">
+                                            <span>10%</span>
+                                            <span>100%</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Opacity Input -->
+                                    <div class="opacity-input-container">
+                                        <input 
+                                            type="number" 
+                                            class="opacity-input"
+                                            min="10" 
+                                            max="100" 
+                                            .value=${Math.round(this.windowOpacity * 100)}
+                                            @input=${this._handleOpacityInputChange}
+                                        />
+                                        <span class="opacity-input-suffix">%</span>
+                                    </div>
+                                </div>
+
+                                <div class="opacity-divider"></div>
+
+                                <!-- Opacity Presets -->
+                                <div class="opacity-presets">
+                                    <label class="opacity-label">Quick Presets</label>
+                                    <div class="opacity-preset-buttons">
+                                        <button class="opacity-preset-btn" @click=${() => this._handleOpacityPreset(1.0)}>
+                                            100% <span class="preset-desc">Solid</span>
+                                        </button>
+                                        <button class="opacity-preset-btn" @click=${() => this._handleOpacityPreset(0.9)}>
+                                            90% <span class="preset-desc">Slight</span>
+                                        </button>
+                                        <button class="opacity-preset-btn" @click=${() => this._handleOpacityPreset(0.75)}>
+                                            75% <span class="preset-desc">Medium</span>
+                                        </button>
+                                        <button class="opacity-preset-btn" @click=${() => this._handleOpacityPreset(0.5)}>
+                                            50% <span class="preset-desc">Half</span>
+                                        </button>
+                                        <button class="opacity-preset-btn" @click=${() => this._handleOpacityPreset(0.25)}>
+                                            25% <span class="preset-desc">Light</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="opacity-divider"></div>
+
+                                <!-- Scroll Control Toggle -->
+                                <div class="opacity-scroll-control">
+                                    <button 
+                                        class="opacity-scroll-toggle ${this.isOpacityControlActive ? 'active' : ''}"
+                                        @click=${this._handleToggleOpacityControl}
+                                    >
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="3"/>
+                                            <path d="M12 1v6m0 6v6"/>
+                                        </svg>
+                                        <span>Scroll Control</span>
+                                        <span class="toggle-status">${this.isOpacityControlActive ? 'ON' : 'OFF'}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <!-- Theme Dropdown -->
+                    <div class="theme-dropdown-container">
+                        <button 
+                            class="theme-btn"
+                            @click=${this._toggleThemeDropdown}
+                            title="Change Window Theme"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                            </svg>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6,9 12,15 18,9"></polyline>
+                            </svg>
+                        </button>
+
+                        ${this.isThemeDropdownOpen ? html`
+                            <div class="theme-dropdown">
+                                <div class="theme-section">
+                                    <label class="theme-label">Window Theme</label>
+                                    
+                                    ${Object.entries(this.availableThemes).map(([themeKey, theme]) => html`
+                                        <button 
+                                            class="theme-option ${this.currentWindowTheme === themeKey ? 'selected' : ''}"
+                                            @click=${() => this._handleThemeSelect(themeKey)}
+                                            title="${theme.description}"
+                                        >
+                                            <div class="theme-preview theme-${themeKey}"></div>
+                                            <div class="theme-info">
+                                                <span class="theme-name">${theme.name}</span>
+                                                <span class="theme-desc">${theme.description}</span>
+                                            </div>
+                                            ${this.currentWindowTheme === themeKey ? html`
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="20,6 9,17 4,12"></polyline>
+                                                </svg>
+                                            ` : ''}
+                                        </button>
+                                    `)}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
                     
                     <!-- Models Dropdown -->
                     ${this.enabledModels && this.enabledModels.length > 0 ? html`

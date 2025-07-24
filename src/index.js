@@ -65,7 +65,7 @@ function ensureDataDirectories() {
 
 // Utility function to create windows with consistent properties
 // Import the new window system
-const { createWindow: createManagedWindow } = require('./window');
+const { createWindow: createManagedWindow, windowManager } = require('./window');
 
 function createConsistentWindow(options = {}) {
     // Use the new window system with backward compatibility
@@ -76,7 +76,7 @@ function createMainWindow() {
     // Initialize authentication service
     authService = new AuthService();
 
-    const mainWindow = createConsistentWindow({
+    const mainWindow = createManagedWindow({
         width: 600,
         height: 700,
         webPreferences: {
@@ -87,7 +87,7 @@ function createMainWindow() {
             webSecurity: true,
             allowRunningInsecureContent: false,
         },
-    });
+    }, 'main');
 
     session.defaultSession.setDisplayMediaRequestHandler(
         (request, callback) => {
@@ -1062,6 +1062,81 @@ ipcMain.handle('toggle-workspace-visibility', async (event, enabled) => {
         return { success: true };
     } catch (error) {
         console.error('Failed to toggle workspace visibility:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+// Opacity control handlers
+ipcMain.handle('set-window-opacity', async (event, data) => {
+    try {
+        const { windowId, opacity } = data;
+        if (!windowId || typeof opacity !== 'number') {
+            return { success: false, error: 'Invalid parameters' };
+        }
+        
+        const success = windowManager.setWindowOpacity(windowId, opacity);
+        return { success };
+    } catch (error) {
+        console.error('Failed to set window opacity:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('get-window-opacity', async (event, windowId) => {
+    try {
+        if (!windowId) {
+            return { success: false, error: 'Window ID required' };
+        }
+        
+        const opacity = windowManager.getWindowOpacity(windowId);
+        return { success: true, opacity };
+    } catch (error) {
+        console.error('Failed to get window opacity:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('adjust-window-opacity', async (event, data) => {
+    try {
+        const { windowId, delta } = data;
+        if (!windowId || typeof delta !== 'number') {
+            return { success: false, error: 'Invalid parameters' };
+        }
+        
+        const success = windowManager.adjustWindowOpacity(windowId, delta);
+        const newOpacity = windowManager.getWindowOpacity(windowId);
+        return { success, opacity: newOpacity };
+    } catch (error) {
+        console.error('Failed to adjust window opacity:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+// Simple theme control handlers
+ipcMain.handle('set-simple-window-theme', async (event, data) => {
+    try {
+        const { windowId, theme } = data;
+        console.log('Setting window theme:', { windowId, theme });
+        
+        if (!windowId || !theme) {
+            return { success: false, error: 'Invalid parameters' };
+        }
+        
+        const success = windowManager.setSimpleWindowTheme(windowId, theme);
+        console.log('Theme change result:', success);
+        return { success };
+    } catch (error) {
+        console.error('Failed to set simple window theme:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('get-simple-themes', async (event) => {
+    try {
+        const themes = windowManager.getSimpleThemes();
+        return { success: true, themes };
+    } catch (error) {
+        console.error('Failed to get simple themes:', error);
         return { success: false, error: error.message };
     }
 });

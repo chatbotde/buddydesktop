@@ -517,6 +517,424 @@ export const headerStyles = css`
         box-shadow: none;
     }
 
+    /* Opacity control button styling */
+    .opacity-control-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        cursor: pointer;
+        border-radius: 12px;
+        height: 40px;
+        padding: 0 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        opacity: 0.9;
+        position: relative;
+        font-size: 12px;
+        font-weight: 500;
+        min-width: 80px;
+    }
+
+    .opacity-control-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        opacity: 1;
+        box-shadow: 
+            0 8px 25px rgba(0, 0, 0, 0.15),
+            0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .opacity-control-btn.active {
+        background: rgba(0, 122, 255, 0.3);
+        border-color: rgba(0, 122, 255, 0.5);
+        color: #ffffff;
+    }
+
+    .opacity-control-btn.active:hover {
+        background: rgba(0, 122, 255, 0.4);
+        border-color: rgba(0, 122, 255, 0.6);
+    }
+
+    .opacity-control-btn svg {
+        width: 16px;
+        height: 16px;
+        opacity: 0.9;
+        transition: all 0.3s ease;
+    }
+
+    .opacity-control-btn:hover svg {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    .opacity-value {
+        font-size: 11px;
+        font-weight: 600;
+        opacity: 0.9;
+        min-width: 28px;
+        text-align: center;
+    }
+
+    /* Opacity dropdown container */
+    .opacity-dropdown-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    /* Opacity dropdown */
+    .opacity-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        background: rgba(0, 0, 0, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 16px;
+        min-width: 280px;
+        backdrop-filter: blur(20px);
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.3),
+            0 8px 16px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        animation: fadeInDown 0.3s ease;
+    }
+
+    .opacity-section {
+        margin-bottom: 12px;
+    }
+
+    .opacity-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 8px;
+    }
+
+    /* Opacity slider */
+    .opacity-slider-container {
+        margin-bottom: 12px;
+    }
+
+    .opacity-slider {
+        width: 100%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+        cursor: pointer;
+    }
+
+    .opacity-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        background: #007aff;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        transition: all 0.2s ease;
+    }
+
+    .opacity-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+    }
+
+    .opacity-slider::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        background: #007aff;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        transition: all 0.2s ease;
+    }
+
+    .opacity-slider-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.6);
+        margin-top: 4px;
+    }
+
+    /* Opacity input */
+    .opacity-input-container {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .opacity-input {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        color: #fff;
+        padding: 6px 8px;
+        font-size: 12px;
+        width: 60px;
+        text-align: center;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    .opacity-input:focus {
+        border-color: #007aff;
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+    }
+
+    .opacity-input-suffix {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 500;
+    }
+
+    /* Opacity divider */
+    .opacity-divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.1);
+        margin: 12px 0;
+    }
+
+    /* Opacity presets */
+    .opacity-presets {
+        margin-bottom: 12px;
+    }
+
+    .opacity-preset-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .opacity-preset-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        color: #fff;
+        padding: 8px 12px;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .opacity-preset-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px);
+    }
+
+    .preset-desc {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.6);
+        font-weight: 400;
+    }
+
+    /* Scroll control toggle */
+    .opacity-scroll-control {
+        margin-top: 8px;
+    }
+
+    .opacity-scroll-toggle {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        color: #fff;
+        padding: 8px 12px;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .opacity-scroll-toggle:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .opacity-scroll-toggle.active {
+        background: rgba(0, 122, 255, 0.2);
+        border-color: rgba(0, 122, 255, 0.4);
+        color: #ffffff;
+    }
+
+    .opacity-scroll-toggle.active:hover {
+        background: rgba(0, 122, 255, 0.3);
+        border-color: rgba(0, 122, 255, 0.5);
+    }
+
+    .toggle-status {
+        margin-left: auto;
+        font-size: 10px;
+        font-weight: 600;
+        opacity: 0.8;
+    }
+
+    /* Theme dropdown container */
+    .theme-dropdown-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    /* Theme button */
+    .theme-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        cursor: pointer;
+        border-radius: 12px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        opacity: 0.9;
+        position: relative;
+    }
+
+    .theme-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        opacity: 1;
+        box-shadow: 
+            0 8px 25px rgba(0, 0, 0, 0.15),
+            0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Theme dropdown */
+    .theme-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        background: rgba(0, 0, 0, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 16px;
+        min-width: 220px;
+        backdrop-filter: blur(20px);
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.3),
+            0 8px 16px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        animation: fadeInDown 0.3s ease;
+    }
+
+    .theme-section {
+        margin-bottom: 12px;
+    }
+
+    .theme-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 8px;
+    }
+
+    /* Theme options */
+    .theme-option {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: #fff;
+        padding: 10px 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-align: left;
+        width: 100%;
+        margin-bottom: 4px;
+    }
+
+    .theme-option:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px);
+    }
+
+    .theme-option.selected {
+        background: rgba(0, 122, 255, 0.2);
+        border-color: rgba(0, 122, 255, 0.4);
+        color: #ffffff;
+    }
+
+    .theme-option.selected:hover {
+        background: rgba(0, 122, 255, 0.3);
+        border-color: rgba(0, 122, 255, 0.5);
+    }
+
+    /* Theme preview */
+    .theme-preview {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .theme-preview.theme-transparent {
+        background: linear-gradient(45deg, 
+            rgba(255, 255, 255, 0.1) 25%, 
+            transparent 25%, 
+            transparent 75%, 
+            rgba(255, 255, 255, 0.1) 75%
+        );
+        background-size: 8px 8px;
+    }
+
+    .theme-preview.theme-black {
+        background: #000000;
+    }
+
+
+
+    /* Theme info */
+    .theme-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .theme-name {
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .theme-desc {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.6);
+        line-height: 1.3;
+    }
+
     /* Status indicator on controls button */
     .controls-status-indicator {
         position: absolute;

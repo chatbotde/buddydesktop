@@ -6,6 +6,7 @@ class WindowManager {
     constructor() {
         this.windows = new Map();
         this.windowThemes = new Map();
+        this.windowOpacities = new Map(); // Store opacity values for each window
         this.defaultOptions = {
             width: 800,
             height: 600,
@@ -144,6 +145,7 @@ class WindowManager {
             newWindow.on('closed', () => {
                 this.windows.delete(windowId);
                 this.windowThemes.delete(windowId);
+                this.windowOpacities.delete(windowId);
             });
         }
 
@@ -240,6 +242,169 @@ class WindowManager {
      */
     getWindowTheme(windowId) {
         return this.windowThemes.get(windowId) || null;
+    }
+
+    /**
+     * Set window opacity
+     * @param {string} windowId - ID of the window to update
+     * @param {number} opacity - Opacity value between 0.1 and 1.0
+     * @returns {boolean} - Success status
+     */
+    setWindowOpacity(windowId, opacity) {
+        const window = this.windows.get(windowId);
+        if (!window || window.isDestroyed()) {
+            return false;
+        }
+
+        // Clamp opacity between 0.1 and 1.0
+        const clampedOpacity = Math.max(0.1, Math.min(1.0, opacity));
+        
+        try {
+            window.setOpacity(clampedOpacity);
+            this.windowOpacities.set(windowId, clampedOpacity);
+            
+            // Notify the window content about opacity change
+            window.webContents.send('window-opacity-changed', {
+                opacity: clampedOpacity,
+            });
+            
+            return true;
+        } catch (error) {
+            console.error('Failed to set window opacity:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Get current opacity for a window
+     * @param {string} windowId - ID of the window
+     * @returns {number} - Current opacity value (default 1.0)
+     */
+    getWindowOpacity(windowId) {
+        return this.windowOpacities.get(windowId) || 1.0;
+    }
+
+    /**
+     * Adjust window opacity by delta (for scroll wheel)
+     * @param {string} windowId - ID of the window to update
+     * @param {number} delta - Change in opacity (-0.1 to 0.1)
+     * @returns {boolean} - Success status
+     */
+    adjustWindowOpacity(windowId, delta) {
+        const currentOpacity = this.getWindowOpacity(windowId);
+        const newOpacity = currentOpacity + delta;
+        return this.setWindowOpacity(windowId, newOpacity);
+    }
+
+    /**
+     * Set simple window theme (black, white, or transparent)
+     * @param {string} windowId - ID of the window to update
+     * @param {string} theme - Theme name ('black', 'white', or 'transparent')
+     * @returns {boolean} - Success status
+     */
+    setSimpleWindowTheme(windowId, theme) {
+        console.log('WindowManager: Looking for window with ID:', windowId);
+        console.log('Available window IDs:', Array.from(this.windows.keys()));
+        
+        const window = this.windows.get(windowId);
+        if (!window || window.isDestroyed()) {
+            console.error('Window not found or destroyed:', windowId);
+            return false;
+        }
+        
+        console.log('Found window, applying theme:', theme);
+
+        try {
+            switch (theme) {
+                case 'black':
+                    // For solid black background
+                    window.setBackgroundColor('#000000');
+                    if (window.setVibrancy) {
+                        window.setVibrancy(null);
+                    }
+                    console.log('Applied black theme');
+                    break;
+                case 'transparent':
+                default:
+                    // For transparent background with blur
+                    window.setBackgroundColor('#00000000');
+                    if (window.setVibrancy && process.platform === 'darwin') {
+                        window.setVibrancy('ultra-dark');
+                    }
+                    console.log('Applied transparent theme');
+                    break;
+            }
+
+            // Force a repaint to ensure the theme is applied
+            setTimeout(() => {
+                const bounds = window.getBounds();
+                window.setBounds({
+                    x: bounds.x,
+                    y: bounds.y,
+                    width: bounds.width,
+                    height: bounds.height
+                });
+            }, 10);
+
+            // Notify the window content about theme change
+            window.webContents.send('simple-window-theme-changed', {
+                theme: theme
+            });
+            
+                        // Apply theme-specific CSS to the window content
+            window.webContents.executeJavaScript(`
+                document.documentElement.setAttribute('data-window-theme', '${theme}');
+                
+                // Apply theme-specific styles
+                if ('${theme}' === 'black') {
+                    // Enhanced dark theme
+                    document.documentElement.style.setProperty('--text-color', '#e5e5e7');
+                    document.documentElement.style.setProperty('--header-background', 'rgba(0, 0, 0, 0.9)');
+                    document.documentElement.style.setProperty('--main-content-background', 'rgba(0, 0, 0, 0.95)');
+                    document.documentElement.style.setProperty('--border-color', 'rgba(255, 255, 255, 0.2)');
+                    document.documentElement.style.setProperty('--button-background', 'rgba(255, 255, 255, 0.1)');
+                    document.documentElement.style.setProperty('--button-border', 'rgba(255, 255, 255, 0.2)');
+                    document.documentElement.style.setProperty('--input-background', 'rgba(0, 0, 0, 0.6)');
+                    document.documentElement.style.setProperty('--placeholder-color', 'rgba(255, 255, 255, 0.4)');
+                    document.documentElement.style.setProperty('--scrollbar-thumb', 'rgba(255, 255, 255, 0.3)');
+                    document.documentElement.style.setProperty('--hover-background', 'rgba(255, 255, 255, 0.1)');
+                } else {
+                    // Transparent theme - restore original colors
+                    document.documentElement.style.setProperty('--text-color', '#e5e5e7');
+                    document.documentElement.style.setProperty('--header-background', 'rgba(0, 0, 0, 0.8)');
+                    document.documentElement.style.setProperty('--main-content-background', 'rgba(0, 0, 0, 0.8)');
+                    document.documentElement.style.setProperty('--border-color', 'rgba(255, 255, 255, 0.2)');
+                    document.documentElement.style.setProperty('--button-background', 'rgba(0, 0, 0, 0.5)');
+                    document.documentElement.style.setProperty('--button-border', 'rgba(255, 255, 255, 0.1)');
+                    document.documentElement.style.setProperty('--input-background', 'rgba(0, 0, 0, 0.3)');
+                    document.documentElement.style.setProperty('--placeholder-color', 'rgba(255, 255, 255, 0.4)');
+                    document.documentElement.style.setProperty('--scrollbar-thumb', 'rgba(255, 255, 255, 0.2)');
+                    document.documentElement.style.setProperty('--hover-background', 'rgba(255, 255, 255, 0.1)');
+                }
+            `).catch(err => console.error('Error applying theme styles:', err));
+
+            return true;
+        } catch (error) {
+            console.error('Failed to set simple window theme:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Get available simple themes
+     * @returns {Object} - Available simple themes
+     */
+    getSimpleThemes() {
+        return {
+            transparent: {
+                name: 'Transparent',
+                description: 'See-through window with blur effects'
+            },
+            black: {
+                name: 'Black',
+                description: 'Solid black background'
+            }
+        };
     }
 
     /**
@@ -463,4 +628,13 @@ module.exports = {
     getAvailableThemes: () => windowManager.getAvailableThemes(),
     changeWindowTheme: (windowId, theme) => windowManager.changeWindowTheme(windowId, theme),
     getWindowTheme: windowId => windowManager.getWindowTheme(windowId),
+
+    // Opacity-related functions
+    setWindowOpacity: (windowId, opacity) => windowManager.setWindowOpacity(windowId, opacity),
+    getWindowOpacity: windowId => windowManager.getWindowOpacity(windowId),
+    adjustWindowOpacity: (windowId, delta) => windowManager.adjustWindowOpacity(windowId, delta),
+
+    // Simple theme-related functions
+    setSimpleWindowTheme: (windowId, theme) => windowManager.setSimpleWindowTheme(windowId, theme),
+    getSimpleThemes: () => windowManager.getSimpleThemes(),
 };
