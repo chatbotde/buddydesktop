@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Math Blocks Test - Buddy Desktop</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #e5e5e7;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1, h2 {
+            color: #007aff;
+            border-bottom: 2px solid rgba(0, 122, 255, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .example-input {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            color: #4fc3f7;
+            white-space: pre-wrap;
+        }
+        
+        .example-output {
+            margin: 15px 0;
+            padding: 10px;
+            border-left: 3px solid #4caf50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+        
+        button {
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        #test-output {
+            margin-top: 20px;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧮 Math Blocks Test - Buddy Desktop</h1>
+    
+    <div class="test-section">
+        <h2>1. Math Code Blocks</h2>
+        <p>Use <code>```math</code> or <code>```latex</code> for dedicated math blocks:</p>
+        
+        <div class="example-input">```math
+E = mc^2
+```</div>
+        
+        <div class="example-input">```latex
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+```</div>
+        
+        <button onclick="testMathCodeBlocks()">Test Math Code Blocks</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Display Math ($$...$$)</h2>
+        <p>Traditional LaTeX display math:</p>
+        
+        <div class="example-input">$$\frac{d}{dx}\left[\int_a^x f(t) dt\right] = f(x)$$</div>
+        
+        <div class="example-input">$$\begin{pmatrix} a & b \\ c & d \end{pmatrix}$$</div>
+        
+        <button onclick="testDisplayMath()">Test Display Math</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Inline Math ($...$)</h2>
+        <p>Math within text:</p>
+        
+        <div class="example-input">The equation $E = mc^2$ is Einstein's famous formula.</div>
+        
+        <div class="example-input">For any real number $x$, we have $x^2 \geq 0$.</div>
+        
+        <button onclick="testInlineMath()">Test Inline Math</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. LaTeX Environments</h2>
+        <p>Standard LaTeX environments:</p>
+        
+        <div class="example-input">\begin{equation}
+\sum_{i=1}^n i = \frac{n(n+1)}{2}
+\end{equation}</div>
+        
+        <div class="example-input">\begin{align}
+x + y &= 5 \\
+2x - y &= 1
+\end{align}</div>
+        
+        <button onclick="testLaTeXEnvironments()">Test LaTeX Environments</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>5. Complex Examples</h2>
+        <p>Advanced mathematical expressions:</p>
+        
+        <div class="example-input">```math
+\begin{bmatrix}
+\cos\theta & -\sin\theta \\
+\sin\theta & \cos\theta
+\end{bmatrix}
+\begin{bmatrix}
+x \\ y
+\end{bmatrix}
+=
+\begin{bmatrix}
+x\cos\theta - y\sin\theta \\
+x\sin\theta + y\cos\theta
+\end{bmatrix}
+```</div>
+        
+        <button onclick="testComplexMath()">Test Complex Math</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>6. Mixed Content</h2>
+        <p>Math mixed with regular text and code:</p>
+        
+        <div class="example-input">Here's some text with inline math $f(x) = x^2$ and a code block:
+
+```javascript
+function quadratic(x) {
+    return x * x;
+}
+```
+
+And then a math block:
+
+```math
+f'(x) = 2x
+```
+
+More text here.</div>
+        
+        <button onclick="testMixedContent()">Test Mixed Content</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Controls</h2>
+        <button onclick="runAllTests()">🚀 Run All Tests</button>
+        <button onclick="clearOutput()">🗑️ Clear Output</button>
+        <button onclick="checkKaTeX()">🔍 Check KaTeX Status</button>
+    </div>
+    
+    <div id="test-output">
+        <h3>Test Output:</h3>
+        <p>Click a test button to see the results...</p>
+    </div>
+
+    <!-- Load KaTeX -->
+    <link rel="stylesheet" href="../node_modules/katex/dist/katex.min.css" onerror="this.href='https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css'">
+    <script src="../node_modules/katex/dist/katex.min.js" onerror="document.write('<script src=\'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js\'><\/script>')"></script>
+
+    <script type="module">
+        import { mathBlockProcessor } from './components/math-block-processor.js';
+        
+        // Make processor available globally for testing
+        window.mathBlockProcessor = mathBlockProcessor;
+        
+        // Test functions
+        window.testMathCodeBlocks = () => {
+            const input = `Here's a math code block:
+
+\`\`\`math
+E = mc^2
+\`\`\`
+
+And another one:
+
+\`\`\`latex
+\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}
+\`\`\``;
+            
+            showTestResult('Math Code Blocks', input);
+        };
+        
+        window.testDisplayMath = () => {
+            const input = `Display math examples:
+
+$$\\frac{d}{dx}\\left[\\int_a^x f(t) dt\\right] = f(x)$$
+
+$$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$$`;
+            
+            showTestResult('Display Math', input);
+        };
+        
+        window.testInlineMath = () => {
+            const input = `The equation $E = mc^2$ is Einstein's famous formula. For any real number $x$, we have $x^2 \\geq 0$.`;
+            
+            showTestResult('Inline Math', input);
+        };
+        
+        window.testLaTeXEnvironments = () => {
+            const input = `LaTeX environments:
+
+\\begin{equation}
+\\sum_{i=1}^n i = \\frac{n(n+1)}{2}
+\\end{equation}
+
+\\begin{align}
+x + y &= 5 \\\\
+2x - y &= 1
+\\end{align}`;
+            
+            showTestResult('LaTeX Environments', input);
+        };
+        
+        window.testComplexMath = () => {
+            const input = `Complex matrix multiplication:
+
+\`\`\`math
+\\begin{bmatrix}
+\\cos\\theta & -\\sin\\theta \\\\
+\\sin\\theta & \\cos\\theta
+\\end{bmatrix}
+\\begin{bmatrix}
+x \\\\ y
+\\end{bmatrix}
+=
+\\begin{bmatrix}
+x\\cos\\theta - y\\sin\\theta \\\\
+x\\sin\\theta + y\\cos\\theta
+\\end{bmatrix}
+\`\`\``;
+            
+            showTestResult('Complex Math', input);
+        };
+        
+        window.testMixedContent = () => {
+            const input = `Here's some text with inline math $f(x) = x^2$ and a code block:
+
+\`\`\`javascript
+function quadratic(x) {
+    return x * x;
+}
+\`\`\`
+
+And then a math block:
+
+\`\`\`math
+f'(x) = 2x
+\`\`\`
+
+More text here with $\\int x dx = \\frac{x^2}{2} + C$.`;
+            
+            showTestResult('Mixed Content', input);
+        };
+        
+        window.runAllTests = () => {
+            clearOutput();
+            setTimeout(() => testMathCodeBlocks(), 100);
+            setTimeout(() => testDisplayMath(), 200);
+            setTimeout(() => testInlineMath(), 300);
+            setTimeout(() => testLaTeXEnvironments(), 400);
+            setTimeout(() => testComplexMath(), 500);
+            setTimeout(() => testMixedContent(), 600);
+        };
+        
+        window.clearOutput = () => {
+            document.getElementById('test-output').innerHTML = '<h3>Test Output:</h3><p>Output cleared.</p>';
+        };
+        
+        window.checkKaTeX = () => {
+            const output = document.getElementById('test-output');
+            const status = typeof katex !== 'undefined' ? '✅ Loaded' : '❌ Not loaded';
+            const version = typeof katex !== 'undefined' ? katex.version || 'Unknown' : 'N/A';
+            
+            output.innerHTML = `
+                <h3>KaTeX Status:</h3>
+                <p><strong>Status:</strong> ${status}</p>
+                <p><strong>Version:</strong> ${version}</p>
+                <p><strong>Math Processor Ready:</strong> ${mathBlockProcessor.isKaTeXReady ? '✅ Yes' : '❌ No'}</p>
+            `;
+        };
+        
+        function showTestResult(testName, input) {
+            const output = document.getElementById('test-output');
+            const processed = mathBlockProcessor.processContent(input);
+            
+            const resultHTML = `
+                <div style="margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 8px;">
+                    <h4>📊 ${testName} Result:</h4>
+                    <div style="background: #2a2a2a; padding: 10px; border-radius: 4px; margin: 10px 0;">
+                        <strong>Input:</strong>
+                        <pre style="color: #4fc3f7; font-size: 12px; margin: 5px 0;">${input}</pre>
+                    </div>
+                    <div style="background: rgba(76, 175, 80, 0.1); padding: 15px; border-radius: 4px; border-left: 3px solid #4caf50;">
+                        <strong>Rendered Output:</strong>
+                        <div style="margin-top: 10px;">${processed}</div>
+                    </div>
+                </div>
+            `;
+            
+            if (output.innerHTML.includes('Test Output:')) {
+                output.innerHTML = '<h3>Test Output:</h3>' + resultHTML;
+            } else {
+                output.innerHTML += resultHTML;
+            }
+        }
+        
+        // Check KaTeX status on load
+        setTimeout(() => {
+            console.log('🧮 Math Blocks Test loaded');
+            console.log('KaTeX available:', typeof katex !== 'undefined');
+            console.log('Math processor ready:', mathBlockProcessor.isKaTeXReady);
+        }, 1000);
+    </script>
+</body>
+</html>

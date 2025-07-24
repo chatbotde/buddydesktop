@@ -70,76 +70,205 @@ export class EquationRenderer {
      * Initialize KaTeX and set up math rendering
      */
     init() {
-        this.loadKaTeX();
+        console.log('🚀 Initializing KaTeX equation renderer...');
         this.injectMathStyles();
         this.setupEventListeners();
+        
+        // Check if KaTeX is already loaded
+        if (typeof katex !== 'undefined') {
+            console.log('✅ KaTeX already loaded!');
+            this.isKaTeXReady = true;
+            this.testKaTeXRendering();
+        } else {
+            console.log('⏳ Waiting for KaTeX to load...');
+            // KaTeX will be loaded by the main HTML file
+        }
     }
 
     /**
-     * Load KaTeX library from local node_modules
+     * Load KaTeX library for Electron app
      */
     loadKaTeX() {
-        console.log('Loading KaTeX from local files...');
+        console.log('🚀 Loading KaTeX for Electron app...');
         
-        // Load KaTeX CSS from local node_modules
+        // For Electron, we need to load KaTeX synchronously and ensure it's available
+        this.loadKaTeXForElectron();
+    }
+    
+    /**
+     * Load KaTeX specifically for Electron environment
+     */
+    loadKaTeXForElectron() {
+        // First try to load from local node_modules (Electron can access these)
         const katexCSS = document.createElement('link');
         katexCSS.rel = 'stylesheet';
         katexCSS.href = '../node_modules/katex/dist/katex.min.css';
-        document.head.appendChild(katexCSS);
-
-        // Load KaTeX JavaScript from local node_modules
-        const katexScript = document.createElement('script');
-        katexScript.src = '../node_modules/katex/dist/katex.min.js';
-        katexScript.onload = () => {
-            console.log('KaTeX loaded successfully from local files');
-            this.isKaTeXReady = true;
-            // Wait a bit to ensure katex is fully available
-            setTimeout(() => {
-                console.log('KaTeX should be ready now, typeof katex:', typeof katex);
-                if (typeof katex !== 'undefined') {
-                    console.log('KaTeX is ready for rendering equations!');
-                    window.dispatchEvent(new CustomEvent('katex-ready'));
-                } else {
-                    console.error('KaTeX still not available after loading');
-                    window.dispatchEvent(new CustomEvent('katex-error'));
-                }
-            }, 100);
+        
+        katexCSS.onload = () => {
+            console.log('✅ KaTeX CSS loaded from local files');
+            
+            const katexScript = document.createElement('script');
+            katexScript.src = '../node_modules/katex/dist/katex.min.js';
+            
+            katexScript.onload = () => {
+                console.log('✅ KaTeX JS loaded from local files');
+                this.isKaTeXReady = true;
+                
+                setTimeout(() => {
+                    if (typeof katex !== 'undefined') {
+                        console.log('🎉 KaTeX ready for Electron!');
+                        console.log('KaTeX version:', katex.version || 'Unknown');
+                        window.dispatchEvent(new CustomEvent('katex-ready'));
+                        
+                        // Test render to ensure it works
+                        this.testKaTeXRendering();
+                    } else {
+                        console.error('❌ KaTeX not available after loading');
+                        this.loadKaTeXFromCDN();
+                    }
+                }, 200);
+            };
+            
+            katexScript.onerror = () => {
+                console.log('❌ Local KaTeX failed, trying CDN...');
+                this.loadKaTeXFromCDN();
+            };
+            
+            document.head.appendChild(katexScript);
         };
-        katexScript.onerror = (error) => {
-            console.error('Failed to load KaTeX from local files:', error);
-            // Fallback to CDN if local files fail
-            console.log('Falling back to CDN...');
+        
+        katexCSS.onerror = () => {
+            console.log('❌ Local KaTeX CSS failed, trying CDN...');
             this.loadKaTeXFromCDN();
         };
-        document.head.appendChild(katexScript);
+        
+        document.head.appendChild(katexCSS);
+    }
+    
+    /**
+     * Test KaTeX rendering to ensure it works
+     */
+    testKaTeXRendering() {
+        try {
+            const testResult = katex.renderToString('E = mc^2', {
+                displayMode: false,
+                throwOnError: false
+            });
+            console.log('✅ KaTeX test render successful:', testResult.substring(0, 50) + '...');
+        } catch (error) {
+            console.error('❌ KaTeX test render failed:', error);
+        }
+    }
+    
+    /**
+     * Try loading KaTeX from different possible paths
+     */
+    tryLoadKaTeXFromPaths(paths, index) {
+        if (index >= paths.length) {
+            console.log('All local paths failed, falling back to CDN...');
+            this.loadKaTeXFromCDN();
+            return;
+        }
+        
+        const basePath = paths[index];
+        console.log(`Trying KaTeX path ${index + 1}/${paths.length}: ${basePath}`);
+        
+        // Load CSS first
+        const katexCSS = document.createElement('link');
+        katexCSS.rel = 'stylesheet';
+        katexCSS.href = basePath + '.css';
+        
+        katexCSS.onload = () => {
+            console.log('✅ KaTeX CSS loaded from:', basePath + '.css');
+            
+            // Now load JavaScript
+            const katexScript = document.createElement('script');
+            katexScript.src = basePath + '.js';
+            
+            katexScript.onload = () => {
+                console.log('✅ KaTeX JS loaded successfully from:', basePath + '.js');
+                this.isKaTeXReady = true;
+                
+                // Wait a bit to ensure katex is fully available
+                setTimeout(() => {
+                    console.log('KaTeX ready check - typeof katex:', typeof katex);
+                    if (typeof katex !== 'undefined') {
+                        console.log('🎉 KaTeX is ready for rendering equations!');
+                        console.log('KaTeX version:', katex.version || 'Unknown');
+                        window.dispatchEvent(new CustomEvent('katex-ready'));
+                    } else {
+                        console.error('❌ KaTeX still not available after loading');
+                        this.tryLoadKaTeXFromPaths(paths, index + 1);
+                    }
+                }, 100);
+            };
+            
+            katexScript.onerror = (error) => {
+                console.error('❌ Failed to load KaTeX JS from:', basePath + '.js');
+                this.tryLoadKaTeXFromPaths(paths, index + 1);
+            };
+            
+            document.head.appendChild(katexScript);
+        };
+        
+        katexCSS.onerror = (error) => {
+            console.error('❌ Failed to load KaTeX CSS from:', basePath + '.css');
+            this.tryLoadKaTeXFromPaths(paths, index + 1);
+        };
+        
+        document.head.appendChild(katexCSS);
     }
 
     /**
      * Fallback method to load KaTeX from CDN
      */
     loadKaTeXFromCDN() {
+        console.log('🌐 Loading KaTeX from CDN...');
+        
         // Load KaTeX CSS from CDN
         const katexCSS = document.createElement('link');
         katexCSS.rel = 'stylesheet';
         katexCSS.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
-        document.head.appendChild(katexCSS);
-
-        // Load KaTeX JavaScript from CDN
-        const katexScript = document.createElement('script');
-        katexScript.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js';
-        katexScript.onload = () => {
-            console.log('KaTeX loaded successfully from CDN');
-            this.isKaTeXReady = true;
-            setTimeout(() => {
-                console.log('KaTeX ready from CDN, typeof katex:', typeof katex);
-                window.dispatchEvent(new CustomEvent('katex-ready'));
-            }, 100);
+        
+        katexCSS.onload = () => {
+            console.log('✅ KaTeX CSS loaded from CDN');
+            
+            // Load KaTeX JavaScript from CDN
+            const katexScript = document.createElement('script');
+            katexScript.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js';
+            
+            katexScript.onload = () => {
+                console.log('✅ KaTeX JS loaded successfully from CDN');
+                this.isKaTeXReady = true;
+                
+                setTimeout(() => {
+                    console.log('KaTeX ready from CDN - typeof katex:', typeof katex);
+                    if (typeof katex !== 'undefined') {
+                        console.log('🎉 KaTeX is ready from CDN!');
+                        console.log('KaTeX version:', katex.version || 'Unknown');
+                        window.dispatchEvent(new CustomEvent('katex-ready'));
+                    } else {
+                        console.error('❌ KaTeX still not available even from CDN');
+                        window.dispatchEvent(new CustomEvent('katex-error'));
+                    }
+                }, 100);
+            };
+            
+            katexScript.onerror = () => {
+                console.error('❌ Failed to load KaTeX from CDN as well');
+                console.error('❌ All KaTeX loading methods failed');
+                window.dispatchEvent(new CustomEvent('katex-error'));
+            };
+            
+            document.head.appendChild(katexScript);
         };
-        katexScript.onerror = () => {
-            console.error('Failed to load KaTeX from CDN as well');
+        
+        katexCSS.onerror = () => {
+            console.error('❌ Failed to load KaTeX CSS from CDN');
             window.dispatchEvent(new CustomEvent('katex-error'));
         };
-        document.head.appendChild(katexScript);
+        
+        document.head.appendChild(katexCSS);
     }
 
     /**
@@ -471,13 +600,21 @@ export class EquationRenderer {
      * @returns {string} Rendered HTML
      */
     renderMath(math, display = false) {
+        console.log(`🔢 Attempting to render math: "${math}" (display: ${display})`);
+        
         if (!this.isReady()) {
-            console.warn('KaTeX not ready yet');
-            return `<span class="math-plain">${math}</span>`;
+            console.warn('⚠️ KaTeX not ready yet, showing plain text');
+            return `<span class="math-plain" title="KaTeX not loaded">${math}</span>`;
+        }
+        
+        if (!math || math.trim() === '') {
+            console.warn('⚠️ Empty math expression');
+            return '';
         }
         
         try {
-            const result = katex.renderToString(math, {
+            console.log('✅ KaTeX is ready, rendering...');
+            const result = katex.renderToString(math.trim(), {
                 displayMode: display,
                 throwOnError: false,
                 errorColor: '#ff6b6b',
@@ -495,14 +632,15 @@ export class EquationRenderer {
             
             // Check if the result contains error indicators
             if (result.includes('katex-error') || result.includes('ParseError')) {
-                console.warn('KaTeX parsing error for:', math);
-                return `<span class="math-error">${math}</span>`;
+                console.warn('⚠️ KaTeX parsing error for:', math);
+                return `<span class="math-error" title="LaTeX parsing error">${math}</span>`;
             }
             
+            console.log('🎉 Math rendered successfully');
             return result;
         } catch (error) {
-            console.error('Math rendering error:', error);
-            return `<span class="math-error">${math}</span>`;
+            console.error('❌ Math rendering error:', error);
+            return `<span class="math-error" title="Rendering error: ${error.message}">${math}</span>`;
         }
     }
 
@@ -590,10 +728,11 @@ export class EquationRenderer {
     processContent(text) {
         if (!text) return '';
         
-        console.log('Processing content:', text);
-
-        // 1) Pre-process power-style equations for better LaTeX compatibility
-        text = this.enhancePowerEquations(text);
+        console.warn('⚠️ EquationRenderer.processContent is DISABLED to prevent duplicate math rendering.');
+        console.warn('⚠️ Math processing is now handled by mathBlockProcessor in enhancedContentProcessor.');
+        
+        // Return unprocessed text to prevent double processing
+        return text;
 
         // Process display math expressions (double $$) - do this first
         text = text.replace(/\$\$([^$]+)\$\$/g, (match, math) => {
@@ -622,7 +761,8 @@ export class EquationRenderer {
             return `<div class="math-block power-enhanced"><span class="katex-display">${rendered}</span></div>`;
         });
         
-        console.log('Processed content result:', text);
+        console.log('✅ Content processing complete.');
+        console.log('Final result:', text.substring(0, 200) + (text.length > 200 ? '...' : ''));
         return text;
     }
 
@@ -699,16 +839,7 @@ export const EquationMixin = (superClass) => class extends superClass {
         this.equationRenderer = new EquationRenderer();
     }
 
-    /**
-     * Process message content with enhanced math rendering
-     * @param {string} text - Text content to process
-     * @returns {string} Processed HTML content
-     */
-    _processMessageContent(text) {
-        if (!text) return '';
-        // Delegate to the centralized renderer which now includes power-enhancements
-        return this.equationRenderer.processContent(text);
-    }
+    // _processMessageContent method removed - now handled by enhancedContentProcessor
 
     /**
      * Enhance math styling in content

@@ -3,13 +3,12 @@
  * Provides comprehensive content rendering with improved UI for all output types
  */
 
-import { EquationRenderer } from './equations.js';
 import { CodeBlockProcessor } from './code-block.js';
+import { mathBlockProcessor } from './math-block-processor.js';
 import { highlightLoader } from '../highlight-loader.js';
 
 export class EnhancedContentProcessor {
     constructor() {
-        this.equationRenderer = new EquationRenderer();
         this.initializeProcessor();
     }
 
@@ -74,8 +73,8 @@ export class EnhancedContentProcessor {
             console.warn('Failed to load highlight.js:', error);
         }
         
-        // Step 2: Process math equations first (before other markdown)
-        content = this.equationRenderer.processContent(content);
+        // Step 2: Process math blocks and equations first (before other markdown)
+        content = mathBlockProcessor.processContent(content);
         
         // Step 3: Process code blocks (now async)
         content = await CodeBlockProcessor.formatCodeBlocksToHTML(content);
@@ -98,10 +97,11 @@ export class EnhancedContentProcessor {
     processContentSync(content) {
         if (!content) return '';
 
-        console.log('Enhanced content processing started (sync)');
+        console.log('📝 EnhancedContentProcessor.processContentSync() called with:', content.substring(0, 100));
+        console.trace('📝 Call stack for enhanced processing:');
         
-        // Step 1: Process math equations first (before other markdown)
-        content = this.equationRenderer.processContent(content);
+        // Step 1: Process math blocks and equations first (before other markdown)
+        content = mathBlockProcessor.processContent(content);
         
         // Step 2: Process code blocks synchronously (without highlighting if not loaded)
         content = this._processCodeBlocksSync(content);
@@ -246,6 +246,37 @@ export class EnhancedContentProcessor {
      * @returns {string} Processed content
      */
     processEnhancedMarkdown(content) {
+        // Skip markdown processing inside math blocks and inline math to avoid conflicts
+        content = this.processMarkdownSafely(content);
+        
+        return content;
+    }
+
+    /**
+     * Process markdown while preserving math content
+     * @param {string} content - Content to process
+     * @returns {string} Processed content
+     */
+    processMarkdownSafely(content) {
+        // Store math content temporarily to protect it from markdown processing
+        const mathPlaceholders = [];
+        let placeholderIndex = 0;
+
+        // Protect math blocks
+        content = content.replace(/<div class="math-block-container[^>]*>[\s\S]*?<\/div>/g, (match) => {
+            const placeholder = `__MATH_BLOCK_${placeholderIndex++}__`;
+            mathPlaceholders.push({ placeholder, content: match });
+            return placeholder;
+        });
+
+        // Protect inline math
+        content = content.replace(/<span class="math-inline[^>]*>[\s\S]*?<\/span>/g, (match) => {
+            const placeholder = `__MATH_INLINE_${placeholderIndex++}__`;
+            mathPlaceholders.push({ placeholder, content: match });
+            return placeholder;
+        });
+
+        // Now safely process markdown
         // Process headers with enhanced styling
         content = content.replace(this.patterns.h1, '<h1 class="enhanced-h1">$1</h1>');
         content = content.replace(this.patterns.h2, '<h2 class="enhanced-h2">$1</h2>');
@@ -275,16 +306,21 @@ export class EnhancedContentProcessor {
         // Process links with enhanced styling
         content = content.replace(this.patterns.link, '<a href="$2" class="enhanced-link" target="_blank" rel="noopener noreferrer">$1</a>');
         
-        // Process text formatting
+        // Process text formatting (but avoid conflicts with math)
         content = content.replace(this.patterns.bold, '<strong class="enhanced-bold">$1</strong>');
         content = content.replace(this.patterns.italic, '<em class="enhanced-italic">$1</em>');
         content = content.replace(this.patterns.strikethrough, '<del class="enhanced-strikethrough">$1</del>');
         
-        // Process inline code with enhanced styling
+        // Process inline code with enhanced styling (but avoid conflicts with math)
         content = content.replace(this.patterns.inlineCode, '<code class="enhanced-inline-code">$1</code>');
         
         // Process horizontal rules
         content = content.replace(this.patterns.hr, '<hr class="enhanced-hr">');
+
+        // Restore math content
+        mathPlaceholders.forEach(({ placeholder, content: mathContent }) => {
+            content = content.replace(placeholder, mathContent);
+        });
         
         return content;
     }

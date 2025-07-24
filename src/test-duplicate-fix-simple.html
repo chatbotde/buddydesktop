@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Duplicate Fix Test</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #e5e5e7;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 20px;
+        }
+        
+        .test {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        
+        .result {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        button {
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Simple Duplicate Fix Test</h1>
+    
+    <div class="test">
+        <h3>Test: Simple Math</h3>
+        <p>Input: <code>The equation $E = mc^2$ is famous.</code></p>
+        <button onclick="runTest()">Test Math Processing</button>
+        <div id="result" class="result">Click test to see result...</div>
+    </div>
+    
+    <div class="test">
+        <h3>Console Check</h3>
+        <p>Check the browser console for warning messages about disabled processors.</p>
+    </div>
+
+    <!-- Load KaTeX -->
+    <link rel="stylesheet" href="../node_modules/katex/dist/katex.min.css" onerror="this.href='https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css'">
+    <script src="../node_modules/katex/dist/katex.min.js" onerror="document.write('<script src=\'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js\'><\/script>')"></script>
+
+    <script type="module">
+        import { enhancedContentProcessor } from './components/enhanced-content-processor.js';
+        
+        window.runTest = () => {
+            const input = 'The equation $E = mc^2$ is famous.';
+            console.log('🧪 Testing input:', input);
+            
+            const result = enhancedContentProcessor.processContentSync(input);
+            console.log('🧪 Result:', result);
+            
+            document.getElementById('result').innerHTML = result;
+            
+            // Check for duplicates
+            const rawMathCount = (result.match(/\$[^$]+\$/g) || []).length;
+            const processedMathCount = (result.match(/math-inline|katex/g) || []).length;
+            
+            console.log('📊 Analysis:');
+            console.log('- Raw math patterns remaining:', rawMathCount);
+            console.log('- Processed math elements:', processedMathCount);
+            
+            if (rawMathCount === 0 && processedMathCount > 0) {
+                console.log('✅ SUCCESS: No duplicates, math processed correctly!');
+            } else if (rawMathCount > 0) {
+                console.log('❌ PROBLEM: Raw math patterns still present - possible duplicates!');
+            } else {
+                console.log('⚠️ WARNING: No math processing detected');
+            }
+        };
+        
+        // Auto-run test after delay
+        setTimeout(() => {
+            console.log('🚀 Auto-running duplicate fix test...');
+            runTest();
+        }, 2000);
+    </script>
+</body>
+</html>

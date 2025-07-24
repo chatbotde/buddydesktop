@@ -1,11 +1,10 @@
 import { html, LitElement } from '../lit-core-2.7.4.min.js';
 import { chatMessageStyles } from './ui/chat-message-css.js';
 import { ThemeMixin, themeManager } from './theme.js';
-import { EquationMixin, equationRenderer } from './equations.js';
 import { CodeBlockProcessor } from './code-block.js';
 import { enhancedContentProcessor } from './enhanced-content-processor.js';
 
-class BuddyChatMessage extends EquationMixin(ThemeMixin(LitElement)) {
+class BuddyChatMessage extends ThemeMixin(LitElement) {
     static properties = {
         id: { type: String },
         text: { type: String },
@@ -23,11 +22,117 @@ class BuddyChatMessage extends EquationMixin(ThemeMixin(LitElement)) {
         this.showCopyButton = false;
         this.isEditing = false;
         this.editableContent = '';
+        this._processedContentCache = new Map(); // Cache for processed content
     }
 
     // Background theme options - now using centralized config
     static get backgroundThemes() {
         return themeManager.backgroundThemes;
+    }
+
+    _copyCode(codeId) {
+        const codeElement = this.shadowRoot.getElementById(codeId);
+        if (codeElement) {
+            const code = codeElement.textContent || codeElement.innerText;
+            navigator.clipboard
+                .writeText(code)
+                .then(() => {
+                    // Show feedback
+                    const copyBtn = this.shadowRoot.querySelector(`[onclick*="${codeId}"]`);
+                    if (copyBtn) {
+                        const originalText = copyBtn.innerHTML;
+                        copyBtn.innerHTML = `
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20,6 9,17 4,12"></polyline>
+                        </svg>
+                        Copied!
+                    `;
+                        copyBtn.style.color = '#4ade80';
+
+                        setTimeout(() => {
+                            copyBtn.innerHTML = originalText;
+                            copyBtn.style.color = '';
+                        }, 2000);
+                    }
+                })
+                .catch((err) => {
+                    console.error('Failed to copy code: ', err);
+                });
+        }
+    }
+
+    /**
+     * Copy math LaTeX source
+     */
+    _copyMath(mathId) {
+        const mathContainer = this.shadowRoot.querySelector(`[data-math-id="${mathId}"]`);
+        if (mathContainer) {
+            const sourceElement = mathContainer.querySelector(`#${mathId}-source code`);
+            if (sourceElement) {
+                const mathSource = sourceElement.textContent || sourceElement.innerText;
+                navigator.clipboard
+                    .writeText(mathSource)
+                    .then(() => {
+                        // Show feedback
+                        const copyBtn = mathContainer.querySelector('.math-copy-btn');
+                        if (copyBtn) {
+                            const originalText = copyBtn.innerHTML;
+                            copyBtn.innerHTML = `
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20,6 9,17 4,12"></polyline>
+                            </svg>
+                            Copied!
+                        `;
+                            copyBtn.style.color = '#4ade80';
+
+                            setTimeout(() => {
+                                copyBtn.innerHTML = originalText;
+                                copyBtn.style.color = '';
+                            }, 2000);
+                        }
+                    })
+                    .catch((err) => {
+                        console.error('Failed to copy math: ', err);
+                    });
+            }
+        }
+    }
+
+    /**
+     * Toggle between rendered math and LaTeX source
+     */
+    _toggleMathSource(mathId) {
+        const renderedElement = this.shadowRoot.getElementById(`${mathId}-rendered`);
+        const sourceElement = this.shadowRoot.getElementById(`${mathId}-source`);
+        const toggleBtn = this.shadowRoot.querySelector(`[data-math-id="${mathId}"] .math-toggle-btn`);
+        
+        if (renderedElement && sourceElement && toggleBtn) {
+            const isShowingSource = sourceElement.style.display !== 'none';
+            
+            if (isShowingSource) {
+                // Show rendered
+                renderedElement.style.display = 'block';
+                sourceElement.style.display = 'none';
+                toggleBtn.innerHTML = `
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="16 18 22 12 16 6"></polyline>
+                        <polyline points="8 6 2 12 8 18"></polyline>
+                    </svg>
+                    Source
+                `;
+            } else {
+                // Show source
+                renderedElement.style.display = 'none';
+                sourceElement.style.display = 'block';
+                toggleBtn.innerHTML = `
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"></path>
+                    </svg>
+                    Render
+                `;
+            }
+        }
     }
 
     _copyCode(codeId) {
@@ -64,8 +169,24 @@ class BuddyChatMessage extends EquationMixin(ThemeMixin(LitElement)) {
     _processMessageContent(text) {
         if (!text) return '';
 
+        console.log('🔍 _processMessageContent called with text:', text.substring(0, 100) + '...');
+        console.log('🔍 Cache size:', this._processedContentCache.size);
+
+        // Check cache first to prevent duplicate processing
+        if (this._processedContentCache.has(text)) {
+            console.log('✅ Found in cache, returning cached result');
+            return this._processedContentCache.get(text);
+        }
+
+        console.log('🔄 Processing new content...');
+        
         // Use the synchronous version for now to maintain compatibility
         const processedContent = enhancedContentProcessor.processContentSync(text);
+
+        // Cache the result
+        this._processedContentCache.set(text, processedContent);
+
+        console.log('💾 Cached result, cache size now:', this._processedContentCache.size);
 
         // Add event listeners to links after processing
         setTimeout(() => this._setupLinkHandlers(), 0);
@@ -359,21 +480,11 @@ class BuddyChatMessage extends EquationMixin(ThemeMixin(LitElement)) {
     connectedCallback() {
         super.connectedCallback();
         document.addEventListener('click', this._onClickOutside.bind(this));
-
-        // Listen for KaTeX ready event to re-render equations
-        this._katexReadyHandler = () => {
-            console.log('KaTeX ready event received, re-rendering message...');
-            this.requestUpdate();
-        };
-        window.addEventListener('katex-ready', this._katexReadyHandler);
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         document.removeEventListener('click', this._onClickOutside.bind(this));
-        if (this._katexReadyHandler) {
-            window.removeEventListener('katex-ready', this._katexReadyHandler);
-        }
         if (this._selectionCleanup) {
             this._selectionCleanup();
         }
@@ -394,7 +505,7 @@ class BuddyChatMessage extends EquationMixin(ThemeMixin(LitElement)) {
         copyBtn.innerHTML = `
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"></path>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h1"></path>
             </svg>
             Copy
         `;
@@ -585,7 +696,7 @@ class BuddyChatMessage extends EquationMixin(ThemeMixin(LitElement)) {
                                 stroke-linejoin="round"
                             >
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"></path>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h1"></path>
                             </svg>
                         </button>
                         <button class="msg-action-btn edit-button" @click=${this._onEdit} title="Edit message">
