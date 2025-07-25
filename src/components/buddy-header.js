@@ -45,17 +45,33 @@ class BuddyHeader extends LitElement {
         this.isOpacityControlActive = false;
         this.customMenuButtons = ['home', 'chat', 'history', 'models', 'customize', 'help'];
         this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
+        this.isEventListenerActive = false;
+        this.eventListenerTimeout = null;
     }
 
     static styles = [headerStyles];
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        document.removeEventListener('click', this.boundOutsideClickHandler);
+        this._cleanupEventListener();
+        if (this.eventListenerTimeout) {
+            clearTimeout(this.eventListenerTimeout);
+            this.eventListenerTimeout = null;
+        }
     }
 
     _toggleControlsMenu() {
         console.log('Toggling controls menu. Current state:', this.isControlsMenuOpen);
+        
+        // Debounce rapid clicks
+        if (this._toggleTimeout) {
+            return;
+        }
+        
+        this._toggleTimeout = setTimeout(() => {
+            this._toggleTimeout = null;
+        }, 100);
+        
         this.isControlsMenuOpen = !this.isControlsMenuOpen;
         console.log('New state:', this.isControlsMenuOpen);
         this.requestUpdate();
@@ -71,6 +87,15 @@ class BuddyHeader extends LitElement {
     }
 
     _toggleMainMenu() {
+        // Debounce rapid clicks
+        if (this._toggleTimeout) {
+            return;
+        }
+        
+        this._toggleTimeout = setTimeout(() => {
+            this._toggleTimeout = null;
+        }, 100);
+        
         // Close other dropdowns first
         this._closeModelsDropdown();
         this._closeControlsMenu();
@@ -89,6 +114,15 @@ class BuddyHeader extends LitElement {
     }
 
     _toggleModelsDropdown() {
+        // Debounce rapid clicks
+        if (this._toggleTimeout) {
+            return;
+        }
+        
+        this._toggleTimeout = setTimeout(() => {
+            this._toggleTimeout = null;
+        }, 100);
+        
         // Close other dropdowns first
         this._closeMainMenu();
         this._closeControlsMenu();
@@ -107,6 +141,15 @@ class BuddyHeader extends LitElement {
     }
 
     _toggleOpacityDropdown() {
+        // Debounce rapid clicks
+        if (this._toggleTimeout) {
+            return;
+        }
+        
+        this._toggleTimeout = setTimeout(() => {
+            this._toggleTimeout = null;
+        }, 100);
+        
         // Close other dropdowns first
         this._closeMainMenu();
         this._closeControlsMenu();
@@ -126,6 +169,15 @@ class BuddyHeader extends LitElement {
     }
 
     _toggleThemeDropdown() {
+        // Debounce rapid clicks
+        if (this._toggleTimeout) {
+            return;
+        }
+        
+        this._toggleTimeout = setTimeout(() => {
+            this._toggleTimeout = null;
+        }, 100);
+        
         // Close other dropdowns first
         this._closeMainMenu();
         this._closeControlsMenu();
@@ -145,45 +197,95 @@ class BuddyHeader extends LitElement {
         }
     }
 
+    _cleanupEventListener() {
+        if (this.isEventListenerActive) {
+            document.removeEventListener('click', this.boundOutsideClickHandler);
+            this.isEventListenerActive = false;
+        }
+        if (this.eventListenerTimeout) {
+            clearTimeout(this.eventListenerTimeout);
+            this.eventListenerTimeout = null;
+        }
+        if (this._toggleTimeout) {
+            clearTimeout(this._toggleTimeout);
+            this._toggleTimeout = null;
+        }
+    }
+
     _manageEventListener() {
         const hasOpenDropdown = this.isMainMenuOpen || this.isControlsMenuOpen || this.isModelsDropdownOpen || this.isOpacityDropdownOpen || this.isThemeDropdownOpen;
         
+        // Clear any existing timeout
+        if (this.eventListenerTimeout) {
+            clearTimeout(this.eventListenerTimeout);
+            this.eventListenerTimeout = null;
+        }
+        
         if (hasOpenDropdown) {
-            // Add event listener with a small delay to prevent immediate closure
-            setTimeout(() => {
-                document.addEventListener('click', this.boundOutsideClickHandler);
-            }, 10);
+            // Only add listener if not already active
+            if (!this.isEventListenerActive) {
+                // Use requestAnimationFrame for better timing instead of setTimeout
+                this.eventListenerTimeout = requestAnimationFrame(() => {
+                    if (!this.isEventListenerActive) {
+                        document.addEventListener('click', this.boundOutsideClickHandler, { passive: true });
+                        this.isEventListenerActive = true;
+                    }
+                    this.eventListenerTimeout = null;
+                });
+            }
         } else {
             // Remove event listener when no dropdowns are open
-            document.removeEventListener('click', this.boundOutsideClickHandler);
+            this._cleanupEventListener();
         }
     }
 
     _handleOutsideClick(e) {
-        const controlsContainer = this.renderRoot.querySelector('.controls-dropdown-container');
-        const mainMenuContainer = this.renderRoot.querySelector('.main-menu-dropdown-container');
-        const modelsDropdownContainer = this.renderRoot.querySelector('.models-dropdown-container');
-        const opacityDropdownContainer = this.renderRoot.querySelector('.opacity-dropdown-container');
-        
-        if (controlsContainer && !controlsContainer.contains(e.target)) {
-            this._closeControlsMenu();
+        // Early return if no dropdowns are open
+        if (!this.isMainMenuOpen && !this.isControlsMenuOpen && !this.isModelsDropdownOpen && !this.isOpacityDropdownOpen && !this.isThemeDropdownOpen) {
+            this._cleanupEventListener();
+            return;
         }
-        
-        if (mainMenuContainer && !mainMenuContainer.contains(e.target)) {
-            this._closeMainMenu();
+
+        // Prevent handling clicks on the component itself during initial render
+        if (!this.renderRoot) {
+            return;
         }
+
+        const containers = [
+            { element: this.renderRoot.querySelector('.controls-dropdown-container'), handler: () => this._closeControlsMenu() },
+            { element: this.renderRoot.querySelector('.main-menu-dropdown-container'), handler: () => this._closeMainMenu() },
+            { element: this.renderRoot.querySelector('.models-dropdown-container'), handler: () => this._closeModelsDropdown() },
+            { element: this.renderRoot.querySelector('.opacity-dropdown-container'), handler: () => this._closeOpacityDropdown() },
+            { element: this.renderRoot.querySelector('.theme-dropdown-container'), handler: () => this._closeThemeDropdown() }
+        ];
+
+        let clickedInside = false;
         
-        if (modelsDropdownContainer && !modelsDropdownContainer.contains(e.target)) {
-            this._closeModelsDropdown();
+        for (const container of containers) {
+            if (container.element && container.element.contains(e.target)) {
+                clickedInside = true;
+                break;
+            }
         }
-        
-        if (opacityDropdownContainer && !opacityDropdownContainer.contains(e.target)) {
-            this._closeOpacityDropdown();
+
+        // If click was outside all containers, close all dropdowns
+        if (!clickedInside) {
+            this._closeAllDropdowns();
         }
+    }
+
+    _closeAllDropdowns() {
+        const hadOpenDropdown = this.isMainMenuOpen || this.isControlsMenuOpen || this.isModelsDropdownOpen || this.isOpacityDropdownOpen || this.isThemeDropdownOpen;
         
-        const themeDropdownContainer = this.renderRoot.querySelector('.theme-dropdown-container');
-        if (themeDropdownContainer && !themeDropdownContainer.contains(e.target)) {
-            this._closeThemeDropdown();
+        this.isControlsMenuOpen = false;
+        this.isMainMenuOpen = false;
+        this.isModelsDropdownOpen = false;
+        this.isOpacityDropdownOpen = false;
+        this.isThemeDropdownOpen = false;
+        
+        if (hadOpenDropdown) {
+            this.requestUpdate();
+            this._manageEventListener();
         }
     }
 
