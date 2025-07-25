@@ -13,7 +13,7 @@ class MarketplaceWindow extends LitElement {
         super();
         this.isOpen = false;
         this.searchQuery = '';
-        this.selectedButtons = [];
+        this.selectedButtons = this._loadSelectedButtons();
         this.windowPosition = { x: null, y: null };
         this.isDragging = false;
         this.dragOffset = { x: 0, y: 0 };
@@ -87,8 +87,50 @@ class MarketplaceWindow extends LitElement {
                 icon: 'm16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5 M2 6h14v12H2z',
                 category: 'Video',
                 description: 'Toggle video recording'
+            },
+            {
+                id: 'content-protection',
+                name: 'Content Protection',
+                icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+                category: 'Privacy',
+                description: 'Toggle content protection and visibility'
+            },
+            {
+                id: 'workspace-visibility',
+                name: 'All Workspaces',
+                icon: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
+                category: 'Workspace',
+                description: 'Toggle visibility on all workspaces'
             }
         ];
+    }
+
+    // Load selected buttons from localStorage
+    _loadSelectedButtons() {
+        try {
+            const saved = localStorage.getItem('buddy-custom-menu-buttons');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                console.log('MarketplaceWindow: Loaded buttons from localStorage:', parsed);
+                return parsed;
+            }
+        } catch (error) {
+            console.error('Error loading selected buttons:', error);
+        }
+        // Default buttons if nothing saved
+        const defaultButtons = ['home', 'chat', 'history', 'models', 'customize', 'help'];
+        console.log('MarketplaceWindow: Using default buttons:', defaultButtons);
+        return defaultButtons;
+    }
+
+    // Save selected buttons to localStorage
+    _saveSelectedButtons() {
+        try {
+            localStorage.setItem('buddy-custom-menu-buttons', JSON.stringify(this.selectedButtons));
+            console.log('MarketplaceWindow: Saved buttons to localStorage:', this.selectedButtons);
+        } catch (error) {
+            console.error('Error saving selected buttons:', error);
+        }
     }
 
     static styles = css`
@@ -378,6 +420,7 @@ class MarketplaceWindow extends LitElement {
         } else {
             this.selectedButtons = [...this.selectedButtons, buttonId];
         }
+        this._saveSelectedButtons();
         this.requestUpdate();
     }
 
@@ -751,6 +794,20 @@ class MarketplaceWindow extends LitElement {
                 icon: 'm16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5 M2 6h14v12H2z',
                 category: 'Video',
                 description: 'Toggle video recording'
+            },
+            {
+                id: 'content-protection',
+                name: 'Content Protection',
+                icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+                category: 'Privacy',
+                description: 'Toggle content protection and visibility'
+            },
+            {
+                id: 'workspace-visibility',
+                name: 'All Workspaces',
+                icon: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
+                category: 'Workspace',
+                description: 'Toggle visibility on all workspaces'
             }
         ];
 
@@ -857,6 +914,7 @@ class MarketplaceWindow extends LitElement {
     }
 
     _handleApply() {
+        this._saveSelectedButtons();
         this.dispatchEvent(new CustomEvent('marketplace-apply', { 
             detail: { selectedButtons: this.selectedButtons },
             bubbles: true, 

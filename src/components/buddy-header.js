@@ -489,6 +489,22 @@ class BuddyHeader extends LitElement {
                 handler: '_handleToggleOpacityControl',
                 showStatus: true,
                 statusKey: 'isOpacityControlActive'
+            },
+            'content-protection': {
+                id: 'content-protection',
+                name: 'Content Protection',
+                icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+                handler: '_handleToggleContentProtection',
+                showStatus: true,
+                statusKey: 'isContentProtected'
+            },
+            'workspace-visibility': {
+                id: 'workspace-visibility',
+                name: 'All Workspaces',
+                icon: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
+                handler: '_handleToggleVisibilityOnWorkspaces',
+                showStatus: true,
+                statusKey: 'isVisibleOnAllWorkspaces'
             }
         };
 
@@ -733,108 +749,65 @@ class BuddyHeader extends LitElement {
 
                         ${this.isMainMenuOpen ? html`
                             <div class="main-menu-dropdown">
-                                <!-- Dynamic Navigation Items -->
-                                ${this._getMenuButtonsData().map(button => html`
-                                    <button 
-                                        class="menu-item ${button.showStatus ? (this[button.statusKey] ? 'active' : 'inactive') : ''}" 
-                                        @click=${button.handler ? () => this[button.handler]() : () => this._handleNav(button.id)}
-                                    >
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="${button.icon}"/>
-                                        </svg>
-                                        <span class="menu-item-label">${button.name}</span>
-                                        ${button.showStatus ? html`
-                                            <span class="menu-item-status">${this[button.statusKey] ? 'ON' : 'OFF'}</span>
-                                        ` : ''}
-                                    </button>
-                                `)}
+                                <div class="main-menu-dropdown-content">
+                                    <!-- Dynamic Navigation Items -->
+                                    ${this._getMenuButtonsData().map(button => html`
+                                        <button 
+                                            class="menu-item ${button.showStatus ? (this[button.statusKey] ? 'active' : 'inactive') : ''}" 
+                                            @click=${button.handler ? () => this[button.handler]() : () => this._handleNav(button.id)}
+                                        >
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="${button.icon}"/>
+                                            </svg>
+                                            <span class="menu-item-label">${button.name}</span>
+                                            ${button.showStatus ? html`
+                                                <span class="menu-item-status">${this[button.statusKey] ? 'ON' : 'OFF'}</span>
+                                            ` : ''}
+                                        </button>
+                                    `)}
 
-                                <div class="menu-divider"></div>
-
-                                <!-- Marketplace -->
-                                <button class="menu-item" @click=${this._handleOpenMarketplace}>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                    </svg>
-                                    <span class="menu-item-label">Marketplace</span>
-                                </button>
-
-                                <div class="menu-divider"></div>
-
-                                <!-- Audio Window -->
-                                <button class="menu-item" @click=${this._handleOpenAudioWindow}>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                                    </svg>
-                                    <span class="menu-item-label">Audio Window</span>
-                                </button>
-
-                                <div class="menu-divider"></div>
-
-                                <!-- Chat Controls (only show in assistant view) -->
-                                ${this.currentView === 'assistant' ? html`
-                                    <button class="menu-item" @click=${this._handleMenuNewChat}>
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                            <path d="M12 7v6m-3-3h6"/>
-                                        </svg>
-                                        <span class="menu-item-label">New Chat</span>
-                                    </button>
-                                    
-                                    <button class="menu-item ${this.isAudioActive ? 'active' : 'inactive'}" @click=${this._handleMenuToggleAudio}>
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M2 10v3"/>
-                                            <path d="M6 6v11"/>
-                                            <path d="M10 3v18"/>
-                                            <path d="M14 8v7"/>
-                                            <path d="M18 5v13"/>
-                                            <path d="M22 10v3"/>
-                                        </svg>
-                                        <span class="menu-item-label">Audio</span>
-                                        <span class="menu-item-status">${this.isAudioActive ? 'ON' : 'OFF'}</span>
-                                    </button>
-                                    
-                                    <button class="menu-item ${this.isScreenActive ? 'active' : 'inactive'}" @click=${this._handleMenuToggleScreen}>
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/>
-                                            <rect x="2" y="6" width="14" height="12" rx="2"/>
-                                        </svg>
-                                        <span class="menu-item-label">Video</span>
-                                        <span class="menu-item-status">${this.isScreenActive ? 'ON' : 'OFF'}</span>
-                                    </button>
-                                    
                                     <div class="menu-divider"></div>
-                                    
-                                    <!-- Visibility Controls -->
-                                    <button class="menu-item ${this.isContentProtected ? 'active' : 'inactive'}" @click=${this._handleToggleContentProtection}>
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                                        </svg>
-                                        <span class="menu-item-label">visible/invisible</span>
-                                        <span class="menu-item-status">${this.isContentProtected ? 'ON' : 'OFF'}</span>
-                                    </button>
-                                    
-                                    <button class="menu-item ${this.isVisibleOnAllWorkspaces ? 'active' : 'inactive'}" @click=${this._handleToggleVisibilityOnWorkspaces}>
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                            <circle cx="12" cy="12" r="3"/>
-                                        </svg>
-                                        <span class="menu-item-label">Visible on All Workspaces</span>
-                                        <span class="menu-item-status">${this.isVisibleOnAllWorkspaces ? 'ON' : 'OFF'}</span>
-                                    </button>
-                                    
-                                    <div class="menu-divider"></div>
-                                ` : ''}
 
-                                <!-- Close App -->
-                                <button class="menu-item" @click=${this._handleClose}>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <line x1="18" y1="6" x2="6" y2="18"/>
-                                        <line x1="6" y1="6" x2="18" y2="18"/>
-                                    </svg>
-                                    <span class="menu-item-label">Close App</span>
-                                </button>
+                                    <!-- Marketplace -->
+                                    <button class="menu-item" @click=${this._handleOpenMarketplace}>
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <span class="menu-item-label">Marketplace</span>
+                                    </button>
+
+                    
+
+                                    <!-- Chat Controls (only show in assistant view) -->
+                                    ${this.currentView === 'assistant' ? html`
+                                        <div class="menu-divider"></div>
+                                        
+                                        <button class="menu-item" @click=${this._handleMenuNewChat}>
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                                <path d="M12 7v6m-3-3h6"/>
+                                            </svg>
+                                            <span class="menu-item-label">New Chat</span>
+                                        </button>
+                                        
+                                        
+                                        
+                                        
+                                        
+
+                                    ` : ''}
+
+                                    <div class="menu-divider"></div>
+
+                                    <!-- Close App -->
+                                    <button class="menu-item" @click=${this._handleClose}>
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"/>
+                                            <line x1="6" y1="6" x2="18" y2="18"/>
+                                        </svg>
+                                        <span class="menu-item-label">Close App</span>
+                                    </button>
+                                </div>
                             </div>
                         ` : ''}
                     </div>
