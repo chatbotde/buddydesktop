@@ -980,123 +980,6 @@ export const headerStyles = css`
         font-size: 14px;
     }
 
-    /* Main Menu Dropdown Styles */
-    .main-menu-dropdown-container {
-        position: relative;
-        z-index: 1000;
-    }
-
-    .main-menu-btn {
-        background: oklch(37.4% 0.01 67.558);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #fff;
-        cursor: pointer;
-        border-radius: 8px;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-        opacity: 0.9;
-        position: relative;
-    }
-
-    .main-menu-btn:hover:not(:disabled) {
-        background: oklch(42% 0.01 67.558);
-        border-color: rgba(255, 255, 255, 0.35);
-        transform: translateY(-1px);
-        opacity: 1;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    .main-menu-dropdown {
-        position: absolute;
-        top: calc(100% + 8px);
-        right: 0;
-        background: oklch(37.4% 0.01 67.558);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 12px;
-        padding: 12px;
-        display: flex !important;
-        flex-direction: column;
-        gap: 6px;
-        z-index: 9999 !important;
-        box-shadow: 
-            0 20px 60px rgba(0, 0, 0, 0.4),
-            0 8px 32px rgba(0, 0, 0, 0.3);
-        animation: fadeInDown 0.2s ease-out;
-        width: 220px;
-        min-height: 100px;
-        max-height: 350px;
-        overflow: visible;
-    }
-
-    .menu-item {
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--text-color);
-        cursor: pointer;
-        padding: 10px 14px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        text-align: left;
-        width: 100%;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .menu-item:hover:not(:disabled) {
-        background: rgba(255, 255, 255, 0.15);
-        border-color: rgba(255, 255, 255, 0.25);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    .menu-item svg {
-        width: 16px;
-        height: 16px;
-        opacity: 0.9;
-        stroke-width: 2;
-        flex-shrink: 0;
-        transition: all 0.3s ease;
-    }
-
-    .menu-item:hover svg {
-        opacity: 1;
-    }
-
-    .menu-item-label {
-        flex-grow: 1;
-    }
-
-    .menu-item-status {
-        font-size: 11px;
-        opacity: 0.7;
-        font-weight: 600;
-    }
-
-    .menu-item.active .menu-item-status {
-        color: #4ade80;
-        opacity: 1;
-    }
-
-    .menu-item.inactive .menu-item-status {
-        color: #ef4444;
-        opacity: 1;
-    }
-
-    .menu-divider {
-        height: 1px;
-        background: rgba(255, 255, 255, 0.15);
-        margin: 4px 0;
-    }
-
     /* Models Dropdown Styles */
     .models-dropdown-container {
         position: relative;
@@ -1261,6 +1144,351 @@ export const headerStyles = css`
         .models-dropdown {
             min-width: 200px;
             right: -20px;
+        }
+    }
+
+    /* Main Menu Dropdown Styles */
+    .main-menu-dropdown-container {
+        position: relative;
+        z-index: 1000;
+    }
+
+    .main-menu-btn {
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        cursor: pointer;
+        border-radius: 12px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        opacity: 0.9;
+        position: relative;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .main-menu-btn:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px) scale(1.02);
+        opacity: 1;
+        box-shadow: 
+            0 8px 25px rgba(0, 0, 0, 0.15),
+            0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .main-menu-btn svg {
+        transition: transform 0.3s ease;
+    }
+
+    .main-menu-btn:hover svg {
+        transform: scale(1.1);
+    }
+
+    .main-menu-dropdown {
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        background: rgba(20, 20, 25, 0.97);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 16px;
+        padding: 8px;
+        display: flex !important;
+        flex-direction: column;
+        gap: 2px;
+        z-index: 9999 !important;
+        box-shadow: 
+            0 25px 80px rgba(0, 0, 0, 0.5),
+            0 12px 40px rgba(0, 0, 0, 0.3),
+            0 4px 16px rgba(0, 0, 0, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        animation: modernDropdownIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        
+        /* Responsive sizing */
+        width: min(280px, calc(100vw - 40px));
+        min-height: 120px;
+        max-height: min(400px, calc(100vh - 100px));
+        overflow-y: auto;
+        overflow-x: hidden;
+        
+        /* Custom scrollbar */
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    }
+
+    /* Webkit scrollbar styles */
+    .main-menu-dropdown::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .main-menu-dropdown::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 3px;
+    }
+
+    .main-menu-dropdown::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        transition: background 0.2s ease;
+    }
+
+    .main-menu-dropdown::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes modernDropdownIn {
+        from {
+            opacity: 0;
+            transform: translateY(-12px) scale(0.95);
+            filter: blur(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0px);
+        }
+    }
+
+    .menu-item {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.95);
+        cursor: pointer;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-align: left;
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    .menu-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, 
+            rgba(255, 255, 255, 0.12) 0%, 
+            rgba(255, 255, 255, 0.06) 50%,
+            rgba(255, 255, 255, 0.02) 100%
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    .menu-item:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px) scale(1.02);
+        box-shadow: 
+            0 8px 25px rgba(0, 0, 0, 0.2),
+            0 4px 12px rgba(0, 0, 0, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+    }
+
+    .menu-item:hover:not(:disabled)::before {
+        opacity: 1;
+    }
+
+    .menu-item:active {
+        transform: translateY(0) scale(0.98);
+        transition: all 0.1s ease;
+    }
+
+    .menu-item svg {
+        width: 18px;
+        height: 18px;
+        opacity: 0.9;
+        stroke-width: 1.8;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+
+    .menu-item:hover svg {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    .menu-item-label {
+        flex-grow: 1;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+    }
+
+    .menu-item-status {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(5px);
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .menu-item.active {
+        background: rgba(76, 222, 128, 0.12);
+        border-color: rgba(76, 222, 128, 0.2);
+        color: #ffffff;
+    }
+
+    .menu-item.active svg {
+        color: #4ade80;
+    }
+
+    .menu-item.active .menu-item-status {
+        background: rgba(76, 222, 128, 0.2);
+        color: #4ade80;
+        border: 1px solid rgba(76, 222, 128, 0.3);
+    }
+
+    .menu-item.inactive {
+        background: rgba(239, 68, 68, 0.08);
+        border-color: rgba(239, 68, 68, 0.15);
+    }
+
+    .menu-item.inactive svg {
+        color: #ef4444;
+    }
+
+    .menu-item.inactive .menu-item-status {
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .menu-divider {
+        height: 1px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(255, 255, 255, 0.15) 50%, 
+            transparent 100%
+        );
+        margin: 8px 12px;
+        position: relative;
+    }
+
+    .menu-divider::after {
+        content: '';
+        position: absolute;
+        top: 1px;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(255, 255, 255, 0.05) 50%, 
+            transparent 100%
+        );
+    }
+
+    /* Enhanced responsive behavior for mobile */
+    @media (max-width: 768px) {
+        .main-menu-dropdown {
+            width: min(260px, calc(100vw - 20px));
+            max-height: min(350px, calc(100vh - 80px));
+            top: calc(100% + 8px);
+            right: -10px;
+        }
+
+        .menu-item {
+            padding: 14px 16px;
+            font-size: 15px;
+        }
+
+        .menu-item svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .menu-item-status {
+            font-size: 10px;
+            padding: 3px 8px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .main-menu-dropdown {
+            width: min(240px, calc(100vw - 16px));
+            max-height: min(300px, calc(100vh - 60px));
+            right: -8px;
+        }
+
+        .menu-item {
+            padding: 12px 14px;
+            font-size: 14px;
+            gap: 10px;
+        }
+
+        .menu-item svg {
+            width: 18px;
+            height: 18px;
+        }
+    }
+
+    /* Ensure dropdown stays within viewport bounds */
+    @media (max-height: 500px) {
+        .main-menu-dropdown {
+            max-height: calc(100vh - 40px);
+        }
+    }
+
+    /* Add smooth scroll behavior */
+    .main-menu-dropdown {
+        scroll-behavior: smooth;
+    }
+
+    /* Focus styles for accessibility */
+    .menu-item:focus {
+        outline: 2px solid rgba(255, 255, 255, 0.3);
+        outline-offset: 2px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Loading state for menu items */
+    .menu-item.loading {
+        opacity: 0.6;
+        cursor: wait;
+        pointer-events: none;
+    }
+
+    .menu-item.loading::after {
+        content: '';
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 12px;
+        height: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-top-color: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: translateY(-50%) rotate(360deg);
         }
     }
     `;
