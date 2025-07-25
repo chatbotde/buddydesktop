@@ -135,36 +135,6 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         }
     }
 
-    _copyCode(codeId) {
-        const codeElement = this.shadowRoot.getElementById(codeId);
-        if (codeElement) {
-            const code = codeElement.textContent || codeElement.innerText;
-            navigator.clipboard
-                .writeText(code)
-                .then(() => {
-                    // Show feedback
-                    const copyBtn = this.shadowRoot.querySelector(`[onclick*="${codeId}"]`);
-                    if (copyBtn) {
-                        const originalText = copyBtn.innerHTML;
-                        copyBtn.innerHTML = `
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="20,6 9,17 4,12"></polyline>
-                        </svg>
-                        Copied!
-                    `;
-                        copyBtn.style.color = '#4ade80';
-                        setTimeout(() => {
-                            copyBtn.innerHTML = originalText;
-                            copyBtn.style.color = '';
-                        }, 2000);
-                    }
-                })
-                .catch(err => {
-                    console.error('Failed to copy code:', err);
-                });
-        }
-    }
-
     // Override the mixin's _processMessageContent to use enhanced content processor
     _processMessageContent(text) {
         if (!text) return '';
@@ -178,6 +148,13 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
             return this._processedContentCache.get(text);
         }
 
+        // ⭐ SMART DUPLICATE DETECTION: Check if content is already rendered
+        if (this._isContentAlreadyRendered(text)) {
+            console.log('✅ Content already rendered, skipping processing');
+            this._processedContentCache.set(text, text); // Cache the original as-is
+            return text;
+        }
+
         console.log('🔄 Processing new content...');
         
         // Use the synchronous version for now to maintain compatibility
@@ -187,6 +164,7 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         this._processedContentCache.set(text, processedContent);
 
         console.log('💾 Cached result, cache size now:', this._processedContentCache.size);
+        console.log('💾 Processed content preview:', processedContent.substring(0, 200) + '...');
 
         // Add event listeners to links after processing
         setTimeout(() => this._setupLinkHandlers(), 0);
@@ -443,6 +421,11 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
     updated(changedProperties) {
         super.updated(changedProperties);
 
+        // Clear processed content cache when text changes to prevent stale cached content
+        if (changedProperties.has('text')) {
+            this._processedContentCache.clear();
+        }
+
         // Notify parent when assistant message starts (has content for first time)
         if (this.sender === 'assistant' && changedProperties.has('text')) {
             const hadContent = changedProperties.get('text');
@@ -584,6 +567,44 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
                     }
                 });
         }
+    }
+
+    /**
+     * ⭐ SMART DUPLICATE DETECTION: Check if content is already rendered
+     * This prevents re-processing content that's already been processed
+     */
+    _isContentAlreadyRendered(text) {
+        if (!text) return false;
+
+        // Check for already processed math elements
+        const hasProcessedMath = text.includes('math-block-container') || 
+                               text.includes('math-inline') || 
+                               text.includes('katex') ||
+                               text.includes('class="katex"');
+
+        // Check for already processed code blocks
+        const hasProcessedCode = text.includes('code-block-container') ||
+                                text.includes('class="hljs"') ||
+                                text.includes('class="code-line"');
+
+        // Check for already processed markdown elements
+        const hasProcessedMarkdown = text.includes('class="enhanced-') ||
+                                   text.includes('<h1 class=') ||
+                                   text.includes('<h2 class=') ||
+                                   text.includes('<table class="enhanced-table"') ||
+                                   text.includes('<blockquote class="enhanced-blockquote"');
+
+        const isAlreadyRendered = hasProcessedMath || hasProcessedCode || hasProcessedMarkdown;
+        
+        if (isAlreadyRendered) {
+            console.log('🔍 Content already rendered detected:', {
+                hasProcessedMath,
+                hasProcessedCode, 
+                hasProcessedMarkdown
+            });
+        }
+
+        return isAlreadyRendered;
     }
 
     render() {

@@ -77,24 +77,28 @@
         <script src="../node_modules/katex/dist/katex.min.js" onerror="document.write('<script src=\'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js\'><\/script>')"></script>
         
         <script type="module">
-            import { equationRenderer } from './components/equations.js';
-            // Initialize equation renderer after KaTeX is loaded
-            window.equationRenderer = equationRenderer;
+            import { initializeMathSystem, equationRenderer } from './math/index.js';
             
-            // Ensure KaTeX is ready
-            function ensureKaTeXReady() {
-                if (typeof katex !== 'undefined') {
-                    console.log('🎉 KaTeX is ready in main app!');
-                    console.log('KaTeX version:', katex.version || 'Unknown');
-                    window.dispatchEvent(new CustomEvent('katex-ready'));
-                } else {
-                    console.log('⏳ Waiting for KaTeX...');
-                    setTimeout(ensureKaTeXReady, 100);
+            // Initialize the complete math system
+            async function initApp() {
+                try {
+                    console.log('🔄 Initializing math system...');
+                    const success = await initializeMathSystem();
+                    
+                    if (success) {
+                        console.log('🎉 Math system initialized successfully!');
+                        window.equationRenderer = equationRenderer;
+                        window.dispatchEvent(new CustomEvent('math-system-ready'));
+                    } else {
+                        console.error('❌ Failed to initialize math system');
+                    }
+                } catch (error) {
+                    console.error('❌ Error during math system initialization:', error);
                 }
             }
             
-            // Start checking for KaTeX
-            ensureKaTeXReady();
+            // Start initialization
+            initApp();
         </script>
         <script type="module" src="buddy-element.js"></script>
         <script type="module" src="components/buddy-update-notification.js"></script>

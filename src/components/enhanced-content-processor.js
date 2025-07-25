@@ -4,7 +4,7 @@
  */
 
 import { CodeBlockProcessor } from './code-block.js';
-import { mathBlockProcessor } from './math-block-processor.js';
+import { mathBlockProcessor } from '../math/math-block-processor.js';
 import { highlightLoader } from '../highlight-loader.js';
 
 export class EnhancedContentProcessor {
@@ -66,6 +66,12 @@ export class EnhancedContentProcessor {
 
         console.log('Enhanced content processing started');
         
+        // ⭐ SMART DUPLICATE DETECTION: Check if content is already fully processed
+        if (this._isContentAlreadyProcessed(content)) {
+            console.log('✅ Content already fully processed, returning as-is');
+            return content;
+        }
+        
         // Step 1: Ensure highlight.js is loaded
         try {
             await highlightLoader.load();
@@ -74,7 +80,12 @@ export class EnhancedContentProcessor {
         }
         
         // Step 2: Process math blocks and equations first (before other markdown)
-        content = mathBlockProcessor.processContent(content);
+        // Check if math has already been processed to avoid duplication
+        if (!content.includes('math-block-container') && !content.includes('math-inline') && !content.includes('katex')) {
+            content = mathBlockProcessor.processContent(content);
+        } else {
+            console.log('📝 Math already processed, skipping math processing');
+        }
         
         // Step 3: Process code blocks (now async)
         content = await CodeBlockProcessor.formatCodeBlocksToHTML(content);
@@ -98,10 +109,20 @@ export class EnhancedContentProcessor {
         if (!content) return '';
 
         console.log('📝 EnhancedContentProcessor.processContentSync() called with:', content.substring(0, 100));
-        console.trace('📝 Call stack for enhanced processing:');
+        
+        // ⭐ SMART DUPLICATE DETECTION: Check if content is already fully processed
+        if (this._isContentAlreadyProcessed(content)) {
+            console.log('✅ Content already fully processed, returning as-is');
+            return content;
+        }
         
         // Step 1: Process math blocks and equations first (before other markdown)
-        content = mathBlockProcessor.processContent(content);
+        // Check if math has already been processed to avoid duplication
+        if (!content.includes('math-block-container') && !content.includes('math-inline') && !content.includes('katex')) {
+            content = mathBlockProcessor.processContent(content);
+        } else {
+            console.log('📝 Math already processed, skipping math processing');
+        }
         
         // Step 2: Process code blocks synchronously (without highlighting if not loaded)
         content = this._processCodeBlocksSync(content);
@@ -475,6 +496,45 @@ export class EnhancedContentProcessor {
         content = content.replace(/\n\n/g, '\n<br class="enhanced-break">\n');
         
         return content;
+    }
+
+    /**
+     * ⭐ SMART DUPLICATE DETECTION: Check if content is already fully processed
+     * This prevents re-processing content that's already been enhanced
+     */
+    _isContentAlreadyProcessed(content) {
+        if (!content) return false;
+
+        // Check for multiple indicators that content has been processed
+        const indicators = [
+            // Math processing indicators
+            'math-block-container',
+            'math-inline', 
+            'class="katex"',
+            
+            // Code processing indicators
+            'code-block-container',
+            'class="hljs"',
+            
+            // Enhanced markdown indicators
+            'class="enhanced-paragraph"',
+            'class="enhanced-h1"',
+            'class="enhanced-table"',
+            'class="enhanced-blockquote"',
+            'enhanced-break'
+        ];
+
+        // Count how many indicators are present
+        const presentIndicators = indicators.filter(indicator => content.includes(indicator));
+        
+        // If multiple indicators are present, content is likely already processed
+        const isProcessed = presentIndicators.length >= 2;
+        
+        if (isProcessed) {
+            console.log('🔍 Content appears to be already processed. Found indicators:', presentIndicators);
+        }
+
+        return isProcessed;
     }
 
     /**
