@@ -101,6 +101,20 @@ class MarketplaceWindow extends LitElement {
                 icon: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
                 category: 'Workspace',
                 description: 'Toggle visibility on all workspaces'
+            },
+            {
+                id: 'search-window',
+                name: 'Search Window',
+                icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
+                category: 'Tools',
+                description: 'Open dedicated search window for files and content'
+            },
+            {
+                id: 'toggle-search',
+                name: 'Search Toggle',
+                icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
+                category: 'Tools', 
+                description: 'Toggle search functionality on/off'
             }
         ];
     }
@@ -808,6 +822,20 @@ class MarketplaceWindow extends LitElement {
                 icon: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
                 category: 'Workspace',
                 description: 'Toggle visibility on all workspaces'
+            },
+            {
+                id: 'search-window',
+                name: 'Search Window',
+                icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
+                category: 'Tools',
+                description: 'Open dedicated search window for files and content'
+            },
+            {
+                id: 'toggle-search',
+                name: 'Search Toggle',
+                icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
+                category: 'Tools', 
+                description: 'Toggle search functionality on/off'
             }
         ];
 

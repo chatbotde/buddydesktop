@@ -68,6 +68,7 @@ class BuddyApp extends LitElement {
         this.streamingResponseText = '';
         this.isStreamingActive = false;
         this.isAudioActive = false;
+        this.isSearchActive = false;
         this.isScreenActive = false;
         this.currentTheme = 'dark';
         this.chatMessages = [];
@@ -492,6 +493,12 @@ class BuddyApp extends LitElement {
         });
         this.addEventListener('open-audio-window', async () => {
             await this.openAudioWindow();
+        });
+        this.addEventListener('toggle-search', async () => {
+            await this.toggleSearch();
+        });
+        this.addEventListener('open-search-window', async () => {
+            await this.openSearchWindow();
         });
         this.addEventListener('open-marketplace-window', async () => {
             await this.openMarketplaceWindow();
@@ -1071,8 +1078,8 @@ class BuddyApp extends LitElement {
             
             // Send IPC message to main process to create audio window
             const result = await ipcRenderer.invoke('create-audio-window', {
-                width: 50,
-                height: 50,
+                width: 400,
+                height: 400,
                 // Position in top-right corner by default
                 x: undefined,
                 y: undefined
@@ -1143,6 +1150,86 @@ class BuddyApp extends LitElement {
             this.statusText = 'Failed to open marketplace window';
             setTimeout(() => {
                 if (this.statusText === 'Failed to open marketplace window') {
+                    this.statusText = '';
+                }
+            }, 3000);
+            
+            this.requestUpdate();
+        }
+    }
+
+    async toggleSearch() {
+        try {
+            this.isSearchActive = !this.isSearchActive;
+            
+            // Update header with search state
+            const header = this.shadowRoot.querySelector('buddy-header');
+            if (header) {
+                header.isSearchActive = this.isSearchActive;
+            }
+            
+            // Show brief notification
+            this.statusText = this.isSearchActive ? 'Search enabled' : 'Search disabled';
+            setTimeout(() => {
+                if (this.statusText === 'Search enabled' || this.statusText === 'Search disabled') {
+                    this.statusText = '';
+                }
+            }, 2000);
+            
+            console.log('Search toggled:', this.isSearchActive);
+            this.requestUpdate();
+            
+        } catch (error) {
+            console.error('Failed to toggle search:', error);
+            
+            // Show error message
+            this.statusText = 'Failed to toggle search';
+            setTimeout(() => {
+                if (this.statusText === 'Failed to toggle search') {
+                    this.statusText = '';
+                }
+            }, 3000);
+            
+            this.requestUpdate();
+        }
+    }
+
+    async openSearchWindow() {
+        try {
+            const { ipcRenderer } = window.require('electron');
+            
+            // Send IPC message to main process to create search window
+            const result = await ipcRenderer.invoke('create-search-window', {
+                width: 450,
+                height: 80,
+                // Position in center-top by default
+                x: undefined,
+                y: undefined
+            });
+            
+            if (result.success) {
+                console.log('Search window opened successfully');
+                
+                // Show brief notification
+                this.statusText = 'Search window opened';
+                setTimeout(() => {
+                    if (this.statusText === 'Search window opened') {
+                        this.statusText = '';
+                    }
+                }, 2000);
+            } else {
+                throw new Error(result.error || 'Failed to create search window');
+            }
+            
+            this.requestUpdate();
+            
+        } catch (error) {
+            console.error('Failed to open search window:', error);
+            
+            // Show error message
+            this.statusText = 'Failed to open search window';
+            setTimeout(() => {
+                if (this.statusText === 'Failed to open search window') {
                     this.statusText = '';
                 }
             }, 3000);
@@ -1553,6 +1640,7 @@ class BuddyApp extends LitElement {
                         .statusText=${this.statusText}
                         .startTime=${this.startTime}
                         .isAudioActive=${this.isAudioActive}
+                        .isSearchActive=${this.isSearchActive}
                         .isScreenActive=${this.isScreenActive}
                         .modelsByProvider=${this.getModelsByProviderForHeader()}
                         .user=${this.user}

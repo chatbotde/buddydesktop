@@ -345,8 +345,8 @@ function createMainWindow() {
                 const primaryDisplay = screen.getPrimaryDisplay();
                 const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
                 
-                const x = options.x ?? screenWidth - 70; // 20px from right edge
-                const y = options.y ?? 20; // 20px from top
+                const x = options.x ?? screenWidth -400; // 20px from right edge
+                const y = options.y ?? 40; // 20px from top
                 
                 audioWindow.setPosition(x, y);
             }
@@ -376,6 +376,81 @@ function createMainWindow() {
             return { success: true, windowId: audioWindow.id };
         } catch (error) {
             console.error('Failed to create audio window:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // IPC handler for creating search window
+    ipcMain.handle('create-search-window', async (event, options = {}) => {
+        try {
+            const searchWindowOptions = {
+                width: 450,
+                height: 80,
+                frame: false,
+                transparent: true,
+                hasShadow: true,
+                alwaysOnTop: true,
+                skipTaskbar: true,
+                hiddenInMissionControl: true,
+                resizable: false,
+                minimizable: false,
+                maximizable: false,
+                closable: true,
+                roundedCorners: true,
+                vibrancy: 'ultra-dark',
+                webPreferences: {
+                    nodeIntegration: true,
+                    contextIsolation: false,
+                    backgroundThrottling: false,
+                    webSecurity: true,
+                    allowRunningInsecureContent: false,
+                },
+                backgroundColor: '#00000000',
+                titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : undefined,
+                ...options
+            };
+
+            const searchWindow = createConsistentWindow(searchWindowOptions);
+
+            // Load the search window HTML
+            const htmlPath = path.join(__dirname, 'features', 'search', 'search-window.html');
+            await searchWindow.loadFile(htmlPath);
+
+            // Position window (default to center-top of screen)
+            if (!options.x || !options.y) {
+                const primaryDisplay = screen.getPrimaryDisplay();
+                const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
+                
+                const x = options.x ?? Math.round((screenWidth - searchWindowOptions.width) / 2);
+                const y = options.y ?? Math.round(screenHeight * 0.15); // Position in top 15% of screen
+                
+                searchWindow.setPosition(x, y);
+            }
+
+            // Handle IPC messages from the search window
+            searchWindow.webContents.on('ipc-message', (event, channel, data) => {
+                switch (channel) {
+                    case 'search-window-perform-search':
+                        console.log('Search window search requested:', data);
+                        // Here you could integrate with your search system
+                        break;
+                    case 'search-window-close':
+                        searchWindow.close();
+                        break;
+                    default:
+                        console.log('Unknown search window IPC message:', channel, data);
+                }
+            });
+
+            // Handle window close
+            searchWindow.on('closed', () => {
+                console.log('Search window closed');
+            });
+
+            console.log('Search window created successfully');
+            return { success: true, windowId: searchWindow.id };
+        } catch (error) {
+            console.error('Failed to create search window:', error);
             return { success: false, error: error.message };
         }
     });

@@ -6,53 +6,125 @@
     <title>Audio Control</title>
     <link rel="stylesheet" href="audio-window.css">
 </head>
-<body>
+<body data-theme="dark">
     <div class="audio-container" id="audioContainer">
+        <!-- Header with Theme Toggle -->
+        <div class="header-bar">
+            <div class="window-title">Audio Control</div>
+            <div class="header-controls">
+                <button class="header-btn theme-toggle" id="themeToggle" title="Toggle Theme">
+                    <svg class="theme-icon" viewBox="0 0 24 24">
+                        <path d="M12 18c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6zm0-10c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z"/>
+                    </svg>
+                </button>
+                <button class="header-btn minimize-btn" id="minimizeBtn" title="Minimize">
+                    <svg class="minimize-icon" viewBox="0 0 24 24">
+                        <path d="M6 19h12v2H6v-2z"/>
+                    </svg>
+                </button>
+                <button class="header-btn close-btn" id="closeBtn" title="Close">
+                    <svg class="close-icon" viewBox="0 0 24 24">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
         <!-- Control Panel -->
         <div class="control-panel">
-            <button class="control-btn start-btn" id="startBtn">
-                <svg class="btn-icon" viewBox="0 0 24 24">
-                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            <button class="control-btn record-btn" id="recordBtn">
+                <svg class="btn-icon record-icon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                    <circle cx="12" cy="12" r="6" fill="currentColor"/>
                 </svg>
-                <span>Start</span>
+                <span class="btn-text">Record</span>
+            </button>
+            
+            <button class="control-btn pause-btn" id="pauseBtn" disabled>
+                <svg class="btn-icon pause-icon" viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="4" height="16" fill="currentColor"/>
+                    <rect x="14" y="4" width="4" height="16" fill="currentColor"/>
+                </svg>
+                <span class="btn-text">Pause</span>
             </button>
             
             <button class="control-btn stop-btn" id="stopBtn" disabled>
-                <svg class="btn-icon" viewBox="0 0 24 24">
-                    <rect x="6" y="6" width="12" height="12" rx="2"/>
+                <svg class="btn-icon stop-icon" viewBox="0 0 24 24">
+                    <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/>
                 </svg>
-                <span>Stop</span>
+                <span class="btn-text">Stop</span>
             </button>
             
+            <div class="volume-control">
+                <svg class="volume-icon" viewBox="0 0 24 24">
+                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+                </svg>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="75">
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
             <div class="status-indicator" id="statusIndicator">
                 <div class="status-dot" id="statusDot"></div>
                 <span class="status-text" id="statusText">Ready</span>
             </div>
+            <div class="recording-timer" id="recordingTimer">00:00</div>
         </div>
         
         <!-- Transcription Area -->
         <div class="transcription-section" id="transcriptionSection">
             <div class="transcription-header">
-                <span>Transcription</span>
-                <button class="clear-btn" id="clearBtn" title="Clear text">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                <span class="transcription-title">
+                    <svg class="transcription-icon" viewBox="0 0 24 24">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                </button>
+                    Live Transcription
+                </span>
+                <div class="transcription-controls">
+                    <button class="transcription-btn save-btn" id="saveBtn" title="Save transcription">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                            <polyline points="17,21 17,13 7,13 7,21"/>
+                            <polyline points="7,3 7,8 15,8"/>
+                        </svg>
+                    </button>
+                    <button class="transcription-btn copy-btn" id="copyBtn" title="Copy transcription">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                        </svg>
+                    </button>
+                    <button class="transcription-btn clear-btn" id="clearBtn" title="Clear transcription">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="3,6 5,6 21,6"/>
+                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
             <div class="transcription-content" id="transcriptionContent">
                 <div class="placeholder-text" id="placeholderText">
-                    Audio transcription will appear here...
+                    <svg class="placeholder-icon" viewBox="0 0 24 24">
+                        <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9M19 21H5V3H13V9H19Z"/>
+                    </svg>
+                    <span>Start recording to see live transcription...</span>
                 </div>
                 <div class="transcription-text" id="transcriptionText"></div>
             </div>
         </div>
-        
+
         <!-- Toggle Expand Button -->
         <div class="toggle-expand" id="toggleExpand" title="Toggle transcription view">
-            <svg viewBox="0 0 24 24">
+            <svg class="expand-icon" viewBox="0 0 24 24">
                 <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+            </svg>
+        </div>
+
+        <!-- Resize Handle -->
+        <div class="resize-handle" id="resizeHandle" title="Drag to resize">
+            <svg class="resize-icon" viewBox="0 0 24 24">
+                <path d="M22 22H12v-2h8v-8h2v10zM2 12h2V4h8V2H2v10z"/>
             </svg>
         </div>
     </div>
@@ -63,26 +135,51 @@
         class AudioWindowController {
             constructor() {
                 this.isRecording = false;
+                this.isPaused = false;
                 this.isExpanded = false;
+                this.currentTheme = 'dark';
+                this.recordingStartTime = null;
+                this.timerInterval = null;
+                
+                // DOM elements
                 this.container = document.getElementById('audioContainer');
-                this.startBtn = document.getElementById('startBtn');
+                this.recordBtn = document.getElementById('recordBtn');
+                this.pauseBtn = document.getElementById('pauseBtn');
                 this.stopBtn = document.getElementById('stopBtn');
                 this.statusDot = document.getElementById('statusDot');
                 this.statusText = document.getElementById('statusText');
                 this.toggleExpand = document.getElementById('toggleExpand');
                 this.clearBtn = document.getElementById('clearBtn');
+                this.copyBtn = document.getElementById('copyBtn');
+                this.saveBtn = document.getElementById('saveBtn');
                 this.transcriptionText = document.getElementById('transcriptionText');
                 this.placeholderText = document.getElementById('placeholderText');
+                this.themeToggle = document.getElementById('themeToggle');
+                this.minimizeBtn = document.getElementById('minimizeBtn');
+                this.closeBtn = document.getElementById('closeBtn');
+                this.volumeSlider = document.getElementById('volumeSlider');
+                this.recordingTimer = document.getElementById('recordingTimer');
+                this.resizeHandle = document.getElementById('resizeHandle');
                 
                 this.init();
             }
             
             init() {
+                // Load saved theme
+                this.loadTheme();
+                
                 // Set up button handlers
-                this.startBtn.addEventListener('click', this.handleStartClick.bind(this));
+                this.recordBtn.addEventListener('click', this.handleRecordClick.bind(this));
+                this.pauseBtn.addEventListener('click', this.handlePauseClick.bind(this));
                 this.stopBtn.addEventListener('click', this.handleStopClick.bind(this));
                 this.clearBtn.addEventListener('click', this.handleClearClick.bind(this));
+                this.copyBtn.addEventListener('click', this.handleCopyClick.bind(this));
+                this.saveBtn.addEventListener('click', this.handleSaveClick.bind(this));
                 this.toggleExpand.addEventListener('click', this.handleToggleExpand.bind(this));
+                this.themeToggle.addEventListener('click', this.handleThemeToggle.bind(this));
+                this.minimizeBtn.addEventListener('click', this.handleMinimize.bind(this));
+                this.closeBtn.addEventListener('click', this.handleClose.bind(this));
+                this.volumeSlider.addEventListener('input', this.handleVolumeChange.bind(this));
                 
                 // Set up context menu prevention
                 this.container.addEventListener('contextmenu', (e) => {
@@ -94,20 +191,49 @@
                 ipcRenderer.on('update-recording-state', this.handleUpdateRecordingState.bind(this));
                 ipcRenderer.on('transcription-update', this.handleTranscriptionUpdate.bind(this));
                 
-                // Set up drag functionality
+                // Set up drag and resize functionality
                 this.setupDragFunctionality();
+                this.setupResizeFunctionality();
                 
                 console.log('Audio window controller initialized');
             }
             
-            handleStartClick(event) {
+            loadTheme() {
+                const savedTheme = localStorage.getItem('audioWindowTheme') || 'dark';
+                this.setTheme(savedTheme);
+            }
+            
+            setTheme(theme) {
+                this.currentTheme = theme;
+                document.body.setAttribute('data-theme', theme);
+                localStorage.setItem('audioWindowTheme', theme);
+                
+                // Update theme icon
+                const themeIcon = this.themeToggle.querySelector('.theme-icon');
+                if (theme === 'light') {
+                    themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+                } else {
+                    themeIcon.innerHTML = '<path d="M12 18c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6zm0-10c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z"/>';
+                }
+            }
+            
+            handleRecordClick(event) {
                 event.preventDefault();
                 event.stopPropagation();
                 
-                if (!this.isRecording) {
-                    // Send start recording message to main process
-                    ipcRenderer.send('audio-window-start-recording');
-                    this.setRecordingState(true);
+                if (!this.isRecording && !this.isPaused) {
+                    this.startRecording();
+                } else if (this.isPaused) {
+                    this.resumeRecording();
+                }
+            }
+            
+            handlePauseClick(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                if (this.isRecording && !this.isPaused) {
+                    this.pauseRecording();
                 }
             }
             
@@ -115,25 +241,111 @@
                 event.preventDefault();
                 event.stopPropagation();
                 
-                if (this.isRecording) {
-                    // Send stop recording message to main process
-                    ipcRenderer.send('audio-window-stop-recording');
-                    this.setRecordingState(false);
+                if (this.isRecording || this.isPaused) {
+                    this.stopRecording();
                 }
             }
             
             handleClearClick(event) {
                 event.preventDefault();
                 event.stopPropagation();
-                
                 this.clearTranscription();
+            }
+            
+            handleCopyClick(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                this.copyTranscription();
+            }
+            
+            handleSaveClick(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                this.saveTranscription();
             }
             
             handleToggleExpand(event) {
                 event.preventDefault();
                 event.stopPropagation();
-                
                 this.toggleExpandState();
+            }
+            
+            handleThemeToggle(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const newTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
+                this.setTheme(newTheme);
+            }
+            
+            handleMinimize(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                ipcRenderer.send('audio-window-minimize');
+            }
+            
+            handleClose(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                ipcRenderer.send('audio-window-close');
+            }
+            
+            handleVolumeChange(event) {
+                const volume = event.target.value;
+                ipcRenderer.send('audio-window-volume-change', { volume: volume / 100 });
+            }
+            
+            startRecording() {
+                ipcRenderer.send('audio-window-start-recording');
+                this.setRecordingState(true, false);
+                this.startTimer();
+            }
+            
+            pauseRecording() {
+                ipcRenderer.send('audio-window-pause-recording');
+                this.setRecordingState(true, true);
+                this.stopTimer();
+            }
+            
+            resumeRecording() {
+                ipcRenderer.send('audio-window-resume-recording');
+                this.setRecordingState(true, false);
+                this.startTimer();
+            }
+            
+            stopRecording() {
+                ipcRenderer.send('audio-window-stop-recording');
+                this.setRecordingState(false, false);
+                this.stopTimer();
+                this.resetTimer();
+            }
+            
+            startTimer() {
+                this.recordingStartTime = Date.now();
+                this.timerInterval = setInterval(() => {
+                    this.updateTimer();
+                }, 1000);
+            }
+            
+            stopTimer() {
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+            }
+            
+            resetTimer() {
+                this.recordingTimer.textContent = '00:00';
+                this.recordingStartTime = null;
+            }
+            
+            updateTimer() {
+                if (this.recordingStartTime) {
+                    const elapsed = Math.floor((Date.now() - this.recordingStartTime) / 1000);
+                    const minutes = Math.floor(elapsed / 60);
+                    const seconds = elapsed % 60;
+                    this.recordingTimer.textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
             }
             
             toggleExpandState() {
@@ -145,11 +357,17 @@
             }
             
             handleToggleRecording() {
-                this.toggleRecordingState();
+                if (!this.isRecording) {
+                    this.startRecording();
+                } else if (!this.isPaused) {
+                    this.pauseRecording();
+                } else {
+                    this.resumeRecording();
+                }
             }
             
             handleUpdateRecordingState(event, data) {
-                this.setRecordingState(data.isRecording);
+                this.setRecordingState(data.isRecording, data.isPaused);
             }
             
             handleTranscriptionUpdate(event, data) {
@@ -161,28 +379,32 @@
                 }
             }
             
-            toggleRecordingState() {
-                this.setRecordingState(!this.isRecording);
-            }
-            
-            setRecordingState(recording) {
+            setRecordingState(recording, paused = false) {
                 this.isRecording = recording;
+                this.isPaused = paused;
                 
-                if (recording) {
+                // Update buttons
+                this.recordBtn.disabled = recording && !paused;
+                this.pauseBtn.disabled = !recording;
+                this.stopBtn.disabled = !recording && !paused;
+                
+                // Update status
+                if (recording && !paused) {
                     this.container.classList.add('recording');
                     this.statusDot.classList.add('recording');
                     this.statusText.textContent = 'Recording...';
-                    this.startBtn.disabled = true;
-                    this.stopBtn.disabled = false;
-                } else {
+                } else if (recording && paused) {
                     this.container.classList.remove('recording');
                     this.statusDot.classList.remove('recording');
+                    this.statusDot.classList.add('paused');
+                    this.statusText.textContent = 'Paused';
+                } else {
+                    this.container.classList.remove('recording');
+                    this.statusDot.classList.remove('recording', 'paused');
                     this.statusText.textContent = 'Ready';
-                    this.startBtn.disabled = false;
-                    this.stopBtn.disabled = true;
                 }
                 
-                console.log('Recording state:', recording);
+                console.log('Recording state:', { recording, paused });
             }
             
             updateTranscription(text) {
@@ -190,6 +412,10 @@
                     this.transcriptionText.textContent = text;
                     this.placeholderText.style.display = 'none';
                     this.transcriptionText.style.display = 'block';
+                    
+                    // Auto-scroll to bottom
+                    const content = document.getElementById('transcriptionContent');
+                    content.scrollTop = content.scrollHeight;
                 } else {
                     this.placeholderText.style.display = 'block';
                     this.transcriptionText.style.display = 'none';
@@ -200,9 +426,46 @@
                 this.transcriptionText.textContent = '';
                 this.placeholderText.style.display = 'block';
                 this.transcriptionText.style.display = 'none';
-                
-                // Notify main process
                 ipcRenderer.send('audio-window-clear-transcription');
+            }
+            
+            copyTranscription() {
+                const text = this.transcriptionText.textContent;
+                if (text) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        this.showToast('Transcription copied to clipboard');
+                    }).catch(err => {
+                        console.error('Failed to copy text:', err);
+                        this.showToast('Failed to copy transcription');
+                    });
+                }
+            }
+            
+            saveTranscription() {
+                const text = this.transcriptionText.textContent;
+                if (text) {
+                    ipcRenderer.send('audio-window-save-transcription', { text });
+                    this.showToast('Transcription saved');
+                }
+            }
+            
+            showToast(message) {
+                // Create and show a temporary toast notification
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 10);
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 300);
+                }, 2000);
             }
             
             setupDragFunctionality() {
@@ -210,11 +473,11 @@
                 let dragOffset = { x: 0, y: 0 };
                 
                 this.container.addEventListener('mousedown', (e) => {
-                    // Only start drag if not clicking on a button or control
+                    // Only start drag if clicking on the header or container background
                     if (e.button === 0 && 
-                        !e.target.closest('.control-btn') && 
-                        !e.target.closest('.toggle-expand') &&
-                        !e.target.closest('.clear-btn')) {
+                        (e.target.classList.contains('audio-container') || 
+                         e.target.closest('.header-bar') ||
+                         e.target.classList.contains('header-bar'))) {
                         isDragging = true;
                         dragOffset.x = e.clientX;
                         dragOffset.y = e.clientY;
@@ -228,7 +491,6 @@
                     if (isDragging) {
                         const screenX = e.screenX;
                         const screenY = e.screenY;
-                        
                         ipcRenderer.send('window-drag-move', { x: screenX, y: screenY });
                     }
                 });
@@ -245,6 +507,45 @@
                     if (isDragging) {
                         e.preventDefault();
                     }
+                });
+            }
+            
+            setupResizeFunctionality() {
+                let isResizing = false;
+                let startX, startY, startWidth, startHeight;
+                
+                this.resizeHandle.addEventListener('mousedown', (e) => {
+                    isResizing = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    startWidth = parseInt(getComputedStyle(document.body).width, 10);
+                    startHeight = parseInt(getComputedStyle(document.body).height, 10);
+                    e.preventDefault();
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (isResizing) {
+                        const width = startWidth + e.clientX - startX;
+                        const height = startHeight + e.clientY - startY;
+                        
+                        // Minimum and maximum size constraints
+                        const minWidth = 280;
+                        const maxWidth = 800;
+                        const minHeight = 60;
+                        const maxHeight = 600;
+                        
+                        const constrainedWidth = Math.max(minWidth, Math.min(width, maxWidth));
+                        const constrainedHeight = Math.max(minHeight, Math.min(height, maxHeight));
+                        
+                        ipcRenderer.send('audio-window-resize-manual', { 
+                            width: constrainedWidth, 
+                            height: constrainedHeight 
+                        });
+                    }
+                });
+                
+                document.addEventListener('mouseup', () => {
+                    isResizing = false;
                 });
             }
         }
