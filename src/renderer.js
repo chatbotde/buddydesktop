@@ -99,7 +99,6 @@ async function initializeAI(provider = 'google', profile = 'default', language =
         'initialize-ai',
         actualProvider,
         apiKey || '', // Pass custom API key or empty string
-        localStorage.getItem('customPrompt') || '',
         profile,
         language,
         actualModelId, // Pass the actual model ID for API calls

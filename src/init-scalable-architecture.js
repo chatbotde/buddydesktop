@@ -261,7 +261,7 @@ async function initializeFeatures() {
 // AI Provider handlers
 async function initializeAIProvider(provider, config) {
     const { createAIProvider } = await import('./ai-providers.js');
-    return createAIProvider(provider, config.apiKey, config.profile, config.language, config.customPrompt, config.model);
+    return createAIProvider(provider, config.apiKey, config.profile, config.language, config.model);
 }
 
 async function sendAIMessage(message, provider) {

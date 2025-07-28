@@ -537,7 +537,7 @@ function createMainWindow() {
     });
 }
 
-async function initializeAISession(provider, apiKey, customPrompt = '', profile = 'default', language = 'en-US', model = '') {
+async function initializeAISession(provider, apiKey, profile = 'default', language = 'en-US', model = '') {
     try {
         if (!model) {
             throw new Error('Model must be specified');
@@ -555,7 +555,7 @@ async function initializeAISession(provider, apiKey, customPrompt = '', profile 
             // You can still create the provider but it might fail on actual API calls
         }
 
-        currentAIProvider = createAIProvider(provider, apiKey, profile, language, customPrompt, model);
+        currentAIProvider = createAIProvider(provider, apiKey, profile, language, model);
         const success = await currentAIProvider.initialize();
         return success;
     } catch (error) {
@@ -725,8 +725,8 @@ app.on('activate', () => {
     }
 });
 
-ipcMain.handle('initialize-ai', async (event, provider, apiKey, customPrompt, profile = 'default', language = 'en-US', model = '') => {
-    return await initializeAISession(provider, apiKey, customPrompt, profile, language, model);
+ipcMain.handle('initialize-ai', async (event, provider, apiKey, profile = 'default', language = 'en-US', model = '') => {
+    return await initializeAISession(provider, apiKey, profile, language, model);
 });
 
 ipcMain.handle('check-environment-key', async (event, provider) => {

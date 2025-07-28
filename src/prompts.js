@@ -94,14 +94,8 @@ const systemPrompts = {
 };
 
 // Helper functions for prompt management
-function getSystemPrompt(profile = 'default', customPrompt = '') {
-    const basePrompt = systemPrompts[profile] || systemPrompts.default;
-
-    if (customPrompt) {
-        return `${basePrompt}\n\nAdditional Context: ${customPrompt}`;
-    }
-
-    return basePrompt;
+function getSystemPrompt(profile = 'default') {
+    return systemPrompts[profile] || systemPrompts.default;
 }
 
 function getAllProfiles() {
@@ -113,8 +107,8 @@ function hasProfile(profile) {
 }
 
 // Response formatting functions that include system prompt
-function formatResponseWithSystemPrompt(response, profile = 'default', customPrompt = '') {
-    const systemPrompt = getSystemPrompt(profile, customPrompt);
+function formatResponseWithSystemPrompt(response, profile = 'default') {
+    const systemPrompt = getSystemPrompt(profile);
 
     return {
         systemPrompt: systemPrompt,
@@ -125,8 +119,8 @@ function formatResponseWithSystemPrompt(response, profile = 'default', customPro
     };
 }
 
-function createPromptedResponse(userMessage, response, profile = 'default', customPrompt = '') {
-    const systemPrompt = getSystemPrompt(profile, customPrompt);
+function createPromptedResponse(userMessage, response, profile = 'default') {
+    const systemPrompt = getSystemPrompt(profile);
 
     return {
         conversation: [
@@ -161,8 +155,8 @@ function getResponseWithPromptInfo(response, profile = 'default', showSystemProm
     return `**Profile:** ${profile}\n\n${response}`;
 }
 
-function buildConversationContext(messages, profile = 'default', customPrompt = '') {
-    const systemPrompt = getSystemPrompt(profile, customPrompt);
+function buildConversationContext(messages, profile = 'default') {
+    const systemPrompt = getSystemPrompt(profile);
 
     const conversation = [
         {

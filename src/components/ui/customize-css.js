@@ -419,6 +419,19 @@ export const customizeStyles = css`
       margin-bottom: 16px;
   }
 
+  /* Narrower width for form inputs */
+  .profile-name-input {
+      max-width: 300px;
+  }
+
+  .profile-description-input {
+      max-width: 400px;
+  }
+
+  .profile-prompt-textarea {
+      max-width: 450px;
+  }
+
   .create-profile-form textarea {
       resize: vertical;
       min-height: 120px;

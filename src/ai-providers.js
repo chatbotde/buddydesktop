@@ -1,11 +1,10 @@
 const { GoogleGenAI } = require('@google/genai');
 
 class BaseAIProvider {
-    constructor(apiKey, profile, language, customPrompt) {
+    constructor(apiKey, profile, language) {
         this.apiKey = apiKey;
         this.profile = profile;
         this.language = language;
-        this.customPrompt = customPrompt;
         this.session = null;
     }
 
@@ -31,8 +30,8 @@ class BaseAIProvider {
 }
 
 class GoogleAIProvider extends BaseAIProvider {
-    constructor(apiKey, profile, language, customPrompt, model) {
-        super(apiKey, profile, language, customPrompt);
+    constructor(apiKey, profile, language, model) {
+        super(apiKey, profile, language);
         if (!model) {
             throw new Error('Model must be specified for GoogleAIProvider');
         }
@@ -47,7 +46,7 @@ class GoogleAIProvider extends BaseAIProvider {
             apiKey: this.apiKey,
         });
 
-        const systemPrompt = getSystemPrompt(this.profile, this.customPrompt);
+        const systemPrompt = getSystemPrompt(this.profile);
 
         try {
             if (this.isRealTimeModel) {
@@ -203,8 +202,8 @@ class GoogleAIProvider extends BaseAIProvider {
 }
 
 class OpenAIProvider extends BaseAIProvider {
-    constructor(apiKey, profile, language, customPrompt, model) {
-        super(apiKey, profile, language, customPrompt);
+    constructor(apiKey, profile, language, model) {
+        super(apiKey, profile, language);
         if (!model) {
             throw new Error('Model must be specified for OpenAIProvider');
         }
@@ -216,7 +215,7 @@ class OpenAIProvider extends BaseAIProvider {
         try {
             // Initialize conversation with system prompt
             const { getSystemPrompt } = require('./prompts');
-            const systemPrompt = getSystemPrompt(this.profile, this.customPrompt);
+            const systemPrompt = getSystemPrompt(this.profile);
             
             this.conversationHistory = [
                 { role: 'system', content: systemPrompt }
@@ -327,7 +326,7 @@ class OpenAIProvider extends BaseAIProvider {
 
     getSystemPrompt() {
         const { getSystemPrompt } = require('./prompts');
-        return getSystemPrompt(this.profile, this.customPrompt);
+        return getSystemPrompt(this.profile);
     }
 
     async close() {
@@ -339,8 +338,8 @@ class OpenAIProvider extends BaseAIProvider {
 }
 
 class AnthropicProvider extends BaseAIProvider {
-    constructor(apiKey, profile, language, customPrompt, model) {
-        super(apiKey, profile, language, customPrompt);
+    constructor(apiKey, profile, language, model) {
+        super(apiKey, profile, language);
         if (!model) {
             throw new Error('Model must be specified for AnthropicProvider');
         }
@@ -352,7 +351,7 @@ class AnthropicProvider extends BaseAIProvider {
         try {
             // Initialize conversation with system prompt
             const { getSystemPrompt } = require('./prompts');
-            const systemPrompt = getSystemPrompt(this.profile, this.customPrompt);
+            const systemPrompt = getSystemPrompt(this.profile);
             
             this.systemPrompt = systemPrompt;
             this.conversationHistory = [];
@@ -467,7 +466,7 @@ class AnthropicProvider extends BaseAIProvider {
 
     getSystemPrompt() {
         const { getSystemPrompt } = require('./prompts');
-        return getSystemPrompt(this.profile, this.customPrompt);
+        return getSystemPrompt(this.profile);
     }
 
     async close() {
@@ -480,8 +479,8 @@ class AnthropicProvider extends BaseAIProvider {
 }
 
 class DeepSeekProvider extends BaseAIProvider {
-    constructor(apiKey, profile, language, customPrompt, model) {
-        super(apiKey, profile, language, customPrompt);
+    constructor(apiKey, profile, language, model) {
+        super(apiKey, profile, language);
         if (!model) {
             throw new Error('Model must be specified for DeepSeekProvider');
         }
@@ -493,7 +492,7 @@ class DeepSeekProvider extends BaseAIProvider {
         try {
             // Initialize conversation with system prompt
             const { getSystemPrompt } = require('./prompts');
-            const systemPrompt = getSystemPrompt(this.profile, this.customPrompt);
+            const systemPrompt = getSystemPrompt(this.profile);
             
             this.conversationHistory = [
                 { role: 'system', content: systemPrompt }
@@ -585,7 +584,7 @@ class DeepSeekProvider extends BaseAIProvider {
 
     getSystemPrompt() {
         const { getSystemPrompt } = require('./prompts');
-        return getSystemPrompt(this.profile, this.customPrompt);
+        return getSystemPrompt(this.profile);
     }
 
     async close() {
@@ -597,8 +596,8 @@ class DeepSeekProvider extends BaseAIProvider {
 }
 
 class OpenRouterProvider extends BaseAIProvider {
-    constructor(apiKey, profile, language, customPrompt, model) {
-        super(apiKey, profile, language, customPrompt);
+    constructor(apiKey, profile, language, model) {
+        super(apiKey, profile, language);
         if (!model) {
             throw new Error('Model must be specified for OpenRouterProvider');
         }
@@ -610,7 +609,7 @@ class OpenRouterProvider extends BaseAIProvider {
         try {
             // Initialize conversation with system prompt
             const { getSystemPrompt } = require('./prompts');
-            const systemPrompt = getSystemPrompt(this.profile, this.customPrompt);
+            const systemPrompt = getSystemPrompt(this.profile);
             
             this.conversationHistory = [
                 { role: 'system', content: systemPrompt }
@@ -726,7 +725,7 @@ class OpenRouterProvider extends BaseAIProvider {
 
     getSystemPrompt() {
         const { getSystemPrompt } = require('./prompts');
-        return getSystemPrompt(this.profile, this.customPrompt);
+        return getSystemPrompt(this.profile);
     }
 
     async close() {
@@ -737,18 +736,18 @@ class OpenRouterProvider extends BaseAIProvider {
     }
 }
 
-function createAIProvider(provider, apiKey, profile, language, customPrompt, model) {
+function createAIProvider(provider, apiKey, profile, language, model) {
     switch (provider) {
         case 'google':
-            return new GoogleAIProvider(apiKey, profile, language, customPrompt, model);
+            return new GoogleAIProvider(apiKey, profile, language, model);
         case 'openai':
-            return new OpenAIProvider(apiKey, profile, language, customPrompt, model);
+            return new OpenAIProvider(apiKey, profile, language, model);
         case 'anthropic':
-            return new AnthropicProvider(apiKey, profile, language, customPrompt, model);
+            return new AnthropicProvider(apiKey, profile, language, model);
         case 'deepseek':
-            return new DeepSeekProvider(apiKey, profile, language, customPrompt, model);
+            return new DeepSeekProvider(apiKey, profile, language, model);
         case 'openrouter':
-            return new OpenRouterProvider(apiKey, profile, language, customPrompt, model);
+            return new OpenRouterProvider(apiKey, profile, language, model);
 
         default:
             throw new Error(`Unknown AI provider: ${provider}`);
