@@ -796,6 +796,71 @@ function disableRealtimeVideoStreaming() {
 async function captureAndSendScreenshot() {
     console.log('Capturing screenshot and analyzing with AI...');
     
+    // Check if we have a buddy element and basic configuration
+    const buddy = window.buddy.e();
+    if (!buddy) {
+        console.warn('Buddy element not found');
+        return { success: false, error: 'Application not ready' };
+    }
+
+    // For real-time models, we need an active session
+    // For non-realtime models, we just need a configured model
+    const isRealTimeModel = buddy.isSelectedModelRealTime;
+    
+    if (isRealTimeModel && !buddy.sessionActive) {
+        console.log('Real-time model requires active session - attempting to start one...');
+        if (buddy.setStatus) {
+            buddy.setStatus('Starting AI session...');
+        }
+        
+        if (typeof buddy.autoStartSession === 'function') {
+            const sessionStarted = await buddy.autoStartSession();
+            if (!sessionStarted) {
+                console.warn('Failed to start AI session automatically');
+                if (buddy.setStatus) {
+                    buddy.setStatus('Please configure and start a chat session first');
+                }
+                return { success: false, error: 'Could not start AI session' };
+            }
+            console.log('AI session started successfully');
+        } else {
+            console.warn('Cannot auto-start session');
+            if (buddy.setStatus) {
+                buddy.setStatus('Please start a chat session first');
+            }
+            return { success: false, error: 'No active AI session' };
+        }
+    } else if (!isRealTimeModel) {
+        // For non-realtime models, just ensure we have a model selected
+        if (!buddy.selectedModel) {
+            console.warn('No model selected for screenshot analysis');
+            if (buddy.setStatus) {
+                buddy.setStatus('Please select a model first');
+            }
+            return { success: false, error: 'No model selected' };
+        }
+        
+        // If no session is active, auto-initialize for non-realtime models
+        if (!buddy.sessionActive) {
+            console.log('Auto-initializing session for non-realtime model...');
+            if (buddy.setStatus) {
+                buddy.setStatus('Initializing AI...');
+            }
+            
+            if (typeof buddy.autoStartSession === 'function') {
+                const sessionStarted = await buddy.autoStartSession();
+                if (!sessionStarted) {
+                    console.warn('Failed to initialize AI for screenshot analysis');
+                    if (buddy.setStatus) {
+                        buddy.setStatus('Failed to initialize AI - check your configuration');
+                    }
+                    return { success: false, error: 'Could not initialize AI' };
+                }
+                console.log('AI initialized successfully for screenshot analysis');
+            }
+        }
+    }
+    
     try {
         // Capture the screenshot
         const screenshotData = await captureScreenshot();

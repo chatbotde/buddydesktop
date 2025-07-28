@@ -518,6 +518,32 @@ class BuddyHeader extends LitElement {
             models: 'Models',
         };
         const statusIndicator = this.sessionActive ? 'status-live' : 'status-idle';
+        
+        // Show minimal header with only close button on login page
+        if (this.currentView === 'login') {
+            return html`
+                <div class="header">
+                    <div class="header-title">
+                        <!-- Empty title area for login page -->
+                    </div>
+                    <div class="header-actions">
+                        <!-- Only show close button on login page -->
+                        <button 
+                            class="close-btn"
+                            @click=${this._handleClose}
+                            title="Close Application"
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Normal header for all other views
         return html`
             <div class="header">
                 <div class="header-title">

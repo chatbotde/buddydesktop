@@ -18,8 +18,10 @@ class BaseAIProvider {
     }
 
     async close() {
+        // Base implementation: cleanup session and memory
+        // Subclasses may override for provider-specific cleanup
         if (this.session) {
-            // Only call close if the session has a close method
+            // Only call close if the session has a close method (like Google's real-time API)
             if (typeof this.session.close === 'function') {
                 await this.session.close();
             }
@@ -207,12 +209,31 @@ class OpenAIProvider extends BaseAIProvider {
             throw new Error('Model must be specified for OpenAIProvider');
         }
         this.model = model;
+        this.conversationHistory = [];
     }
 
     async initialize() {
-        global.sendToRenderer('update-status', 'Connected');
-        this.session = { connected: true };
-        return true;
+        try {
+            // Initialize conversation with system prompt
+            const { getSystemPrompt } = require('./prompts');
+            const systemPrompt = getSystemPrompt(this.profile, this.customPrompt);
+            
+            this.conversationHistory = [
+                { role: 'system', content: systemPrompt }
+            ];
+            
+            global.sendToRenderer('update-status', 'Connected');
+            this.session = { 
+                connected: true,
+                initialized: true,
+                history: this.conversationHistory
+            };
+            return true;
+        } catch (error) {
+            console.error('Failed to initialize OpenAI session:', error);
+            global.sendToRenderer('update-status', 'Error: ' + error.message);
+            return false;
+        }
     }
 
     async sendRealtimeInput(input) {
@@ -237,6 +258,9 @@ class OpenAIProvider extends BaseAIProvider {
                     });
                 }
                 
+                // Add user message to conversation history
+                this.conversationHistory.push({ role: 'user', content: userContent });
+                
                 const response = await fetch('https://api.openai.com/v1/chat/completions', {
                     method: 'POST',
                     headers: {
@@ -245,10 +269,7 @@ class OpenAIProvider extends BaseAIProvider {
                     },
                     body: JSON.stringify({
                         model: this.model,
-                        messages: [
-                            { role: 'system', content: this.getSystemPrompt() },
-                            { role: 'user', content: userContent }
-                        ],
+                        messages: this.conversationHistory,
                         stream: true
                     })
                 });
@@ -287,6 +308,11 @@ class OpenAIProvider extends BaseAIProvider {
                     }
                 }
 
+                // Add assistant response to conversation history
+                if (fullResponse) {
+                    this.conversationHistory.push({ role: 'assistant', content: fullResponse });
+                }
+
                 global.sendToRenderer('update-response', {
                     text: fullResponse,
                     isStreaming: true,
@@ -303,6 +329,13 @@ class OpenAIProvider extends BaseAIProvider {
         const { getSystemPrompt } = require('./prompts');
         return getSystemPrompt(this.profile, this.customPrompt);
     }
+
+    async close() {
+        // Clear conversation history and reset session state
+        // No need to close HTTP connections as they are stateless
+        this.conversationHistory = [];
+        this.session = null;
+    }
 }
 
 class AnthropicProvider extends BaseAIProvider {
@@ -312,12 +345,31 @@ class AnthropicProvider extends BaseAIProvider {
             throw new Error('Model must be specified for AnthropicProvider');
         }
         this.model = model;
+        this.conversationHistory = [];
     }
 
     async initialize() {
-        global.sendToRenderer('update-status', 'Connected');
-        this.session = { connected: true };
-        return true;
+        try {
+            // Initialize conversation with system prompt
+            const { getSystemPrompt } = require('./prompts');
+            const systemPrompt = getSystemPrompt(this.profile, this.customPrompt);
+            
+            this.systemPrompt = systemPrompt;
+            this.conversationHistory = [];
+            
+            global.sendToRenderer('update-status', 'Connected');
+            this.session = { 
+                connected: true,
+                initialized: true,
+                systemPrompt: this.systemPrompt,
+                history: this.conversationHistory
+            };
+            return true;
+        } catch (error) {
+            console.error('Failed to initialize Anthropic session:', error);
+            global.sendToRenderer('update-status', 'Error: ' + error.message);
+            return false;
+        }
     }
 
     async sendRealtimeInput(input) {
@@ -344,6 +396,9 @@ class AnthropicProvider extends BaseAIProvider {
                     });
                 }
                 
+                // Add user message to conversation history
+                this.conversationHistory.push({ role: 'user', content: userContent });
+                
                 const response = await fetch('https://api.anthropic.com/v1/messages', {
                     method: 'POST',
                     headers: {
@@ -354,10 +409,8 @@ class AnthropicProvider extends BaseAIProvider {
                     body: JSON.stringify({
                         model: this.model,
                         max_tokens: 4000,
-                        system: this.getSystemPrompt(),
-                        messages: [
-                            { role: 'user', content: userContent }
-                        ],
+                        system: this.systemPrompt,
+                        messages: this.conversationHistory,
                         stream: true
                     })
                 });
@@ -395,6 +448,11 @@ class AnthropicProvider extends BaseAIProvider {
                     }
                 }
 
+                // Add assistant response to conversation history
+                if (fullResponse) {
+                    this.conversationHistory.push({ role: 'assistant', content: [{ type: 'text', text: fullResponse }] });
+                }
+
                 global.sendToRenderer('update-response', {
                     text: fullResponse,
                     isStreaming: true,
@@ -411,6 +469,14 @@ class AnthropicProvider extends BaseAIProvider {
         const { getSystemPrompt } = require('./prompts');
         return getSystemPrompt(this.profile, this.customPrompt);
     }
+
+    async close() {
+        // Clear conversation history and reset session state
+        // No need to close HTTP connections as they are stateless
+        this.conversationHistory = [];
+        this.systemPrompt = null;
+        this.session = null;
+    }
 }
 
 class DeepSeekProvider extends BaseAIProvider {
@@ -420,17 +486,39 @@ class DeepSeekProvider extends BaseAIProvider {
             throw new Error('Model must be specified for DeepSeekProvider');
         }
         this.model = model;
+        this.conversationHistory = [];
     }
 
     async initialize() {
-        global.sendToRenderer('update-status', 'Connected');
-        this.session = { connected: true };
-        return true;
+        try {
+            // Initialize conversation with system prompt
+            const { getSystemPrompt } = require('./prompts');
+            const systemPrompt = getSystemPrompt(this.profile, this.customPrompt);
+            
+            this.conversationHistory = [
+                { role: 'system', content: systemPrompt }
+            ];
+            
+            global.sendToRenderer('update-status', 'Connected');
+            this.session = { 
+                connected: true,
+                initialized: true,
+                history: this.conversationHistory
+            };
+            return true;
+        } catch (error) {
+            console.error('Failed to initialize DeepSeek session:', error);
+            global.sendToRenderer('update-status', 'Error: ' + error.message);
+            return false;
+        }
     }
 
     async sendRealtimeInput(input) {
         if (input.text) {
             try {
+                // Add user message to conversation history
+                this.conversationHistory.push({ role: 'user', content: input.text });
+                
                 const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
                     method: 'POST',
                     headers: {
@@ -439,10 +527,7 @@ class DeepSeekProvider extends BaseAIProvider {
                     },
                     body: JSON.stringify({
                         model: this.model,
-                        messages: [
-                            { role: 'system', content: this.getSystemPrompt() },
-                            { role: 'user', content: input.text }
-                        ],
+                        messages: this.conversationHistory,
                         stream: true
                     })
                 });
@@ -481,6 +566,11 @@ class DeepSeekProvider extends BaseAIProvider {
                     }
                 }
 
+                // Add assistant response to conversation history
+                if (fullResponse) {
+                    this.conversationHistory.push({ role: 'assistant', content: fullResponse });
+                }
+
                 global.sendToRenderer('update-response', {
                     text: fullResponse,
                     isStreaming: true,
@@ -497,6 +587,13 @@ class DeepSeekProvider extends BaseAIProvider {
         const { getSystemPrompt } = require('./prompts');
         return getSystemPrompt(this.profile, this.customPrompt);
     }
+
+    async close() {
+        // Clear conversation history and reset session state
+        // No need to close HTTP connections as they are stateless
+        this.conversationHistory = [];
+        this.session = null;
+    }
 }
 
 class OpenRouterProvider extends BaseAIProvider {
@@ -506,12 +603,31 @@ class OpenRouterProvider extends BaseAIProvider {
             throw new Error('Model must be specified for OpenRouterProvider');
         }
         this.model = model;
+        this.conversationHistory = [];
     }
 
     async initialize() {
-        global.sendToRenderer('update-status', 'Connected');
-        this.session = { connected: true };
-        return true;
+        try {
+            // Initialize conversation with system prompt
+            const { getSystemPrompt } = require('./prompts');
+            const systemPrompt = getSystemPrompt(this.profile, this.customPrompt);
+            
+            this.conversationHistory = [
+                { role: 'system', content: systemPrompt }
+            ];
+            
+            global.sendToRenderer('update-status', 'Connected');
+            this.session = { 
+                connected: true,
+                initialized: true,
+                history: this.conversationHistory
+            };
+            return true;
+        } catch (error) {
+            console.error('Failed to initialize OpenRouter session:', error);
+            global.sendToRenderer('update-status', 'Error: ' + error.message);
+            return false;
+        }
     }
 
     async sendRealtimeInput(input) {
@@ -536,6 +652,12 @@ class OpenRouterProvider extends BaseAIProvider {
                     });
                 }
                 
+                // Add user message to conversation history
+                const userMessage = userContent.length === 1 && userContent[0].type === 'text' 
+                    ? input.text 
+                    : userContent;
+                this.conversationHistory.push({ role: 'user', content: userMessage });
+                
                 const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                     method: 'POST',
                     headers: {
@@ -546,10 +668,7 @@ class OpenRouterProvider extends BaseAIProvider {
                     },
                     body: JSON.stringify({
                         model: this.model,
-                        messages: [
-                            { role: 'system', content: this.getSystemPrompt() },
-                            { role: 'user', content: userContent.length === 1 && userContent[0].type === 'text' ? input.text : userContent }
-                        ],
+                        messages: this.conversationHistory,
                         stream: true
                     })
                 });
@@ -588,6 +707,11 @@ class OpenRouterProvider extends BaseAIProvider {
                     }
                 }
 
+                // Add assistant response to conversation history
+                if (fullResponse) {
+                    this.conversationHistory.push({ role: 'assistant', content: fullResponse });
+                }
+
                 global.sendToRenderer('update-response', {
                     text: fullResponse,
                     isStreaming: true,
@@ -603,6 +727,13 @@ class OpenRouterProvider extends BaseAIProvider {
     getSystemPrompt() {
         const { getSystemPrompt } = require('./prompts');
         return getSystemPrompt(this.profile, this.customPrompt);
+    }
+
+    async close() {
+        // Clear conversation history and reset session state
+        // No need to close HTTP connections as they are stateless
+        this.conversationHistory = [];
+        this.session = null;
     }
 }
 

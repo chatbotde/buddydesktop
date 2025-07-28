@@ -145,6 +145,33 @@ export const headerStyles = css`
         transform: none;
     }
 
+    /* Close button specific styles for login page */
+    .close-btn {
+        background: var(--button-background);
+        color: var(--text-color);
+        border: var(--glass-border);
+        padding: 8px;
+        border-radius: 12px;
+        display: flex;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        align-items: center;
+        justify-content: center;
+        min-width: 40px;
+        min-height: 40px;
+    }
+
+    .close-btn:hover {
+        background: rgba(239, 68, 68, 0.2);
+        border-color: rgba(239, 68, 68, 0.4);
+        color: #ef4444;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.15);
+    }
+
 
 
     /* Mobile Responsive Styles */
@@ -209,6 +236,18 @@ export const headerStyles = css`
             height: 20px;
         }
         
+        .close-btn {
+            padding: 6px;
+            border-radius: 10px;
+            min-width: 36px;
+            min-height: 36px;
+        }
+        
+        .close-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        
         /* Adjust status container for mobile */
         .status-container {
             flex-wrap: wrap;
@@ -269,6 +308,18 @@ export const headerStyles = css`
             height: 18px;
         }
         
+        .close-btn {
+            padding: 5px;
+            border-radius: 8px;
+            min-width: 32px;
+            min-height: 32px;
+        }
+        
+        .close-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        
         /* Hide elapsed time on very small screens */
         .header-actions > span:first-child {
             display: none;
@@ -314,6 +365,17 @@ export const headerStyles = css`
         .icon-button svg {
             width: 16px;
             height: 16px;
+        }
+        
+        .close-btn {
+            padding: 4px;
+            min-width: 28px;
+            min-height: 28px;
+        }
+        
+        .close-btn svg {
+            width: 14px;
+            height: 14px;
         }
         
         /* Further simplify on very small screens */
