@@ -1,12 +1,66 @@
 import { css } from '../../lit-core-2.7.4.min.js';
 
 export const assistantStyles = css`
-:host { 
-    display: block; 
-    height: 100%; 
+/* CSS Custom Properties for consistent theming */
+:host {
+    --primary-color: rgb(99, 102, 241);
+    --primary-alpha-20: rgba(99, 102, 241, 0.2);
+    --primary-alpha-30: rgba(99, 102, 241, 0.3);
+    --primary-alpha-40: rgba(99, 102, 241, 0.4);
+    --primary-alpha-50: rgba(99, 102, 241, 0.5);
+    --primary-alpha-90: rgba(99, 102, 241, 0.9);
+    
+    --white-alpha-03: rgba(255, 255, 255, 0.03);
+    --white-alpha-05: rgba(255, 255, 255, 0.05);
+    --white-alpha-08: rgba(255, 255, 255, 0.08);
+    --white-alpha-10: rgba(255, 255, 255, 0.1);
+    --white-alpha-12: rgba(255, 255, 255, 0.12);
+    --white-alpha-15: rgba(255, 255, 255, 0.15);
+    --white-alpha-20: rgba(255, 255, 255, 0.2);
+    --white-alpha-25: rgba(255, 255, 255, 0.25);
+    --white-alpha-30: rgba(255, 255, 255, 0.3);
+    --white-alpha-50: rgba(255, 255, 255, 0.5);
+    
+    --black-alpha-20: rgba(0, 0, 0, 0.2);
+    --black-alpha-25: rgba(0, 0, 0, 0.25);
+    --black-alpha-30: rgba(0, 0, 0, 0.3);
+    --black-alpha-35: rgba(0, 0, 0, 0.35);
+    --black-alpha-40: rgba(0, 0, 0, 0.4);
+    --black-alpha-60: rgba(0, 0, 0, 0.6);
+    
+    --surface-primary: rgba(45, 45, 45, 0.95);
+    --surface-secondary: rgba(40, 40, 40, 0.95);
+    --surface-hover: rgba(50, 50, 50, 0.95);
+    --surface-focus: rgba(55, 55, 55, 0.95);
+    
+    --border-radius-sm: 6px;
+    --border-radius-md: 10px;
+    --border-radius-lg: 14px;
+    --border-radius-xl: 20px;
+    --border-radius-2xl: 24px;
+    
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 20px;
+    
+    --transition-fast: 0.15s ease-out;
+    --transition-normal: 0.2s ease;
+    --transition-slow: 0.3s ease;
+    
+    --scrollbar-width: 4px;
+    --blur-light: blur(10px);
+    --blur-medium: blur(15px);
+    --blur-heavy: blur(18px);
+    --blur-ultra: blur(20px);
+    
+    display: block;
+    height: 100%;
     background: transparent;
 }
 
+/* Base Layout Components */
 .assistant-view-root {
     height: 100%;
     display: flex;
@@ -18,19 +72,19 @@ export const assistantStyles = css`
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: 20px 16px;
+    padding: var(--spacing-xl) var(--spacing-lg);
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--spacing-md);
     margin-bottom: 0;
     scroll-behavior: smooth;
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    scrollbar-color: var(--white-alpha-20) transparent;
 }
 
-/* Custom scrollbar for webkit browsers */
+/* Scrollbar Styling */
 .chat-container::-webkit-scrollbar {
-    width: 4px;
+    width: var(--scrollbar-width);
 }
 
 .chat-container::-webkit-scrollbar-track {
@@ -38,60 +92,62 @@ export const assistantStyles = css`
 }
 
 .chat-container::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--white-alpha-30);
     border-radius: 2px;
-    transition: background 0.3s ease;
+    transition: background var(--transition-slow);
 }
 
 .chat-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
+    background: var(--white-alpha-50);
 }
 
+/* Welcome Message */
 .welcome-message {
     text-align: center;
-    padding: 40px 20px;
+    padding: 40px var(--spacing-xl);
     opacity: 0.8;
     font-size: 14px;
     line-height: 1.6;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(15px);
-    margin: 20px;
+    background: var(--white-alpha-05);
+    border-radius: var(--border-radius-xl);
+    border: 1px solid var(--white-alpha-10);
+    backdrop-filter: var(--blur-medium);
+    margin: var(--spacing-xl);
 }
 
+/* Text Input Container */
 .text-input-container {
     display: flex;
     flex-direction: column;
-    background: rgba(45, 45, 45, 0.95);
-    border-radius: 24px;
-    padding: 16px 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--surface-primary);
+    border-radius: var(--border-radius-2xl);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border: 1px solid var(--white-alpha-10);
     position: sticky;
-    bottom: 16px;
+    bottom: var(--spacing-lg);
     z-index: 10;
-    margin: 0 16px 16px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    margin: 0 var(--spacing-lg) var(--spacing-lg);
+    backdrop-filter: var(--blur-ultra);
+    -webkit-backdrop-filter: var(--blur-ultra);
+    transition: all var(--transition-slow);
+    box-shadow: 0 4px 20px var(--black-alpha-30);
 }
 
 .text-input-container:hover {
-    background: rgba(50, 50, 50, 0.95);
-    border-color: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.35);
+    background: var(--surface-hover);
+    border-color: var(--white-alpha-15);
+    box-shadow: 0 6px 25px var(--black-alpha-35);
 }
 
 .text-input-container:focus-within {
-    background: rgba(55, 55, 55, 0.95);
-    border-color: rgba(99, 102, 241, 0.5);
+    background: var(--surface-focus);
+    border-color: var(--primary-alpha-50);
     box-shadow: 
-        0 8px 30px rgba(0, 0, 0, 0.4),
-        0 0 0 2px rgba(99, 102, 241, 0.2);
+        0 8px 30px var(--black-alpha-40),
+        0 0 0 2px var(--primary-alpha-20);
 }
 
-/* Drag and drop visual feedback */
+/* Drag and Drop States */
 .text-input-container.drag-over {
     border-color: rgba(59, 130, 246, 0.6) !important;
     background: rgba(59, 130, 246, 0.1) !important;
@@ -100,12 +156,13 @@ export const assistantStyles = css`
         0 0 0 2px rgba(59, 130, 246, 0.4) !important;
 }
 
+/* Screenshots Preview Section */
 .screenshots-preview {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 0 0 16px 0;
-    margin-bottom: 16px;
+    gap: var(--spacing-md);
+    padding: 0 0 var(--spacing-lg) 0;
+    margin-bottom: var(--spacing-lg);
 }
 
 .screenshots-header {
@@ -134,28 +191,28 @@ export const assistantStyles = css`
 }
 
 .clear-all-btn {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--white-alpha-08);
+    border: 1px solid var(--white-alpha-10);
     color: var(--text-color);
     cursor: pointer;
-    padding: 6px 12px;
-    border-radius: 12px;
+    padding: 6px var(--spacing-md);
+    border-radius: var(--spacing-md);
     opacity: 0.7;
     font-size: 11px;
     font-weight: 500;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(10px);
+    transition: all var(--transition-normal);
+    backdrop-filter: var(--blur-light);
 }
 
 .clear-all-btn:hover {
     opacity: 1;
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: var(--white-alpha-15);
+    border-color: var(--white-alpha-25);
 }
 
 .screenshots-grid {
     display: flex;
-    gap: 10px;
+    gap: var(--spacing-md);
     flex-wrap: wrap;
 }
 
@@ -164,7 +221,7 @@ export const assistantStyles = css`
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: transform 0.2s ease;
+    transition: transform var(--transition-normal);
 }
 
 .screenshot-item:hover {
@@ -175,16 +232,16 @@ export const assistantStyles = css`
     width: 60px;
     height: 45px;
     object-fit: cover;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--spacing-sm);
+    border: 1px solid var(--white-alpha-20);
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all var(--transition-slow);
+    box-shadow: 0 2px 8px var(--black-alpha-20);
 }
 
 .screenshot-item img:hover {
-    border-color: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    border-color: var(--white-alpha-40);
+    box-shadow: 0 4px 12px var(--black-alpha-25);
     transform: scale(1.05);
 }
 
@@ -192,8 +249,8 @@ export const assistantStyles = css`
     position: absolute;
     top: -3px;
     right: -3px;
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--black-alpha-60);
+    border: 1px solid var(--white-alpha-20);
     border-radius: 50%;
     width: 18px;
     height: 18px;
@@ -204,8 +261,8 @@ export const assistantStyles = css`
     font-size: 11px;
     font-weight: bold;
     color: white;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(10px);
+    transition: all var(--transition-normal);
+    backdrop-filter: var(--blur-light);
 }
 
 .screenshot-remove:hover {
@@ -221,16 +278,17 @@ export const assistantStyles = css`
     font-weight: 500;
 }
 
+/* Input Components */
 .input-row {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--spacing-md);
 }
 
 .textarea-container {
     background: transparent;
-    border-radius: 16px;
-    padding: 12px 16px;
+    border-radius: var(--spacing-lg);
+    padding: var(--spacing-md) var(--spacing-lg);
     border: none;
 }
 
@@ -248,17 +306,17 @@ export const assistantStyles = css`
     max-width: 100%;
     max-height: 100px;
     line-height: 1.4;
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    scrollbar-color: var(--white-alpha-30) transparent;
     word-wrap: break-word;
     overflow-wrap: break-word;
     box-sizing: border-box;
 }
 
-/* Custom scrollbar for textarea in webkit browsers */
+/* Textarea Scrollbar */
 .textarea-container textarea::-webkit-scrollbar {
-    width: 4px;
+    width: var(--scrollbar-width);
 }
 
 .textarea-container textarea::-webkit-scrollbar-track {
@@ -266,13 +324,13 @@ export const assistantStyles = css`
 }
 
 .textarea-container textarea::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--white-alpha-30);
     border-radius: 2px;
-    transition: background 0.3s ease;
+    transition: background var(--transition-slow);
 }
 
 .textarea-container textarea::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
+    background: var(--white-alpha-50);
 }
 
 .textarea-container textarea::-webkit-scrollbar-corner {
@@ -280,7 +338,7 @@ export const assistantStyles = css`
 }
 
 .textarea-container textarea::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--white-alpha-50);
     opacity: 1;
 }
 
@@ -288,46 +346,42 @@ export const assistantStyles = css`
     opacity: 1;
 }
 
+/* Action Buttons */
 .action-buttons {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    gap: var(--spacing-sm);
 }
 
-.action-buttons-left {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
+.action-buttons-left,
 .action-buttons-right {
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-sm);
     align-items: center;
 }
 
 .action-btn {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--white-alpha-08);
+    border: 1px solid var(--white-alpha-10);
     color: var(--text-color);
     font-size: 14px;
     cursor: pointer;
-    border-radius: 10px;
+    border-radius: var(--border-radius-md);
     width: 32px;
     height: 32px;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
     opacity: 0.8;
     position: relative;
 }
 
 .action-btn:hover:not(:disabled):not(.at-limit) {
-    background: rgba(255, 255, 255, 0.15);
+    background: var(--white-alpha-15);
     opacity: 1;
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: var(--white-alpha-20);
     transform: translateY(-1px);
 }
 
@@ -335,7 +389,7 @@ export const assistantStyles = css`
 .action-btn.at-limit {
     opacity: 0.3;
     cursor: not-allowed;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--white-alpha-03);
 }
 
 .auto-screenshot-btn {
@@ -343,28 +397,28 @@ export const assistantStyles = css`
     font-weight: 600;
     letter-spacing: 0.3px;
     width: auto;
-    padding: 0 10px;
+    padding: 0 var(--spacing-md);
     text-transform: uppercase;
 }
 
 .auto-screenshot-btn.active {
-    background: rgba(99, 102, 241, 0.2);
-    border-color: rgba(99, 102, 241, 0.3);
+    background: var(--primary-alpha-20);
+    border-color: var(--primary-alpha-30);
     color: #fff;
 }
 
 .auto-screenshot-btn.active:hover {
-    background: rgba(99, 102, 241, 0.3);
-    border-color: rgba(99, 102, 241, 0.4);
+    background: var(--primary-alpha-30);
+    border-color: var(--primary-alpha-40);
 }
 
 .screenshot-count-badge {
     position: absolute;
     top: -3px;
     right: -3px;
-    background: rgba(99, 102, 241, 0.9);
+    background: var(--primary-alpha-90);
     color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid var(--white-alpha-30);
     border-radius: 50%;
     width: 16px;
     height: 16px;
@@ -373,28 +427,28 @@ export const assistantStyles = css`
     justify-content: center;
     font-size: 9px;
     font-weight: bold;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    backdrop-filter: var(--blur-light);
+    box-shadow: 0 0 10px var(--black-alpha-20);
 }
 
 .send-btn {
-    background: rgba(99, 102, 241, 0.9);
-    border: 1px solid rgba(99, 102, 241, 0.5);
+    background: var(--primary-alpha-90);
+    border: 1px solid var(--primary-alpha-50);
     color: #fff;
     font-size: 16px;
     cursor: pointer;
-    border-radius: 10px;
+    border-radius: var(--border-radius-md);
     width: 32px;
     height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
     opacity: 0.9;
 }
 
 .send-btn:hover:not(:disabled) {
-    background: rgba(99, 102, 241, 1);
+    background: var(--primary-color);
     border-color: rgba(99, 102, 241, 0.7);
     opacity: 1;
     transform: translateY(-1px);
@@ -403,16 +457,16 @@ export const assistantStyles = css`
 .send-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--white-alpha-05);
     transform: none;
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--white-alpha-10);
     color: var(--text-color);
     box-shadow: none;
 }
 
-/* Smooth fade-in animation for messages */
+/* Animations */
 .chat-container > * {
-    animation: fadeInUp 0.3s ease-out;
+    animation: fadeInUp var(--transition-slow);
 }
 
 @keyframes fadeInUp {
@@ -426,56 +480,57 @@ export const assistantStyles = css`
     }
 }
 
-/* Enhanced focus states */
+/* Focus States */
 .action-btn:focus-visible,
 .send-btn:focus-visible {
-    outline: 2px solid rgba(99, 102, 241, 0.5);
+    outline: 2px solid var(--primary-alpha-50);
     outline-offset: 2px;
 }
 
+/* Dropdown Components */
 .actions-dropdown-container {
     position: relative;
 }
 
 .actions-dropdown {
     position: absolute;
-    bottom: calc(100% + 8px);
+    bottom: calc(100% + var(--spacing-sm));
     right: 0;
-    background: rgba(40, 40, 40, 0.95);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 14px;
-    padding: 8px;
+    background: var(--surface-secondary);
+    backdrop-filter: var(--blur-heavy);
+    -webkit-backdrop-filter: var(--blur-heavy);
+    border: 1px solid var(--white-alpha-12);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-sm);
     display: flex;
     flex-direction: column;
     gap: 6px;
     z-index: 20;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    animation: fadeInUp 0.15s ease-out;
+    box-shadow: 0 10px 40px var(--black-alpha-30);
+    animation: fadeInUp var(--transition-fast);
     width: 240px;
 }
 
 .dropdown-item {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--white-alpha-08);
+    border: 1px solid var(--white-alpha-10);
     color: var(--text-color);
     cursor: pointer;
-    padding: 9px 12px;
-    border-radius: 10px;
+    padding: 9px var(--spacing-md);
+    border-radius: var(--border-radius-md);
     font-size: 13px;
     font-weight: 500;
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--spacing-md);
     text-align: left;
     width: 100%;
 }
 
 .dropdown-item:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: var(--white-alpha-15);
+    border-color: var(--white-alpha-25);
     transform: translateY(-1px);
 }
 
@@ -502,18 +557,18 @@ export const assistantStyles = css`
     font-size: 12px;
 }
 
-/* Loading dots animation */
+/* Loading Indicator */
 .loading-indicator {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding: 16px 20px;
-    margin: 8px 20px;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    margin: var(--spacing-sm) var(--spacing-xl);
 }
 
 .loading-dots {
     display: flex;
-    gap: 4px;
+    gap: var(--spacing-xs);
     align-items: center;
 }
 
@@ -525,17 +580,9 @@ export const assistantStyles = css`
     animation: loadingPulse 1.4s ease-in-out infinite both;
 }
 
-.loading-dot:nth-child(1) {
-    animation-delay: -0.32s;
-}
-
-.loading-dot:nth-child(2) {
-    animation-delay: -0.16s;
-}
-
-.loading-dot:nth-child(3) {
-    animation-delay: 0s;
-}
+.loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.loading-dot:nth-child(2) { animation-delay: -0.16s; }
+.loading-dot:nth-child(3) { animation-delay: 0s; }
 
 @keyframes loadingPulse {
     0%, 80%, 100% {
@@ -548,31 +595,28 @@ export const assistantStyles = css`
     }
 }
 
-/* Mobile responsiveness */
+/* Responsive Design - Tablet/Mobile */
 @media (max-width: 768px) {
     .text-input-container {
-        margin: 0 8px 8px;
-        padding: 12px 16px;
-        border-radius: 20px;
+        margin: 0 var(--spacing-sm) var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-radius: var(--border-radius-xl);
     }
     
     .input-row {
-        gap: 10px;
+        gap: var(--spacing-md);
     }
     
     .textarea-container {
-        padding: 10px 12px;
-        border-radius: 14px;
+        padding: var(--spacing-md) var(--spacing-md);
+        border-radius: var(--border-radius-lg);
     }
     
     .textarea-container textarea {
         font-size: 14px;
     }
     
-    .action-buttons {
-        gap: 6px;
-    }
-    
+    .action-buttons,
     .action-buttons-left,
     .action-buttons-right {
         gap: 6px;
@@ -581,34 +625,34 @@ export const assistantStyles = css`
     .action-btn {
         width: 28px;
         height: 28px;
-        border-radius: 8px;
+        border-radius: var(--spacing-sm);
         font-size: 12px;
     }
     
     .auto-screenshot-btn {
-        padding: 0 8px;
+        padding: 0 var(--spacing-sm);
         font-size: 9px;
     }
     
     .send-btn {
         width: 28px;
         height: 28px;
-        border-radius: 8px;
+        border-radius: var(--spacing-sm);
         font-size: 14px;
     }
     
     .actions-dropdown {
         width: 200px;
         padding: 6px;
-        border-radius: 12px;
+        border-radius: var(--spacing-md);
         bottom: calc(100% + 6px);
     }
     
     .dropdown-item {
-        padding: 8px 10px;
-        border-radius: 8px;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--spacing-sm);
         font-size: 12px;
-        gap: 10px;
+        gap: var(--spacing-md);
     }
     
     .dropdown-item svg {
@@ -629,13 +673,13 @@ export const assistantStyles = css`
     }
     
     .screenshots-preview {
-        padding: 0 0 12px 0;
-        gap: 8px;
-        margin-bottom: 12px;
+        padding: 0 0 var(--spacing-md) 0;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-md);
     }
     
     .screenshots-grid {
-        gap: 8px;
+        gap: var(--spacing-sm);
     }
     
     .screenshot-item img {
@@ -653,57 +697,55 @@ export const assistantStyles = css`
     }
     
     .clear-all-btn {
-        padding: 4px 8px;
+        padding: var(--spacing-xs) var(--spacing-sm);
         font-size: 10px;
-        border-radius: 8px;
+        border-radius: var(--spacing-sm);
     }
     
     .chat-container {
-        padding: 16px 12px;
-        gap: 10px;
+        padding: var(--spacing-lg) var(--spacing-md);
+        gap: var(--spacing-md);
     }
     
     .welcome-message {
-        padding: 30px 16px;
-        margin: 16px;
-        border-radius: 16px;
+        padding: 30px var(--spacing-lg);
+        margin: var(--spacing-lg);
+        border-radius: var(--spacing-lg);
         font-size: 13px;
     }
 }
 
+/* Responsive Design - Small Mobile */
 @media (max-width: 480px) {
     .text-input-container {
-        margin: 0 4px 4px;
-        padding: 10px 12px;
+        margin: 0 var(--spacing-xs) var(--spacing-xs);
+        padding: var(--spacing-md) var(--spacing-md);
         border-radius: 18px;
     }
     
     .input-row {
-        gap: 8px;
+        gap: var(--spacing-sm);
     }
     
     .textarea-container {
-        padding: 8px 10px;
-        border-radius: 12px;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--spacing-md);
     }
     
     .textarea-container textarea {
         font-size: 13px;
     }
     
-    .action-buttons {
-        gap: 4px;
-    }
-    
+    .action-buttons,
     .action-buttons-left,
     .action-buttons-right {
-        gap: 4px;
+        gap: var(--spacing-xs);
     }
     
     .action-btn {
         width: 24px;
         height: 24px;
-        border-radius: 6px;
+        border-radius: var(--border-radius-sm);
         font-size: 10px;
     }
     
@@ -715,22 +757,22 @@ export const assistantStyles = css`
     .send-btn {
         width: 24px;
         height: 24px;
-        border-radius: 6px;
+        border-radius: var(--border-radius-sm);
         font-size: 12px;
     }
     
     .actions-dropdown {
         width: 180px;
-        padding: 4px;
-        border-radius: 10px;
-        bottom: calc(100% + 4px);
+        padding: var(--spacing-xs);
+        border-radius: var(--spacing-md);
+        bottom: calc(100% + var(--spacing-xs));
     }
     
     .dropdown-item {
-        padding: 6px 8px;
-        border-radius: 6px;
+        padding: 6px var(--spacing-sm);
+        border-radius: var(--border-radius-sm);
         font-size: 11px;
-        gap: 8px;
+        gap: var(--spacing-sm);
     }
     
     .dropdown-item svg {
@@ -749,9 +791,9 @@ export const assistantStyles = css`
     }
     
     .screenshots-preview {
-        padding: 0 0 10px 0;
+        padding: 0 0 var(--spacing-md) 0;
         gap: 6px;
-        margin-bottom: 10px;
+        margin-bottom: var(--spacing-md);
     }
     
     .screenshots-grid {
@@ -773,24 +815,24 @@ export const assistantStyles = css`
     .clear-all-btn {
         padding: 2px 6px;
         font-size: 9px;
-        border-radius: 6px;
+        border-radius: var(--border-radius-sm);
     }
     
     .chat-container {
-        padding: 12px 8px;
-        gap: 8px;
+        padding: var(--spacing-md) var(--spacing-sm);
+        gap: var(--spacing-sm);
     }
     
     .welcome-message {
-        padding: 24px 12px;
-        margin: 12px;
-        border-radius: 14px;
+        padding: 24px var(--spacing-md);
+        margin: var(--spacing-md);
+        border-radius: var(--border-radius-lg);
         font-size: 12px;
     }
     
     .loading-indicator {
-        padding: 12px 16px;
-        margin: 6px 12px;
+        padding: var(--spacing-md) var(--spacing-lg);
+        margin: 6px var(--spacing-md);
     }
     
     .loading-dot {

@@ -47,7 +47,6 @@ export const headerStyles = css`
     .header-actions span {
         font-size: 13px;
         color: var(--text-color);
-        opacity: 0.8;
     }
 
     .status-container {
@@ -143,7 +142,6 @@ export const headerStyles = css`
     }
 
     button:disabled {
-        opacity: 0.5;
         transform: none;
     }
 
@@ -390,7 +388,6 @@ export const headerStyles = css`
         right: 0;
         bottom: 0;
         background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-        opacity: 0;
         transition: opacity 0.3s ease;
         pointer-events: none;
     }
@@ -405,25 +402,23 @@ export const headerStyles = css`
     }
 
     .dropdown-item:hover:not(:disabled)::before {
-        opacity: 1;
+        transform: scale(1.05);
     }
 
     .dropdown-item:disabled {
-        opacity: 0.5;
         cursor: not-allowed;
+        filter: grayscale(50%);
     }
 
     .dropdown-item svg {
         width: 20px;
         height: 20px;
-        opacity: 0.9;
         stroke-width: 2;
         flex-shrink: 0;
         transition: all 0.3s ease;
     }
 
     .dropdown-item:hover svg {
-        opacity: 1;
         transform: scale(1.1);
     }
 
@@ -432,19 +427,16 @@ export const headerStyles = css`
     }
 
     .dropdown-item-value {
-        opacity: 0.7;
         font-size: 12px;
     }
 
     .dropdown-item.active .dropdown-item-value {
         color: #ffffff;
-        opacity: 1;
         font-weight: 600;
     }
 
     .dropdown-item.inactive .dropdown-item-value {
         color: #ffffff;
-        opacity: 0.6;
         font-weight: 600;
     }
 
@@ -480,7 +472,6 @@ export const headerStyles = css`
         }
     }
 
-    /* Controls button styling */
     .controls-btn {
         background: rgba(255, 255, 255, 0.15);
         border: 1px solid rgba(255, 255, 255, 0.2);
@@ -495,7 +486,6 @@ export const headerStyles = css`
         justify-content: center;
         transition: all 0.3s ease;
         backdrop-filter: blur(10px);
-        opacity: 0.9;
         position: relative;
     }
 
@@ -508,86 +498,71 @@ export const headerStyles = css`
     }
 
     .controls-btn:disabled {
-        opacity: 0.4;
         cursor: not-allowed;
         background: rgba(255, 255, 255, 0.05);
         transform: none;
         border-color: rgba(255, 255, 255, 0.1);
         color: var(--text-color);
         box-shadow: none;
+        filter: grayscale(50%);
     }
 
-    /* Opacity control button styling */
-    .opacity-control-btn {
+    /* Combined theme and opacity control button styling */
+    .theme-control-btn {
         background: rgba(255, 255, 255, 0.15);
         border: 1px solid rgba(255, 255, 255, 0.2);
         color: #fff;
         cursor: pointer;
         border-radius: 12px;
         height: 40px;
-        padding: 0 10px;
+        padding: 0 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 4px;
+        gap: 6px;
         transition: all 0.3s ease;
         backdrop-filter: blur(10px);
-        opacity: 0.9;
         position: relative;
         font-size: 12px;
         font-weight: 500;
         min-width: 80px;
     }
 
-    .opacity-control-btn:hover {
+    .theme-control-btn:hover {
         background: rgba(255, 255, 255, 0.25);
         border-color: rgba(255, 255, 255, 0.3);
         transform: translateY(-2px);
-        opacity: 1;
         box-shadow: 
             0 8px 25px rgba(0, 0, 0, 0.15),
             0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    .opacity-control-btn.active {
-        background: rgba(0, 122, 255, 0.3);
-        border-color: rgba(0, 122, 255, 0.5);
-        color: #ffffff;
-    }
-
-    .opacity-control-btn.active:hover {
-        background: rgba(0, 122, 255, 0.4);
-        border-color: rgba(0, 122, 255, 0.6);
-    }
-
-    .opacity-control-btn svg {
+    .theme-control-btn svg {
         width: 16px;
         height: 16px;
-        opacity: 0.9;
         transition: all 0.3s ease;
     }
 
-    .opacity-control-btn:hover svg {
-        opacity: 1;
+    .theme-control-btn:hover svg {
         transform: scale(1.1);
     }
 
-    .opacity-value {
+    .opacity-percentage {
         font-size: 11px;
         font-weight: 600;
-        opacity: 0.9;
         min-width: 28px;
         text-align: center;
+        color: rgba(255, 255, 255, 0.9);
     }
 
-    /* Opacity dropdown container */
-    .opacity-dropdown-container {
+    /* Combined theme and opacity dropdown container */
+    .theme-control-dropdown-container {
         position: relative;
         display: inline-block;
     }
 
-    /* Opacity dropdown */
-    .opacity-dropdown {
+    /* Combined theme and opacity dropdown */
+    .theme-control-dropdown {
         position: absolute;
         top: calc(100% + 8px);
         right: 0;
@@ -602,13 +577,38 @@ export const headerStyles = css`
             0 8px 16px rgba(0, 0, 0, 0.2);
         z-index: 1000;
         animation: fadeInDown 0.3s ease;
+        max-height: 400px;
+        overflow-y: auto;
     }
 
-    .opacity-section {
-        margin-bottom: 12px;
+    .theme-control-dropdown::-webkit-scrollbar {
+        width: 6px;
     }
 
-    .opacity-label {
+    .theme-control-dropdown::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+    }
+
+    .theme-control-dropdown::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        transition: background 0.2s ease;
+    }
+
+    .theme-control-dropdown::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .theme-control-section {
+        margin-bottom: 16px;
+    }
+
+    .theme-control-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .theme-control-label {
         display: block;
         font-size: 12px;
         font-weight: 600;
@@ -702,10 +702,10 @@ export const headerStyles = css`
     }
 
     /* Opacity divider */
-    .opacity-divider {
+    .theme-control-divider {
         height: 1px;
         background: rgba(255, 255, 255, 0.1);
-        margin: 12px 0;
+        margin: 16px 0;
     }
 
     /* Opacity presets */
@@ -746,11 +746,11 @@ export const headerStyles = css`
     }
 
     /* Scroll control toggle */
-    .opacity-scroll-control {
+    .scroll-control {
         margin-top: 8px;
     }
 
-    .opacity-scroll-toggle {
+    .scroll-control-toggle {
         width: 100%;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -765,18 +765,18 @@ export const headerStyles = css`
         gap: 8px;
     }
 
-    .opacity-scroll-toggle:hover {
+    .scroll-control-toggle:hover {
         background: rgba(255, 255, 255, 0.1);
         border-color: rgba(255, 255, 255, 0.2);
     }
 
-    .opacity-scroll-toggle.active {
+    .scroll-control-toggle.active {
         background: rgba(0, 122, 255, 0.2);
         border-color: rgba(0, 122, 255, 0.4);
         color: #ffffff;
     }
 
-    .opacity-scroll-toggle.active:hover {
+    .scroll-control-toggle.active:hover {
         background: rgba(0, 122, 255, 0.3);
         border-color: rgba(0, 122, 255, 0.5);
     }
@@ -785,73 +785,9 @@ export const headerStyles = css`
         margin-left: auto;
         font-size: 10px;
         font-weight: 600;
-        opacity: 0.8;
     }
 
-    /* Theme dropdown container */
-    .theme-dropdown-container {
-        position: relative;
-        display: inline-block;
-    }
-
-    /* Theme button */
-    .theme-btn {
-        background: rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #fff;
-        cursor: pointer;
-        border-radius: 12px;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-        opacity: 0.9;
-        position: relative;
-    }
-
-    .theme-btn:hover {
-        background: rgba(255, 255, 255, 0.25);
-        border-color: rgba(255, 255, 255, 0.3);
-        transform: translateY(-2px);
-        opacity: 1;
-        box-shadow: 
-            0 8px 25px rgba(0, 0, 0, 0.15),
-            0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Theme dropdown */
-    .theme-dropdown {
-        position: absolute;
-        top: calc(100% + 8px);
-        right: 0;
-        background: rgba(0, 0, 0, 0.95);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
-        padding: 16px;
-        min-width: 220px;
-        backdrop-filter: blur(20px);
-        box-shadow: 
-            0 20px 40px rgba(0, 0, 0, 0.3),
-            0 8px 16px rgba(0, 0, 0, 0.2);
-        z-index: 1000;
-        animation: fadeInDown 0.3s ease;
-    }
-
-    .theme-section {
-        margin-bottom: 12px;
-    }
-
-    .theme-label {
-        display: block;
-        font-size: 12px;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.9);
-        margin-bottom: 8px;
-    }
+    /* Remove old theme dropdown styles - now combined */
 
     /* Theme options */
     .theme-option {
@@ -952,12 +888,12 @@ export const headerStyles = css`
 
     .controls-status-indicator.partial-active {
         background: #ffffff;
-        opacity: 0.7;
+        filter: brightness(0.7);
     }
 
     .controls-status-indicator.both-inactive {
         background: #ffffff;
-        opacity: 0.3;
+        filter: brightness(0.3);
     }
 
     .user-info {
@@ -976,7 +912,6 @@ export const headerStyles = css`
 
     .guest-indicator {
         margin-left: 8px;
-        opacity: 0.7;
         font-size: 14px;
     }
 
@@ -1000,7 +935,6 @@ export const headerStyles = css`
         align-items: center;
         justify-content: center;
         transition: all 0.3s ease;
-        opacity: 0.9;
         position: relative;
     }
 
@@ -1008,7 +942,6 @@ export const headerStyles = css`
         background: oklch(42% 0.01 67.558);
         border-color: rgba(255, 255, 255, 0.35);
         transform: translateY(-1px);
-        opacity: 1;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 

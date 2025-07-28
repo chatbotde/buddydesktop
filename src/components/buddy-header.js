@@ -22,9 +22,8 @@ class BuddyHeader extends LitElement {
         isModelsDropdownOpen: { type: Boolean },
         windowOpacity: { type: Number },
         isOpacityControlActive: { type: Boolean },
-        isOpacityDropdownOpen: { type: Boolean },
+        isThemeControlDropdownOpen: { type: Boolean },
         currentWindowTheme: { type: String },
-        isThemeDropdownOpen: { type: Boolean },
         availableThemes: { type: Object },
 
         customMenuButtons: { type: Array },
@@ -35,8 +34,7 @@ class BuddyHeader extends LitElement {
         this.isControlsMenuOpen = false;
         this.isMainMenuOpen = false;
         this.isModelsDropdownOpen = false;
-        this.isOpacityDropdownOpen = false;
-        this.isThemeDropdownOpen = false;
+        this.isThemeControlDropdownOpen = false;
         this.currentWindowTheme = 'transparent';
         this.availableThemes = {};
 
@@ -141,7 +139,7 @@ class BuddyHeader extends LitElement {
         }
     }
 
-    _toggleOpacityDropdown() {
+    _toggleThemeControlDropdown() {
         // Debounce rapid clicks
         if (this._toggleTimeout) {
             return;
@@ -156,43 +154,14 @@ class BuddyHeader extends LitElement {
         this._closeControlsMenu();
         this._closeModelsDropdown();
         
-        this.isOpacityDropdownOpen = !this.isOpacityDropdownOpen;
+        this.isThemeControlDropdownOpen = !this.isThemeControlDropdownOpen;
         this.requestUpdate();
         this._manageEventListener();
     }
 
-    _closeOpacityDropdown() {
-        if (this.isOpacityDropdownOpen) {
-            this.isOpacityDropdownOpen = false;
-            this.requestUpdate();
-            this._manageEventListener();
-        }
-    }
-
-    _toggleThemeDropdown() {
-        // Debounce rapid clicks
-        if (this._toggleTimeout) {
-            return;
-        }
-        
-        this._toggleTimeout = setTimeout(() => {
-            this._toggleTimeout = null;
-        }, 100);
-        
-        // Close other dropdowns first
-        this._closeMainMenu();
-        this._closeControlsMenu();
-        this._closeModelsDropdown();
-        this._closeOpacityDropdown();
-        
-        this.isThemeDropdownOpen = !this.isThemeDropdownOpen;
-        this.requestUpdate();
-        this._manageEventListener();
-    }
-
-    _closeThemeDropdown() {
-        if (this.isThemeDropdownOpen) {
-            this.isThemeDropdownOpen = false;
+    _closeThemeControlDropdown() {
+        if (this.isThemeControlDropdownOpen) {
+            this.isThemeControlDropdownOpen = false;
             this.requestUpdate();
             this._manageEventListener();
         }
@@ -214,7 +183,7 @@ class BuddyHeader extends LitElement {
     }
 
     _manageEventListener() {
-        const hasOpenDropdown = this.isMainMenuOpen || this.isControlsMenuOpen || this.isModelsDropdownOpen || this.isOpacityDropdownOpen || this.isThemeDropdownOpen;
+        const hasOpenDropdown = this.isMainMenuOpen || this.isControlsMenuOpen || this.isModelsDropdownOpen || this.isThemeControlDropdownOpen;
         
         // Clear any existing timeout
         if (this.eventListenerTimeout) {
@@ -242,7 +211,7 @@ class BuddyHeader extends LitElement {
 
     _handleOutsideClick(e) {
         // Early return if no dropdowns are open
-        if (!this.isMainMenuOpen && !this.isControlsMenuOpen && !this.isModelsDropdownOpen && !this.isOpacityDropdownOpen && !this.isThemeDropdownOpen) {
+        if (!this.isMainMenuOpen && !this.isControlsMenuOpen && !this.isModelsDropdownOpen && !this.isThemeControlDropdownOpen) {
             this._cleanupEventListener();
             return;
         }
@@ -256,8 +225,7 @@ class BuddyHeader extends LitElement {
             { element: this.renderRoot.querySelector('.controls-dropdown-container'), handler: () => this._closeControlsMenu() },
             { element: this.renderRoot.querySelector('.main-menu-dropdown-container'), handler: () => this._closeMainMenu() },
             { element: this.renderRoot.querySelector('.models-dropdown-container'), handler: () => this._closeModelsDropdown() },
-            { element: this.renderRoot.querySelector('.opacity-dropdown-container'), handler: () => this._closeOpacityDropdown() },
-            { element: this.renderRoot.querySelector('.theme-dropdown-container'), handler: () => this._closeThemeDropdown() }
+            { element: this.renderRoot.querySelector('.theme-control-dropdown-container'), handler: () => this._closeThemeControlDropdown() }
         ];
 
         let clickedInside = false;
@@ -276,13 +244,12 @@ class BuddyHeader extends LitElement {
     }
 
     _closeAllDropdowns() {
-        const hadOpenDropdown = this.isMainMenuOpen || this.isControlsMenuOpen || this.isModelsDropdownOpen || this.isOpacityDropdownOpen || this.isThemeDropdownOpen;
+        const hadOpenDropdown = this.isMainMenuOpen || this.isControlsMenuOpen || this.isModelsDropdownOpen || this.isThemeControlDropdownOpen;
         
         this.isControlsMenuOpen = false;
         this.isMainMenuOpen = false;
         this.isModelsDropdownOpen = false;
-        this.isOpacityDropdownOpen = false;
-        this.isThemeDropdownOpen = false;
+        this.isThemeControlDropdownOpen = false;
         
         if (hadOpenDropdown) {
             this.requestUpdate();
@@ -403,7 +370,7 @@ class BuddyHeader extends LitElement {
     }
 
     _handleOpacityPreset(opacity) {
-        this._closeOpacityDropdown();
+        this._closeThemeControlDropdown();
         this._handleOpacityChange(opacity);
     }
 
@@ -416,7 +383,7 @@ class BuddyHeader extends LitElement {
     }
 
     _handleThemeSelect(theme) {
-        this._closeThemeDropdown();
+        this._closeThemeControlDropdown();
         this.currentWindowTheme = theme;
         this.dispatchEvent(new CustomEvent('window-theme-change', { 
             detail: { theme }, 
@@ -575,27 +542,53 @@ class BuddyHeader extends LitElement {
                         <span class="status-indicator ${statusIndicator}"></span>
                     ` : ''}
                     
-                    <!-- Opacity Control Dropdown -->
-                    <div class="opacity-dropdown-container">
+                    <!-- Combined Theme & Opacity Control Dropdown -->
+                    <div class="theme-control-dropdown-container">
                         <button 
-                            class="opacity-control-btn ${this.isOpacityControlActive ? 'active' : ''}"
-                            @click=${this._toggleOpacityDropdown}
-                            title="Adjust Window Opacity"
+                            class="theme-control-btn"
+                            @click=${this._toggleThemeControlDropdown}
+                            title="Theme & Opacity Settings"
                         >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M12 2v20"/>
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
                             </svg>
-                            <span class="opacity-value">${Math.round(this.windowOpacity * 100)}%</span>
+                            <span class="opacity-percentage">${Math.round(this.windowOpacity * 100)}%</span>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="6,9 12,15 18,9"></polyline>
                             </svg>
                         </button>
 
-                        ${this.isOpacityDropdownOpen ? html`
-                            <div class="opacity-dropdown">
-                                <div class="opacity-section">
-                                    <label class="opacity-label">Window Opacity</label>
+                        ${this.isThemeControlDropdownOpen ? html`
+                            <div class="theme-control-dropdown">
+                                <!-- Theme Section -->
+                                <div class="theme-control-section">
+                                    <label class="theme-control-label">Window Theme</label>
+                                    
+                                    ${Object.entries(this.availableThemes).map(([themeKey, theme]) => html`
+                                        <button 
+                                            class="theme-option ${this.currentWindowTheme === themeKey ? 'selected' : ''}"
+                                            @click=${() => this._handleThemeSelect(themeKey)}
+                                            title="${theme.description}"
+                                        >
+                                            <div class="theme-preview theme-${themeKey}"></div>
+                                            <div class="theme-info">
+                                                <span class="theme-name">${theme.name}</span>
+                                                <span class="theme-desc">${theme.description}</span>
+                                            </div>
+                                            ${this.currentWindowTheme === themeKey ? html`
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="20,6 9,17 4,12"></polyline>
+                                                </svg>
+                                            ` : ''}
+                                        </button>
+                                    `)}
+                                </div>
+
+                                <div class="theme-control-divider"></div>
+
+                                <!-- Opacity Section -->
+                                <div class="theme-control-section">
+                                    <label class="theme-control-label">Window Opacity</label>
                                     
                                     <!-- Opacity Slider -->
                                     <div class="opacity-slider-container">
@@ -628,11 +621,11 @@ class BuddyHeader extends LitElement {
                                     </div>
                                 </div>
 
-                                <div class="opacity-divider"></div>
+                                <div class="theme-control-divider"></div>
 
                                 <!-- Opacity Presets -->
-                                <div class="opacity-presets">
-                                    <label class="opacity-label">Quick Presets</label>
+                                <div class="theme-control-section">
+                                    <label class="theme-control-label">Quick Presets</label>
                                     <div class="opacity-preset-buttons">
                                         <button class="opacity-preset-btn" @click=${() => this._handleOpacityPreset(1.0)}>
                                             100% <span class="preset-desc">Solid</span>
@@ -652,12 +645,12 @@ class BuddyHeader extends LitElement {
                                     </div>
                                 </div>
 
-                                <div class="opacity-divider"></div>
+                                <div class="theme-control-divider"></div>
 
                                 <!-- Scroll Control Toggle -->
-                                <div class="opacity-scroll-control">
+                                <div class="scroll-control">
                                     <button 
-                                        class="opacity-scroll-toggle ${this.isOpacityControlActive ? 'active' : ''}"
+                                        class="scroll-control-toggle ${this.isOpacityControlActive ? 'active' : ''}"
                                         @click=${this._handleToggleOpacityControl}
                                     >
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -667,49 +660,6 @@ class BuddyHeader extends LitElement {
                                         <span>Scroll Control</span>
                                         <span class="toggle-status">${this.isOpacityControlActive ? 'ON' : 'OFF'}</span>
                                     </button>
-                                </div>
-                            </div>
-                        ` : ''}
-                    </div>
-
-                    <!-- Theme Dropdown -->
-                    <div class="theme-dropdown-container">
-                        <button 
-                            class="theme-btn"
-                            @click=${this._toggleThemeDropdown}
-                            title="Change Window Theme"
-                        >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                            </svg>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="6,9 12,15 18,9"></polyline>
-                            </svg>
-                        </button>
-
-                        ${this.isThemeDropdownOpen ? html`
-                            <div class="theme-dropdown">
-                                <div class="theme-section">
-                                    <label class="theme-label">Window Theme</label>
-                                    
-                                    ${Object.entries(this.availableThemes).map(([themeKey, theme]) => html`
-                                        <button 
-                                            class="theme-option ${this.currentWindowTheme === themeKey ? 'selected' : ''}"
-                                            @click=${() => this._handleThemeSelect(themeKey)}
-                                            title="${theme.description}"
-                                        >
-                                            <div class="theme-preview theme-${themeKey}"></div>
-                                            <div class="theme-info">
-                                                <span class="theme-name">${theme.name}</span>
-                                                <span class="theme-desc">${theme.description}</span>
-                                            </div>
-                                            ${this.currentWindowTheme === themeKey ? html`
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <polyline points="20,6 9,17 4,12"></polyline>
-                                                </svg>
-                                            ` : ''}
-                                        </button>
-                                    `)}
                                 </div>
                             </div>
                         ` : ''}
