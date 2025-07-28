@@ -19,13 +19,6 @@ class MarketplaceWindow extends LitElement {
         this.dragOffset = { x: 0, y: 0 };
         this.availableButtons = [
             {
-                id: 'home',
-                name: 'Home',
-                icon: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9,22 9,12 15,12 15,22',
-                category: 'Navigation',
-                description: 'Navigate to home page'
-            },
-            {
                 id: 'chat',
                 name: 'Chat',
                 icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
@@ -132,7 +125,7 @@ class MarketplaceWindow extends LitElement {
             console.error('Error loading selected buttons:', error);
         }
         // Default buttons if nothing saved
-        const defaultButtons = ['home', 'chat', 'history', 'models', 'customize', 'help'];
+        const defaultButtons = ['chat', 'history', 'models', 'customize', 'help'];
         console.log('MarketplaceWindow: Using default buttons:', defaultButtons);
         return defaultButtons;
     }
@@ -739,13 +732,7 @@ class MarketplaceWindow extends LitElement {
 
     <script>
         const availableButtons = [
-            {
-                id: 'home',
-                name: 'Home',
-                icon: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9,22 9,12 15,12 15,22',
-                category: 'Navigation',
-                description: 'Navigate to home page'
-            },
+
             {
                 id: 'chat',
                 name: 'Chat',

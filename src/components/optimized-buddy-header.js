@@ -379,7 +379,7 @@ class OptimizedBuddyHeader extends ResponsiveMixin(DropdownMixin(LitElement)) {
         this.windowOpacity = 1.0;
         this.currentWindowTheme = 'transparent';
         this.availableThemes = {};
-        this.customMenuButtons = ['home', 'chat', 'history', 'models', 'customize', 'help'];
+        this.customMenuButtons = ['chat', 'history', 'models', 'customize', 'help'];
 
         // Dropdown states
         this.isControlsMenuOpen = false;

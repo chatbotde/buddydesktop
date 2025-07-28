@@ -42,7 +42,7 @@ class BuddyHeader extends LitElement {
         this.isVisibleOnAllWorkspaces = true;
         this.windowOpacity = 1.0;
         this.isOpacityControlActive = false;
-        this.customMenuButtons = ['home', 'chat', 'history', 'models', 'customize', 'help'];
+        this.customMenuButtons = ['chat', 'history', 'models', 'customize', 'help'];
         this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
         this.isEventListenerActive = false;
         this.eventListenerTimeout = null;
@@ -407,11 +407,7 @@ class BuddyHeader extends LitElement {
 
     _getMenuButtonsData() {
         const allButtons = {
-            'home': {
-                id: 'main',
-                name: 'Home',
-                icon: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9,22 9,12 15,12 15,22'
-            },
+
             'chat': {
                 id: 'assistant',
                 name: 'Chat',
@@ -510,7 +506,6 @@ class BuddyHeader extends LitElement {
 
     render() {
         const titles = {
-            main: 'Buddy',
             customize: 'Customize',
             help: 'Help & Shortcuts',
             assistant: 'Buddy',

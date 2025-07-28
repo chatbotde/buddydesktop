@@ -2,7 +2,7 @@ import { html, css, LitElement } from './lit-core-2.7.4.min.js';
 import './marked.min.js';
 import './components/buddy-header.js';
 import './components/buddy-login-view.js';
-import './components/buddy-main-view.js';
+
 import './components/buddy-customize-view.js';
 import './components/buddy-help-view.js';
 import './components/buddy-history-view.js';
@@ -89,7 +89,7 @@ class BuddyApp extends LitElement {
         // Load enabled models from localStorage or use defaults
         this.enabledModels = this.loadEnabledModels();
         this.customProfiles = this.loadCustomProfiles();
-        this.customMenuButtons = this.loadUserPreference('customMenuButtons') || ['home', 'chat', 'history', 'models', 'customize', 'help'];
+        this.customMenuButtons = this.loadUserPreference('customMenuButtons') || ['chat', 'history', 'models', 'customize', 'help'];
         this.windowOpacity = 1.0;
         this.isOpacityControlActive = false;
         this.currentWindowTheme = 'transparent';
@@ -476,7 +476,8 @@ class BuddyApp extends LitElement {
             await this.handleClose();
         });
         this.addEventListener('navigate', (e) => {
-            this.currentView = e.detail.view;
+            // Redirect main view to assistant since we removed home routes
+            this.currentView = e.detail.view === 'main' ? 'assistant' : e.detail.view;
         });
 
         this.addEventListener('toggle-audio', async () => {
@@ -950,8 +951,7 @@ class BuddyApp extends LitElement {
             // Quit the entire application
             const { ipcRenderer } = window.require('electron');
             await ipcRenderer.invoke('quit-application');
-        } else if (this.currentView === 'main') {
-            this.currentView = 'assistant';
+
         } else {
             // Quit the entire application
             const { ipcRenderer } = window.require('electron');
@@ -1582,16 +1582,7 @@ class BuddyApp extends LitElement {
                 .user=${this.user}
                 .isLoading=${false}
             ></buddy-login-view>`,
-            main: html`<buddy-main-view
-                .selectedProvider=${this.selectedProvider}
-                .selectedModel=${this.selectedModel}
-                .providers=${this.providers}
-                .models=${this.mainViewModels}
-                .apiKey=${this.mainViewApiKey}
-                .keyLabel=${this.mainViewKeyLabel}
-                .disabledModelIds=${this.disabledModelIdsForCurrentMode}
-                .hasEnvironmentKey=${this.mainViewHasEnvironmentKey}
-            ></buddy-main-view>`,
+
             customize: html`<buddy-customize-view
                 .selectedProfile=${this.selectedProfile}
                 .selectedLanguage=${this.selectedLanguage}
