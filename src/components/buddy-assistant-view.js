@@ -573,6 +573,7 @@ class BuddyAssistantView extends LitElement {
                                 .timestamp=${message.timestamp}
                                 .isStreaming=${message.isStreaming}
                                 .screenshots=${message.screenshots}
+                                .autoScreenshotEnabled=${this.autoScreenshotEnabled}
                                 @delete-message=${(e) => this._onDelete(e)}
                                 @copy-message=${() => this._onCopy(message)}
                                 @message-content-updated=${this._onMessageContentUpdated}
@@ -590,10 +591,10 @@ class BuddyAssistantView extends LitElement {
                     ` : ''}
                 </div>
                 <div class="text-input-container"
-                     @dragover=${this._handleDragOver}
-                     @dragleave=${this._handleDragLeave}
-                     @drop=${this._handleDrop}>
-                    ${this.attachedScreenshots.length > 0 ? html`
+                     @dragover=${this.autoScreenshotEnabled ? null : this._handleDragOver}
+                     @dragleave=${this.autoScreenshotEnabled ? null : this._handleDragLeave}
+                     @drop=${this.autoScreenshotEnabled ? null : this._handleDrop}>
+                    ${this.attachedScreenshots.length > 0 && !this.autoScreenshotEnabled ? html`
                         <div class="screenshots-preview">
                             <div class="screenshots-header">
                                 <span class="screenshot-count">${this.attachedScreenshots.length}/3 images</span>
@@ -628,10 +629,10 @@ class BuddyAssistantView extends LitElement {
                             <textarea
                                 id="textInput"
                                 rows="1"
-                                placeholder="${this.autoScreenshotEnabled ? 'Ask me anything... (auto-screenshot enabled) - Paste images with Ctrl+V or drag & drop' : 'Ask me anything... - Paste images with Ctrl+V or drag & drop'}"
+                                placeholder="${this.autoScreenshotEnabled ? 'Ask me anything... (auto-screenshot enabled)' : 'Ask me anything... - Paste images with Ctrl+V or drag & drop'}"
                                 @keydown=${this._onKeydown}
                                 @input=${this._onTextInput}
-                                @paste=${this._handlePaste}
+                                @paste=${this.autoScreenshotEnabled ? null : this._handlePaste}
                             ></textarea>
                         </div>
                         <div class="action-buttons">
@@ -646,7 +647,7 @@ class BuddyAssistantView extends LitElement {
                                         title="More actions"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-                                        ${this.attachedScreenshots.length > 0 ? html`
+                                        ${this.attachedScreenshots.length > 0 && !this.autoScreenshotEnabled ? html`
                                             <span class="screenshot-count-badge">${this.attachedScreenshots.length}</span>
                                         ` : ''}
                                     </button>
@@ -658,25 +659,27 @@ class BuddyAssistantView extends LitElement {
                                                 <span class="dropdown-item-label">Auto-screenshot</span>
                                                 <span class="dropdown-item-value">${this.autoScreenshotEnabled ? 'ON' : 'OFF'}</span>
                                             </button>
-                                            <button
-                                                class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
-                                                @click=${this._onUploadImageClick}
-                                                ?disabled=${this.isStreamingActive || isAtLimit}
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-                                                <span class="dropdown-item-label">Attach image</span>
-                                            </button>
-                                            <button
-                                                class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
-                                                @click=${this._onCaptureScreenshot}
-                                                ?disabled=${this.isStreamingActive || isAtLimit}
-                                            >
-                                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
-                                                    <circle cx="12" cy="13" r="3"></circle>
-                                                </svg>
-                                                <span class="dropdown-item-label">Capture screenshot</span>
-                                            </button>
+                                            ${!this.autoScreenshotEnabled ? html`
+                                                <button
+                                                    class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
+                                                    @click=${this._onUploadImageClick}
+                                                    ?disabled=${this.isStreamingActive || isAtLimit}
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                                                    <span class="dropdown-item-label">Attach image</span>
+                                                </button>
+                                                <button
+                                                    class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
+                                                    @click=${this._onCaptureScreenshot}
+                                                    ?disabled=${this.isStreamingActive || isAtLimit}
+                                                >
+                                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                                                        <circle cx="12" cy="13" r="3"></circle>
+                                                    </svg>
+                                                    <span class="dropdown-item-label">Capture screenshot</span>
+                                                </button>
+                                            ` : ''}
                                         </div>
                                     ` : ''}
                                 </div>

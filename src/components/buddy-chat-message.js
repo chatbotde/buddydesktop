@@ -12,6 +12,7 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         timestamp: { type: String },
         isStreaming: { type: Boolean },
         screenshots: { type: Array }, // Array of base64 screenshot data
+        autoScreenshotEnabled: { type: Boolean }, // New property for auto screenshot
         isEditing: { type: Boolean },
         editableContent: { type: String },
         // Theme properties are now handled by ThemeMixin
@@ -609,6 +610,7 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
 
     render() {
         const hasScreenshots = this.screenshots && Array.isArray(this.screenshots) && this.screenshots.length > 0;
+        const shouldShowScreenshots = hasScreenshots && !this.autoScreenshotEnabled;
         const backgroundClass = this._getBackgroundClass();
 
         return html`
@@ -631,7 +633,7 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
                     </svg>
                 </button>
                 <div class="message-bubble ${this.sender} ${backgroundClass}">
-                    ${hasScreenshots
+                    ${shouldShowScreenshots
                         ? html`
                               <div class="screenshots-container">
                                   <div class="screenshots-grid">
