@@ -409,95 +409,95 @@ class BuddyHeader extends LitElement {
         const allButtons = {
 
             'chat': {
-                id: 'assistant',
-                name: 'Chat',
-                icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'
+            id: 'assistant',
+            name: 'Chat',
+            icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'
             },
             'history': {
-                id: 'history',
-                name: 'History',
-                icon: 'M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0 -20 0 M12,6 12,12 16,14'
+            id: 'history',
+            name: 'History',
+            icon: 'M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0 -20 0 M12,6 12,12 16,14'
             },
             'models': {
-                id: 'models',
-                name: 'Models',
-                icon: 'M3 3h18v18H3z M8.5 8.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0 M21 15l-5-5L5 21'
+            id: 'models',
+            name: 'Models',
+            icon: 'M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z'
             },
             'customize': {
-                id: 'customize',
-                name: 'Customize',
-                icon: 'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0'
+            id: 'customize',
+            name: 'Customize',
+            icon: 'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0'
             },
             'help': {
-                id: 'help',
-                name: 'Help',
-                icon: 'M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0 -20 0 M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3 M12 17h.01'
+            id: 'help',
+            name: 'Help',
+            icon: 'M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0 -20 0 M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3 M12 17h.01'
             },
             'audio-window': {
-                id: 'audio-window',
-                name: 'Audio Window',
-                icon: 'M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z',
-                handler: '_handleOpenAudioWindow'
+            id: 'audio-window',
+            name: 'Audio Window',
+            icon: 'M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z',
+            handler: '_handleOpenAudioWindow'
             },
             'search-window': {
-                id: 'search-window',
-                name: 'Search Window',
-                icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
-                handler: '_handleOpenSearchWindow'
+            id: 'search-window',
+            name: 'Search Window',
+            icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
+            handler: '_handleOpenSearchWindow'
             },
             'new-chat': {
-                id: 'new-chat',
-                name: 'New Chat',
-                icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z M12 7v6m-3-3h6',
-                handler: '_handleMenuNewChat'
+            id: 'new-chat',
+            name: 'New Chat',
+            icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z M12 7v6m-3-3h6',
+            handler: '_handleMenuNewChat'
             },
             'toggle-audio': {
-                id: 'toggle-audio',
-                name: 'Audio',
-                icon: 'M2 10v3 M6 6v11 M10 3v18 M14 8v7 M18 5v13 M22 10v3',
-                handler: '_handleMenuToggleAudio',
-                showStatus: true,
-                statusKey: 'isAudioActive'
+            id: 'toggle-audio',
+            name: 'Audio',
+            icon: 'M2 10v3 M6 6v11 M10 3v18 M14 8v7 M18 5v13 M22 10v3',
+            handler: '_handleMenuToggleAudio',
+            showStatus: true,
+            statusKey: 'isAudioActive'
             },
             'toggle-search': {
-                id: 'toggle-search',
-                name: 'Search',
-                icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
-                handler: '_handleMenuToggleSearch',
-                showStatus: true,
-                statusKey: 'isSearchActive'
+            id: 'toggle-search',
+            name: 'Search',
+            icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
+            handler: '_handleMenuToggleSearch',
+            showStatus: true,
+            statusKey: 'isSearchActive'
             },
             'toggle-video': {
-                id: 'toggle-video',
-                name: 'Video',
-                icon: 'm16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5 M2 6h14v12H2z',
-                handler: '_handleMenuToggleScreen',
-                showStatus: true,
-                statusKey: 'isScreenActive'
+            id: 'toggle-video',
+            name: 'Video',
+            icon: 'm16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5 M2 6h14v12H2z',
+            handler: '_handleMenuToggleScreen',
+            showStatus: true,
+            statusKey: 'isScreenActive'
             },
             'opacity-control': {
-                id: 'opacity-control',
-                name: 'Opacity Control',
-                icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z',
-                handler: '_handleToggleOpacityControl',
-                showStatus: true,
-                statusKey: 'isOpacityControlActive'
+            id: 'opacity-control',
+            name: 'Opacity Control',
+            icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z',
+            handler: '_handleToggleOpacityControl',
+            showStatus: true,
+            statusKey: 'isOpacityControlActive'
             },
             'content-protection': {
-                id: 'content-protection',
-                name: 'Content Protection',
-                icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
-                handler: '_handleToggleContentProtection',
-                showStatus: true,
-                statusKey: 'isContentProtected'
+            id: 'content-protection',
+            name: 'Content Protection',
+            icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+            handler: '_handleToggleContentProtection',
+            showStatus: true,
+            statusKey: 'isContentProtected'
             },
             'workspace-visibility': {
-                id: 'workspace-visibility',
-                name: 'All Workspaces',
-                icon: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
-                handler: '_handleToggleVisibilityOnWorkspaces',
-                showStatus: true,
-                statusKey: 'isVisibleOnAllWorkspaces'
+            id: 'workspace-visibility',
+            name: 'All Workspaces',
+            icon: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
+            handler: '_handleToggleVisibilityOnWorkspaces',
+            showStatus: true,
+            statusKey: 'isVisibleOnAllWorkspaces'
             }
         };
 
@@ -695,9 +695,7 @@ class BuddyHeader extends LitElement {
                                 title="Select Model"
                             >
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                                    <path d="M21 15l-5-5L5 21"/>
+                                    <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
                                 </svg>
                                 <span class="models-dropdown-text">
                                     ${this.selectedModel ? this._getEnabledModelsData().find(m => m.id === this.selectedModel)?.name || this.selectedModel : 'Select Model'}
