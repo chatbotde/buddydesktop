@@ -952,8 +952,7 @@ class BuddyApp extends LitElement {
             
             return true;
         } catch (error) {
-            console.error('❌ Error in autoStartSession:', error);
-            this.setStatus('Error: ' + error.message);
+            this.setStatus('Error starting session: ' + error.message);
             return false;
         }
     }
