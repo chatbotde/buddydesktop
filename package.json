@@ -24,8 +24,6 @@
     "license": "MIT",
     "dependencies": {
         "@google/genai": "^1.7.0",
-        "@types/react": "^19.1.8",
-        "@types/react-dom": "^19.1.6",
         "bcryptjs": "^2.4.3",
         "dotenv": "^17.0.0",
         "electron-squirrel-startup": "^1.0.1",
@@ -35,10 +33,7 @@
         "katex": "^0.16.22",
         "mongodb": "^6.17.0",
         "node-fetch": "^3.3.2",
-        "openai": "^5.8.0",
-        "react": "^19.1.0",
-        "react-dom": "^19.1.0",
-        "typescript": "^5.8.3"
+        "openai": "^5.8.0"
     },
     "devDependencies": {
         "@electron-forge/cli": "^7.8.1",
@@ -50,7 +45,6 @@
         "@electron-forge/plugin-auto-unpack-natives": "^7.8.1",
         "@electron-forge/plugin-fuses": "^7.8.1",
         "@electron/fuses": "^1.8.0",
-        "@tailwindcss/cli": "^4.1.10",
         "electron": "^30.5.1"
     }
 }
