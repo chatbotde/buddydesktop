@@ -63,6 +63,14 @@ async function initializeAI(provider = 'google', profile = 'default', language =
     let actualProvider = provider;
     
     console.log('🚀 Initializing AI with:', { provider, model, hasApiKey: !!apiKey });
+    console.log('🔍 Detailed initialization params:', {
+        provider: provider,
+        model: model,
+        profile: profile,
+        language: language,
+        apiKeyLength: apiKey ? apiKey.length : 0,
+        apiKeyPrefix: apiKey ? apiKey.substring(0, 10) + '...' : 'None'
+    });
     
     // Check if this is a custom model
     const customModels = JSON.parse(localStorage.getItem('buddy_custom_models') || '[]');
@@ -112,8 +120,9 @@ async function initializeAI(provider = 'google', profile = 'default', language =
             console.log('ℹ️ Session started without user-provided API key (using environment or demo mode)');
         }
     } else {
-        buddy.e().setStatus('error');
+        buddy.e().setStatus('Error: Failed to initialize AI session');
         console.error('❌ Failed to initialize AI session');
+        console.error('❌ Check console for detailed error messages');
     }
 }
 
@@ -665,12 +674,42 @@ async function createConsistentWindow(options = {}) {
     }
 }
 
+// Test function to check environment variables
+async function testEnvironmentKeys() {
+    console.log('🧪 Testing environment key detection...');
+    const providers = ['google', 'openai', 'anthropic', 'deepseek', 'openrouter'];
+    
+    for (const provider of providers) {
+        try {
+            const hasKey = await ipcRenderer.invoke('check-environment-key', provider);
+            console.log(`🔑 ${provider}: ${hasKey ? '✅ Found' : '❌ Not found'}`);
+        } catch (error) {
+            console.error(`❌ Error checking ${provider}:`, error);
+        }
+    }
+}
+
+// Test function to initialize a specific model
+async function testModelInitialization(provider, model) {
+    console.log(`🧪 Testing model initialization: ${provider}/${model}`);
+    try {
+        const success = await initializeAI(provider, 'default', 'en-US', model);
+        console.log(`🧪 Result: ${success ? '✅ Success' : '❌ Failed'}`);
+        return success;
+    } catch (error) {
+        console.error(`❌ Error testing model:`, error);
+        return false;
+    }
+}
+
 window.buddy = {
     initializeAI,
     startCapture,
     stopCapture,
     sendTextMessage,
     captureScreenshot,
+    testEnvironmentKeys,
+    testModelInitialization,
     isLinux: isLinux,
     isMacOS: isMacOS,
     e: buddyElement,

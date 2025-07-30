@@ -199,6 +199,11 @@ class BuddyApp extends LitElement {
         return model ? model.name : modelId;
     }
 
+    getModelData(modelId) {
+        const allModels = getAllModels();
+        return allModels.find(m => m.id === modelId);
+    }
+
     getDefaultEnabledModels() {
         // Default preset: Enable popular and reliable models, disable experimental/premium ones
         return [
@@ -402,15 +407,23 @@ class BuddyApp extends LitElement {
         this.addEventListener('model-select', async (e) => {
             this.selectedModel = e.detail.model;
             
+            // Update the provider to match the selected model's provider
+            const modelData = this.getModelData(this.selectedModel);
+            if (modelData && modelData.provider) {
+                this.selectedProvider = modelData.provider;
+                console.log('🔄 Updated provider to match model:', this.selectedProvider, 'for model:', this.selectedModel);
+            }
+            
             if (this.isGuest) {
                 localStorage.setItem('selectedModel', this.selectedModel);
+                localStorage.setItem('selectedProvider', this.selectedProvider);
             } else {
                 await this.saveUserPreferences();
             }
             
             // Auto-restart session with new model if session is active
             if (this.sessionActive) {
-                console.log('🔄 Restarting session with new model:', this.selectedModel);
+                console.log('🔄 Restarting session with new model:', this.selectedModel, 'and provider:', this.selectedProvider);
                 await this.handleRestartSession();
             }
             
@@ -939,7 +952,8 @@ class BuddyApp extends LitElement {
             
             return true;
         } catch (error) {
-            this.setStatus('Error starting session: ' + error.message);
+            console.error('❌ Error in autoStartSession:', error);
+            this.setStatus('Error: ' + error.message);
             return false;
         }
     }
