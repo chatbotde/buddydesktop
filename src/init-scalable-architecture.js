@@ -270,7 +270,7 @@ async function sendAIMessage(message, provider) {
 }
 
 async function getAIProviders() {
-    const { getModelsByProvider } = await import('./lib/models/models.js');
+    const { getModelsByProvider } = await import('./services/models-service.js');
     return {
         google: getModelsByProvider('google'),
         openai: getModelsByProvider('openai'),
