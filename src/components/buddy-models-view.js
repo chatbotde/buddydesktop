@@ -505,23 +505,6 @@ class BuddyModelsView extends LitElement {
         return this._getDefaultEnabledModels().includes(modelId);
     }
 
-    async _hasApiKey(model) {
-        // Check if API key is stored in localStorage for this provider
-        const localApiKey = localStorage.getItem(`apiKey_${model.provider}`);
-        if (localApiKey && localApiKey.trim().length > 0) {
-            return true;
-        }
-
-        // Check if environment key exists for this provider
-        try {
-            const hasEnvKey = await window.buddy.checkEnvironmentKey(model.provider);
-            return hasEnvKey;
-        } catch (error) {
-            console.error('Failed to check environment key:', error);
-            return false;
-        }
-    }
-
     _getEnvironmentKeyName(provider) {
         const envKeyMap = {
             google: 'GOOGLE_API_KEY or GEMINI_API_KEY',

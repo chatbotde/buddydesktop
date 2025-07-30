@@ -193,6 +193,12 @@ class BuddyApp extends LitElement {
         return models[0].id;
     }
 
+    getModelDisplayName(modelId) {
+        const allModels = getAllModels();
+        const model = allModels.find(m => m.id === modelId);
+        return model ? model.name : modelId;
+    }
+
     getDefaultEnabledModels() {
         // Default preset: Enable popular and reliable models, disable experimental/premium ones
         return [
@@ -384,6 +390,12 @@ class BuddyApp extends LitElement {
                 await this.saveUserPreferences();
             }
             
+            // Auto-restart session with new provider and model if session is active
+            if (this.sessionActive) {
+                console.log('🔄 Restarting session with new provider:', this.selectedProvider, 'and model:', this.selectedModel);
+                await this.handleRestartSession();
+            }
+            
             this.requestUpdate();
         });
         
@@ -394,6 +406,12 @@ class BuddyApp extends LitElement {
                 localStorage.setItem('selectedModel', this.selectedModel);
             } else {
                 await this.saveUserPreferences();
+            }
+            
+            // Auto-restart session with new model if session is active
+            if (this.sessionActive) {
+                console.log('🔄 Restarting session with new model:', this.selectedModel);
+                await this.handleRestartSession();
             }
             
             this.requestUpdate();
@@ -957,6 +975,50 @@ class BuddyApp extends LitElement {
             const { ipcRenderer } = window.require('electron');
             await ipcRenderer.invoke('quit-application');
         }
+    }
+
+    async handleRestartSession() {
+        // Validate that a model is selected
+        if (!this.selectedModel) {
+            this.setStatus('Error: Please select a model first');
+            return;
+        }
+
+        if (this.sessionActive) {
+            // Stop current session without clearing chat
+            if (this.isSelectedModelRealTime) {
+                buddy.stopCapture();
+            } else {
+                // Add logic to stop non-real-time features if needed
+                if (buddy.disableScreenshotFeature) buddy.disableScreenshotFeature();
+                if (buddy.disableAudioInputFeature) buddy.disableAudioInputFeature();
+            }
+            const { ipcRenderer } = window.require('electron');
+            await ipcRenderer.invoke('close-session');
+        }
+
+        this.sessionActive = false;
+        this.disableAllFeatures();
+        this.statusText = 'Switching model...';
+        this.requestUpdate(); // Update UI to show loading state
+
+        // Initialize with new model
+        await buddy.initializeAI(this.selectedProvider, this.selectedProfile, this.selectedLanguage, this.selectedModel);
+        
+        if (this.isSelectedModelRealTime) {
+            this.enableRealTimeFeatures();
+        } else {
+            this.enableFeaturesForCapabilities(this.selectedModelCapabilities);
+        }
+        
+        this.sessionActive = true;
+        this.statusText = 'Live';
+        this.requestUpdate(); // Update UI to show live state
+        
+        // Add a subtle notification about model switch
+        const modelName = this.getModelDisplayName(this.selectedModel);
+        const switchMessage = `<div style="text-align: center; opacity: 0.7; font-size: 0.9em; margin: 10px 0;"><em>Switched to ${modelName}</em></div>`;
+        this.addChatMessage(switchMessage, 'assistant');
     }
 
     async handleRestart() {
