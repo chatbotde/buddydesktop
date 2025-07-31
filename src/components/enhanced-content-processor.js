@@ -4,7 +4,7 @@
  */
 
 import { CodeBlockProcessor } from './code-block.js';
-import { mathBlockProcessor } from '../math/math-block-processor.js';
+import { processMathContent } from '../math/index.js';
 import { highlightLoader } from '../highlight-loader.js';
 
 export class EnhancedContentProcessor {
@@ -80,12 +80,8 @@ export class EnhancedContentProcessor {
         }
         
         // Step 2: Process math blocks and equations first (before other markdown)
-        // Check if math has already been processed to avoid duplication
-        if (!content.includes('math-block-container') && !content.includes('math-inline') && !content.includes('katex')) {
-            content = mathBlockProcessor.processContent(content);
-        } else {
-            console.log('📝 Math already processed, skipping math processing');
-        }
+        // Use unified math renderer for consistent processing
+        content = processMathContent(content);
         
         // Step 3: Process code blocks (now async)
         content = await CodeBlockProcessor.formatCodeBlocksToHTML(content);
@@ -117,12 +113,8 @@ export class EnhancedContentProcessor {
         }
         
         // Step 1: Process math blocks and equations first (before other markdown)
-        // Check if math has already been processed to avoid duplication
-        if (!content.includes('math-block-container') && !content.includes('math-inline') && !content.includes('katex')) {
-            content = mathBlockProcessor.processContent(content);
-        } else {
-            console.log('📝 Math already processed, skipping math processing');
-        }
+        // Use unified math renderer for consistent processing
+        content = processMathContent(content);
         
         // Step 2: Process code blocks synchronously (without highlighting if not loaded)
         content = this._processCodeBlocksSync(content);

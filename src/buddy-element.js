@@ -12,6 +12,7 @@ import './components/buddy-models-view.js';
 import './components/buddy-system-prompt-manager.js';
 import { getAllModels, getModelsByProvider, getEnabledModels } from './services/models-service.js';
 import { buddyAppStyles } from './components/ui/buddy-app-style.js';
+import { initializeUnifiedMathSystem } from './math/index.js';
 
 
 class BuddyApp extends LitElement {
@@ -57,6 +58,9 @@ class BuddyApp extends LitElement {
     constructor() {
         super();
         this.currentView = 'login'; // Start with login view
+        
+        // Initialize unified math system
+        this.initializeUnifiedMath();
         this.statusText = '';
         this.startTime = null;
         this.sessionActive = false;
@@ -99,6 +103,19 @@ class BuddyApp extends LitElement {
         this.loadAvailableThemes();
         this.loadSavedTheme();
         this.loadSavedOpacity();
+    }
+
+    /**
+     * Initialize the unified math rendering system
+     */
+    async initializeUnifiedMath() {
+        try {
+            console.log('🧮 Initializing unified math system...');
+            await initializeUnifiedMathSystem();
+            console.log('✅ Unified math system ready');
+        } catch (error) {
+            console.error('❌ Failed to initialize unified math system:', error);
+        }
     }
 
     async initializeAuth() {

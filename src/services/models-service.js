@@ -203,6 +203,19 @@ export const MODELS_CONFIG = [
         maxTokens: 4096,
         live: false,
         url: 'https://openrouter.ai/models/openrouter/cypher-alpha:free',
+    },{
+        id: 'openrouter/horizon-alpha',
+        name: 'Horizon Alpha (OpenRouter)',
+        provider: 'openrouter',
+        apiKeyEnv: 'OPENROUTER_API_KEY',
+        icon: '🤖',
+        description: 'Horizon Alpha via OpenRouter with text understanding.',
+        capabilities: ['text', 'code'],
+        contextWindow: 256000,
+        maxTokens: 128000,
+        live: false,
+        url: 'https://openrouter.ai/models/openrouter/horizon-alpha',
+    
     },
 
     // Additional models from the original models-service.js
