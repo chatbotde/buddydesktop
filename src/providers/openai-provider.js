@@ -8,6 +8,7 @@ class OpenAIProvider extends BaseAIProvider {
         }
         this.model = model;
         this.conversationHistory = [];
+        this.currentAbortController = null;
     }
 
     async initialize() {
@@ -59,6 +60,9 @@ class OpenAIProvider extends BaseAIProvider {
                 // Add user message to conversation history
                 this.conversationHistory.push({ role: 'user', content: userContent });
                 
+                // Create abort controller for this request
+                this.currentAbortController = new AbortController();
+                
                 const response = await fetch('https://api.openai.com/v1/chat/completions', {
                     method: 'POST',
                     headers: {
@@ -69,7 +73,8 @@ class OpenAIProvider extends BaseAIProvider {
                         model: this.model,
                         messages: this.conversationHistory,
                         stream: true
-                    })
+                    }),
+                    signal: this.currentAbortController.signal
                 });
 
                 const reader = response.body.getReader();
@@ -116,10 +121,37 @@ class OpenAIProvider extends BaseAIProvider {
                     isStreaming: true,
                     isComplete: true
                 });
+                
+                // Clear the abort controller after successful completion
+                this.currentAbortController = null;
             } catch (error) {
-                console.error('OpenAI API error:', error);
-                global.sendToRenderer('update-status', 'Error: ' + error.message);
+                // Clear the abort controller
+                this.currentAbortController = null;
+                
+                if (error.name === 'AbortError') {
+                    console.log('✅ OpenAI streaming was aborted by user');
+                    global.sendToRenderer('update-status', 'Streaming stopped');
+                } else {
+                    console.error('OpenAI API error:', error);
+                    global.sendToRenderer('update-status', 'Error: ' + error.message);
+                }
             }
+        }
+    }
+
+    async stopStreaming() {
+        console.log('🛑 OpenAIProvider: Stopping streaming...');
+        
+        if (this.currentAbortController) {
+            try {
+                this.currentAbortController.abort();
+                console.log('✅ OpenAI streaming aborted successfully');
+                global.sendToRenderer('streaming-stopped', { success: true });
+            } catch (error) {
+                console.error('❌ Error aborting OpenAI streaming:', error);
+            }
+        } else {
+            console.log('⚠️ No active OpenAI streaming to stop');
         }
     }
 
@@ -129,6 +161,12 @@ class OpenAIProvider extends BaseAIProvider {
     }
 
     async close() {
+        // Abort any ongoing requests
+        if (this.currentAbortController) {
+            this.currentAbortController.abort();
+            this.currentAbortController = null;
+        }
+        
         // Clear conversation history and reset session state
         // No need to close HTTP connections as they are stateless
         this.conversationHistory = [];

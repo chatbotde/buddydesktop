@@ -8,6 +8,7 @@ class OpenRouterProvider extends BaseAIProvider {
         }
         this.model = model;
         this.conversationHistory = [];
+        this.currentAbortController = null;
     }
 
     async initialize() {
@@ -62,6 +63,9 @@ class OpenRouterProvider extends BaseAIProvider {
                     : userContent;
                 this.conversationHistory.push({ role: 'user', content: userMessage });
                 
+                // Create abort controller for this request
+                this.currentAbortController = new AbortController();
+                
                 const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                     method: 'POST',
                     headers: {
@@ -74,7 +78,8 @@ class OpenRouterProvider extends BaseAIProvider {
                         model: this.model,
                         messages: this.conversationHistory,
                         stream: true
-                    })
+                    }),
+                    signal: this.currentAbortController.signal
                 });
 
                 const reader = response.body.getReader();
@@ -121,10 +126,37 @@ class OpenRouterProvider extends BaseAIProvider {
                     isStreaming: true,
                     isComplete: true
                 });
+                
+                // Clear the abort controller after successful completion
+                this.currentAbortController = null;
             } catch (error) {
-                console.error('OpenRouter API error:', error);
-                global.sendToRenderer('update-status', 'Error: ' + error.message);
+                // Clear the abort controller
+                this.currentAbortController = null;
+                
+                if (error.name === 'AbortError') {
+                    console.log('✅ OpenRouter streaming was aborted by user');
+                    global.sendToRenderer('update-status', 'Streaming stopped');
+                } else {
+                    console.error('OpenRouter API error:', error);
+                    global.sendToRenderer('update-status', 'Error: ' + error.message);
+                }
             }
+        }
+    }
+
+    async stopStreaming() {
+        console.log('🛑 OpenRouterProvider: Stopping streaming...');
+        
+        if (this.currentAbortController) {
+            try {
+                this.currentAbortController.abort();
+                console.log('✅ OpenRouter streaming aborted successfully');
+                global.sendToRenderer('streaming-stopped', { success: true });
+            } catch (error) {
+                console.error('❌ Error aborting OpenRouter streaming:', error);
+            }
+        } else {
+            console.log('⚠️ No active OpenRouter streaming to stop');
         }
     }
 
@@ -134,6 +166,12 @@ class OpenRouterProvider extends BaseAIProvider {
     }
 
     async close() {
+        // Abort any ongoing requests
+        if (this.currentAbortController) {
+            this.currentAbortController.abort();
+            this.currentAbortController = null;
+        }
+        
         // Clear conversation history and reset session state
         // No need to close HTTP connections as they are stateless
         this.conversationHistory = [];

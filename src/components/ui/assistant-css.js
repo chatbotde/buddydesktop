@@ -464,6 +464,45 @@ export const assistantStyles = css`
     box-shadow: none;
 }
 
+.stop-btn {
+    background: rgba(239, 68, 68, 0.9);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: var(--border-radius-md);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-normal);
+    opacity: 0.9;
+    animation: stopButtonPulse 2s ease-in-out infinite;
+}
+
+@keyframes stopButtonPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+    }
+}
+
+.stop-btn:hover {
+    background: rgb(239, 68, 68);
+    border-color: rgba(239, 68, 68, 0.7);
+    opacity: 1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.stop-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
+}
+
 /* Animations */
 .chat-container > * {
     animation: fadeInUp var(--transition-slow);
@@ -484,6 +523,11 @@ export const assistantStyles = css`
 .action-btn:focus-visible,
 .send-btn:focus-visible {
     outline: 2px solid var(--primary-alpha-50);
+    outline-offset: 2px;
+}
+
+.stop-btn:focus-visible {
+    outline: 2px solid rgba(239, 68, 68, 0.5);
     outline-offset: 2px;
 }
 
@@ -584,6 +628,22 @@ export const assistantStyles = css`
 .loading-dot:nth-child(2) { animation-delay: -0.16s; }
 .loading-dot:nth-child(3) { animation-delay: 0s; }
 
+/* Stopping animation for smooth transition */
+.loading-indicator.stopping {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
 @keyframes loadingPulse {
     0%, 80%, 100% {
         opacity: 0.3;
@@ -634,7 +694,8 @@ export const assistantStyles = css`
         font-size: 9px;
     }
     
-    .send-btn {
+    .send-btn,
+    .stop-btn {
         width: 28px;
         height: 28px;
         border-radius: var(--spacing-sm);
@@ -754,7 +815,8 @@ export const assistantStyles = css`
         font-size: 8px;
     }
     
-    .send-btn {
+    .send-btn,
+    .stop-btn {
         width: 24px;
         height: 24px;
         border-radius: var(--border-radius-sm);

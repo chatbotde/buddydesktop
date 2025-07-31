@@ -161,6 +161,41 @@ class GoogleAIProvider extends BaseAIProvider {
         }
     }
 
+    async stopStreaming() {
+        console.log('🛑 GoogleAIProvider: Stopping streaming...');
+        
+        if (this.session) {
+            if (this.isRealTimeModel) {
+                // For real-time models, we can interrupt the current generation
+                try {
+                    // If there's accumulated text, send it as final response
+                    if (global.messageBuffer && global.messageBuffer.trim()) {
+                        global.sendToRenderer('update-response', {
+                            text: global.messageBuffer,
+                            isStreaming: true,
+                            isComplete: true
+                        });
+                    }
+                    
+                    // Clear the message buffer to stop accumulating text
+                    global.messageBuffer = '';
+                    
+                    // Send status update and completion signals
+                    global.sendToRenderer('update-status', 'Streaming stopped');
+                    global.sendToRenderer('streaming-stopped', { success: true });
+                    
+                    console.log('✅ Google real-time streaming stopped');
+                } catch (error) {
+                    console.error('❌ Error stopping Google real-time streaming:', error);
+                }
+            } else {
+                // For chat models, there's no ongoing stream to stop
+                console.log('⚠️ Google chat model does not have ongoing streams to stop');
+                global.sendToRenderer('streaming-stopped', { success: true });
+            }
+        }
+    }
+
     async close() {
         if (this.session) {
             // Only real-time sessions have a close method

@@ -14,6 +14,26 @@ class BaseAIProvider {
         throw new Error('SendRealtimeInput method must be implemented');
     }
 
+    async stopStreaming() {
+        // Base implementation: stop any ongoing streaming
+        // Subclasses may override for provider-specific stop behavior
+        console.log('🛑 BaseAIProvider: Stopping streaming...');
+        
+        // For most providers, stopping streaming means interrupting the current session
+        if (this.session) {
+            // If the session has a specific stop method, use it
+            if (typeof this.session.stop === 'function') {
+                await this.session.stop();
+                console.log('✅ Session stopped via session.stop()');
+            } else if (typeof this.session.abort === 'function') {
+                await this.session.abort();
+                console.log('✅ Session aborted via session.abort()');
+            } else {
+                console.log('⚠️ Session does not support stopping, will continue normally');
+            }
+        }
+    }
+
     async close() {
         // Base implementation: cleanup session and memory
         // Subclasses may override for provider-specific cleanup

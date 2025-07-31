@@ -8,6 +8,7 @@ class DeepSeekProvider extends BaseAIProvider {
         }
         this.model = model;
         this.conversationHistory = [];
+        this.currentAbortController = null;
     }
 
     async initialize() {
@@ -40,6 +41,9 @@ class DeepSeekProvider extends BaseAIProvider {
                 // Add user message to conversation history
                 this.conversationHistory.push({ role: 'user', content: input.text });
                 
+                // Create abort controller for this request
+                this.currentAbortController = new AbortController();
+                
                 const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
                     method: 'POST',
                     headers: {
@@ -50,7 +54,8 @@ class DeepSeekProvider extends BaseAIProvider {
                         model: this.model,
                         messages: this.conversationHistory,
                         stream: true
-                    })
+                    }),
+                    signal: this.currentAbortController.signal
                 });
 
                 const reader = response.body.getReader();
@@ -97,10 +102,37 @@ class DeepSeekProvider extends BaseAIProvider {
                     isStreaming: true,
                     isComplete: true
                 });
+                
+                // Clear the abort controller after successful completion
+                this.currentAbortController = null;
             } catch (error) {
-                console.error('DeepSeek API error:', error);
-                global.sendToRenderer('update-status', 'Error: ' + error.message);
+                // Clear the abort controller
+                this.currentAbortController = null;
+                
+                if (error.name === 'AbortError') {
+                    console.log('✅ DeepSeek streaming was aborted by user');
+                    global.sendToRenderer('update-status', 'Streaming stopped');
+                } else {
+                    console.error('DeepSeek API error:', error);
+                    global.sendToRenderer('update-status', 'Error: ' + error.message);
+                }
             }
+        }
+    }
+
+    async stopStreaming() {
+        console.log('🛑 DeepSeekProvider: Stopping streaming...');
+        
+        if (this.currentAbortController) {
+            try {
+                this.currentAbortController.abort();
+                console.log('✅ DeepSeek streaming aborted successfully');
+                global.sendToRenderer('streaming-stopped', { success: true });
+            } catch (error) {
+                console.error('❌ Error aborting DeepSeek streaming:', error);
+            }
+        } else {
+            console.log('⚠️ No active DeepSeek streaming to stop');
         }
     }
 
@@ -110,6 +142,12 @@ class DeepSeekProvider extends BaseAIProvider {
     }
 
     async close() {
+        // Abort any ongoing requests
+        if (this.currentAbortController) {
+            this.currentAbortController.abort();
+            this.currentAbortController = null;
+        }
+        
         // Clear conversation history and reset session state
         // No need to close HTTP connections as they are stateless
         this.conversationHistory = [];

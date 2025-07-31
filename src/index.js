@@ -937,6 +937,36 @@ ipcMain.handle('send-text-message', async (event, messageData) => {
     }
 });
 
+ipcMain.handle('stop-streaming', async (event) => {
+    try {
+        console.log('🛑 Stop streaming requested');
+        
+        if (!currentAIProvider) {
+            return { success: false, error: 'No active AI session' };
+        }
+
+        // Call the AI provider's stop method if it exists
+        if (typeof currentAIProvider.stopStreaming === 'function') {
+            await currentAIProvider.stopStreaming();
+            console.log('✅ AI provider streaming stopped');
+        } else if (typeof currentAIProvider.stop === 'function') {
+            await currentAIProvider.stop();
+            console.log('✅ AI provider stopped');
+        } else {
+            console.log('⚠️ AI provider does not support stopping, will reset session');
+        }
+
+        // Send stop signal to renderer
+        sendToRenderer('streaming-stopped', { success: true });
+        
+        return { success: true };
+    } catch (error) {
+        console.error('❌ Error stopping streaming:', error);
+        sendToRenderer('streaming-stopped', { success: false, error: error.message });
+        return { success: false, error: error.message };
+    }
+});
+
 ipcMain.handle('start-macos-audio', async event => {
     if (process.platform !== 'darwin') {
         return {

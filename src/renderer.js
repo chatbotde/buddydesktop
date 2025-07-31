@@ -545,6 +545,23 @@ async function sendTextMessage(text, screenshots = null) {
     }
 }
 
+// Stop streaming response
+async function stopStreaming() {
+    try {
+        console.log('🛑 Requesting to stop streaming...');
+        const result = await ipcRenderer.invoke('stop-streaming');
+        if (result.success) {
+            console.log('✅ Streaming stopped successfully');
+        } else {
+            console.error('❌ Failed to stop streaming:', result.error);
+        }
+        return result;
+    } catch (error) {
+        console.error('Error stopping streaming:', error);
+        return { success: false, error: error.message };
+    }
+}
+
 // Capture a single screenshot manually
 async function captureScreenshot() {
     console.log('Capturing manual screenshot...');
@@ -707,6 +724,7 @@ window.buddy = {
     startCapture,
     stopCapture,
     sendTextMessage,
+    stopStreaming,
     captureScreenshot,
     testEnvironmentKeys,
     testModelInitialization,

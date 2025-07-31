@@ -10,6 +10,7 @@ class BuddyAssistantView extends LitElement {
         autoScreenshotEnabled: { type: Boolean }, // New property for auto screenshot
         isActionsMenuOpen: { type: Boolean },
         isWaitingForResponse: { type: Boolean }, // New property for loading state
+        isStopping: { type: Boolean }, // New property for stopping animation
 
     };
 
@@ -20,6 +21,7 @@ class BuddyAssistantView extends LitElement {
         this.hasTypedInCurrentSession = false; // Track if user has typed in current input session
         this.isActionsMenuOpen = false;
         this.isWaitingForResponse = false; // Initialize loading state
+        this.isStopping = false; // Initialize stopping state
         this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
         this.boundGlobalKeydownHandler = this._handleGlobalKeydown.bind(this);
         // Simple auto-scroll for input/output visibility
@@ -266,6 +268,20 @@ class BuddyAssistantView extends LitElement {
         }
     }
 
+    _onStop() {
+        // Immediately clear all loading/streaming states for instant feedback
+        this.isWaitingForResponse = false;
+        this.isStreamingActive = false;
+        this.isStopping = false;
+        this.requestUpdate();
+        
+        // Dispatch stop streaming event
+        this.dispatchEvent(new CustomEvent('stop-streaming', { 
+            bubbles: true, 
+            composed: true 
+        }));
+    }
+
     _onKeydown(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -308,6 +324,7 @@ class BuddyAssistantView extends LitElement {
     // Method to clear loading state when response starts
     clearLoadingState() {
         this.isWaitingForResponse = false;
+        this.isStopping = false;
         this.requestUpdate();
     }
 
@@ -581,7 +598,7 @@ class BuddyAssistantView extends LitElement {
                           `)
                     }
                     ${this.isWaitingForResponse ? html`
-                        <div class="loading-indicator">
+                        <div class="loading-indicator ${this.isStopping ? 'stopping' : ''}">
                             <div class="loading-dots">
                                 <div class="loading-dot"></div>
                                 <div class="loading-dot"></div>
@@ -684,16 +701,28 @@ class BuddyAssistantView extends LitElement {
                                     ` : ''}
                                 </div>
                                
-                                <button
-                                    class="send-btn"
-                                    @click=${this._onSend}
-                                    title="Send message"
-                                    ?disabled=${this.isStreamingActive || this.isWaitingForResponse}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M9 18v-6H5l7-7 7 7h-4v6H9z"/>
-                                    </svg>
-                                </button>
+                                ${this.isStreamingActive ? html`
+                                    <button
+                                        class="stop-btn"
+                                        @click=${this._onStop}
+                                        title="Stop streaming"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="6" y="6" width="12" height="12" rx="2"/>
+                                        </svg>
+                                    </button>
+                                ` : html`
+                                    <button
+                                        class="send-btn"
+                                        @click=${this._onSend}
+                                        title="Send message"
+                                        ?disabled=${this.isWaitingForResponse}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M9 18v-6H5l7-7 7 7h-4v6H9z"/>
+                                        </svg>
+                                    </button>
+                                `}
                             </div>
                         </div>
                     </div>

@@ -512,6 +512,43 @@ class BuddyApp extends LitElement {
                 this.setStatus('sending...');
             }
         });
+
+        this.addEventListener('stop-streaming', async (e) => {
+            console.log('🛑 Stop streaming requested');
+            
+            // Immediately clear streaming states for smooth UX
+            this.isStreamingActive = false;
+            
+            // Find and clear the streaming state of the last assistant message
+            if (this.chatMessages && this.chatMessages.length > 0) {
+                const lastMessage = this.chatMessages[this.chatMessages.length - 1];
+                if (lastMessage && lastMessage.sender === 'assistant' && lastMessage.isStreaming) {
+                    lastMessage.isStreaming = false;
+                    lastMessage.timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                }
+            }
+            
+            this.requestUpdate();
+            
+            // Clear assistant view states immediately
+            const assistantView = this.shadowRoot.querySelector('buddy-assistant-view');
+            if (assistantView) {
+                assistantView.isWaitingForResponse = false;
+                assistantView.isStreamingActive = false;
+                assistantView.clearLoadingState();
+                assistantView.requestUpdate();
+            }
+            
+            // Call the backend to stop streaming
+            const result = await buddy.stopStreaming();
+            if (result.success) {
+                this.setStatus('Streaming stopped');
+            } else {
+                console.error('Failed to stop streaming:', result.error);
+                this.setStatus('Failed to stop streaming');
+                // Even if backend fails, keep UI states cleared for better UX
+            }
+        });
         
         this.addEventListener('delete-message', (e) => {
             if (e.detail.id) {
@@ -708,6 +745,32 @@ class BuddyApp extends LitElement {
             const { ipcRenderer } = window.require('electron');
             ipcRenderer.on('marketplace-buttons-updated', (event, data) => {
                 this._handleMarketplaceButtonsUpdated(data.selectedButtons);
+            });
+            
+            // Listen for streaming stopped events
+            ipcRenderer.on('streaming-stopped', (event, data) => {
+                console.log('🛑 Streaming stopped event received:', data);
+                this.isStreamingActive = false;
+                
+                // Find and clear the streaming state of the last assistant message
+                if (this.chatMessages && this.chatMessages.length > 0) {
+                    const lastMessage = this.chatMessages[this.chatMessages.length - 1];
+                    if (lastMessage && lastMessage.sender === 'assistant' && lastMessage.isStreaming) {
+                        lastMessage.isStreaming = false;
+                        lastMessage.timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    }
+                }
+                
+                this.requestUpdate();
+                
+                // Clear the assistant view loading state immediately
+                const assistantView = this.shadowRoot.querySelector('buddy-assistant-view');
+                if (assistantView) {
+                    assistantView.isWaitingForResponse = false;
+                    assistantView.isStreamingActive = false;
+                    assistantView.clearLoadingState();
+                    assistantView.requestUpdate();
+                }
             });
         }
         
