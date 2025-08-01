@@ -29,6 +29,8 @@ class SearchWindow {
         const searchWindowOptions = {
             width: 450,
             height: 80,
+            minHeight: 80,
+            maxHeight: 500,
             frame: false,
             transparent: true,
             hasShadow: true,
@@ -256,13 +258,13 @@ class SearchWindow {
     async expand() {
         if (!this.window || this.isExpanded) return;
 
-        const newHeight = 400; // Expanded height for search results
+        const newHeight = Math.min(500, 80 + (this.searchResults.length * 80) + 120); // Dynamic height based on results
         const currentBounds = this.window.getBounds();
         
         this.window.setSize(currentBounds.width, newHeight, true);
         this.isExpanded = true;
         
-        console.log('Search window expanded');
+        console.log('Search window expanded to height:', newHeight);
     }
 
     /**
