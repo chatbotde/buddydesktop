@@ -707,26 +707,28 @@ class BuddyHeader extends LitElement {
 
                             ${this.isModelsDropdownOpen ? html`
                                 <div class="models-dropdown">
-                                    ${this._getEnabledModelsData().map(model => html`
-                                        <button 
-                                            class="model-dropdown-item ${this.selectedModel === model.id ? 'selected' : ''} ${model.custom ? 'custom' : ''}"
-                                            @click=${() => this._handleModelSelect(model.id)}
-                                        >
-                                            ${model.icon ? html`<span class="model-icon">${model.icon}</span>` : ''}
-                                            <div class="model-info">
-                                                <span class="model-name">
-                                                    ${model.name}
-                                                    ${model.custom ? html`<span class="custom-indicator">CUSTOM</span>` : ''}
-                                                </span>
-                                                ${model.badge ? html`<span class="model-badge">${model.badge}</span>` : ''}
-                                            </div>
-                                            ${this.selectedModel === model.id ? html`
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <polyline points="20,6 9,17 4,12"></polyline>
-                                                </svg>
-                                            ` : ''}
-                                        </button>
-                                    `)}
+                                    <div class="models-dropdown-content">
+                                        ${this._getEnabledModelsData().map(model => html`
+                                            <button 
+                                                class="model-dropdown-item ${this.selectedModel === model.id ? 'selected' : ''} ${model.custom ? 'custom' : ''}"
+                                                @click=${() => this._handleModelSelect(model.id)}
+                                            >
+                                                ${model.icon ? html`<span class="model-icon">${model.icon}</span>` : ''}
+                                                <div class="model-info">
+                                                    <span class="model-name">
+                                                        ${model.name}
+                                                        ${model.custom ? html`<span class="custom-indicator">CUSTOM</span>` : ''}
+                                                    </span>
+                                                    ${model.badge ? html`<span class="model-badge">${model.badge}</span>` : ''}
+                                                </div>
+                                                ${this.selectedModel === model.id ? html`
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <polyline points="20,6 9,17 4,12"></polyline>
+                                                    </svg>
+                                                ` : ''}
+                                            </button>
+                                        `)}
+                                    </div>
                                 </div>
                             ` : ''}
                         </div>
