@@ -6,7 +6,7 @@ export const headerStyles = css`
         display: flex;
         align-items: center;
         padding: 10px 20px;
-        border: var(--glass-border);
+        border: none;
         background: var(--header-background);
         border-radius: 16px 16px 0 0;
         backdrop-filter: blur(20px);

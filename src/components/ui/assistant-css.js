@@ -72,7 +72,7 @@ export const assistantStyles = css`
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: var(--spacing-xl) var(--spacing-lg);
+    padding: var(--spacing-lg) var(--spacing-md);
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
@@ -104,7 +104,7 @@ export const assistantStyles = css`
 /* Welcome Message */
 .welcome-message {
     text-align: center;
-    padding: 40px var(--spacing-xl);
+    padding: 24px var(--spacing-lg);
     opacity: 0.8;
     font-size: 14px;
     line-height: 1.6;
@@ -112,7 +112,7 @@ export const assistantStyles = css`
     border-radius: var(--border-radius-xl);
     border: 1px solid var(--white-alpha-10);
     backdrop-filter: var(--blur-medium);
-    margin: var(--spacing-xl);
+    margin: var(--spacing-lg);
 }
 
 /* Text Input Container */
@@ -121,7 +121,7 @@ export const assistantStyles = css`
     flex-direction: column;
     background: var(--surface-primary);
     border-radius: var(--border-radius-2xl);
-    padding: var(--spacing-lg) var(--spacing-xl);
+    padding: var(--spacing-md) var(--spacing-lg);
     border: 1px solid var(--white-alpha-10);
     position: sticky;
     bottom: var(--spacing-lg);
@@ -160,9 +160,9 @@ export const assistantStyles = css`
 .screenshots-preview {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
-    padding: 0 0 var(--spacing-lg) 0;
-    margin-bottom: var(--spacing-lg);
+    gap: var(--spacing-sm);
+    padding: 0 0 var(--spacing-md) 0;
+    margin-bottom: var(--spacing-md);
 }
 
 .screenshots-header {
@@ -282,13 +282,13 @@ export const assistantStyles = css`
 .input-row {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
 }
 
 .textarea-container {
     background: transparent;
     border-radius: var(--spacing-lg);
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: var(--spacing-sm) var(--spacing-md);
     border: none;
 }
 
@@ -606,8 +606,8 @@ export const assistantStyles = css`
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding: var(--spacing-lg) var(--spacing-xl);
-    margin: var(--spacing-sm) var(--spacing-xl);
+    padding: var(--spacing-md) var(--spacing-lg);
+    margin: var(--spacing-sm) var(--spacing-lg);
 }
 
 .loading-dots {
@@ -659,7 +659,7 @@ export const assistantStyles = css`
 @media (max-width: 768px) {
     .text-input-container {
         margin: 0 var(--spacing-sm) var(--spacing-sm);
-        padding: var(--spacing-md) var(--spacing-lg);
+        padding: var(--spacing-sm) var(--spacing-md);
         border-radius: var(--border-radius-xl);
     }
     
@@ -668,7 +668,7 @@ export const assistantStyles = css`
     }
     
     .textarea-container {
-        padding: var(--spacing-md) var(--spacing-md);
+        padding: var(--spacing-sm) var(--spacing-sm);
         border-radius: var(--border-radius-lg);
     }
     
@@ -764,13 +764,13 @@ export const assistantStyles = css`
     }
     
     .chat-container {
-        padding: var(--spacing-lg) var(--spacing-md);
+        padding: var(--spacing-md) var(--spacing-sm);
         gap: var(--spacing-md);
     }
     
     .welcome-message {
-        padding: 30px var(--spacing-lg);
-        margin: var(--spacing-lg);
+        padding: 20px var(--spacing-md);
+        margin: var(--spacing-md);
         border-radius: var(--spacing-lg);
         font-size: 13px;
     }
@@ -780,7 +780,7 @@ export const assistantStyles = css`
 @media (max-width: 480px) {
     .text-input-container {
         margin: 0 var(--spacing-xs) var(--spacing-xs);
-        padding: var(--spacing-md) var(--spacing-md);
+        padding: var(--spacing-sm) var(--spacing-sm);
         border-radius: 18px;
     }
     
@@ -789,7 +789,7 @@ export const assistantStyles = css`
     }
     
     .textarea-container {
-        padding: var(--spacing-sm) var(--spacing-md);
+        padding: var(--spacing-xs) var(--spacing-sm);
         border-radius: var(--spacing-md);
     }
     
@@ -881,20 +881,20 @@ export const assistantStyles = css`
     }
     
     .chat-container {
-        padding: var(--spacing-md) var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-xs);
         gap: var(--spacing-sm);
     }
     
     .welcome-message {
-        padding: 24px var(--spacing-md);
-        margin: var(--spacing-md);
+        padding: 16px var(--spacing-sm);
+        margin: var(--spacing-sm);
         border-radius: var(--border-radius-lg);
         font-size: 12px;
     }
     
     .loading-indicator {
-        padding: var(--spacing-md) var(--spacing-lg);
-        margin: 6px var(--spacing-md);
+        padding: var(--spacing-sm) var(--spacing-md);
+        margin: 4px var(--spacing-sm);
     }
     
     .loading-dot {
