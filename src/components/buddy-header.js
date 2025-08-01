@@ -392,6 +392,15 @@ class BuddyHeader extends LitElement {
         }));
     }
 
+    _handleTitleClick() {
+        // Navigate to chat section when title is clicked
+        this.dispatchEvent(new CustomEvent('navigate', { 
+            detail: { view: 'assistant' }, 
+            bubbles: true, 
+            composed: true 
+        }));
+    }
+
 
 
 
@@ -542,7 +551,7 @@ class BuddyHeader extends LitElement {
         return html`
             <div class="header">
                 <div class="header-title">
-                    <span class="header-title-text">${titles[this.currentView]}</span>
+                    <span class="header-title-text clickable-title" @click=${this._handleTitleClick} title="Go to Chat">${titles[this.currentView]}</span>
                     ${this.isAuthenticated && this.user && this.currentView !== 'login' ? html`
                         <div class="user-info">
                             <img 

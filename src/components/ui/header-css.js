@@ -34,6 +34,21 @@ export const headerStyles = css`
         text-overflow: ellipsis;
     }
 
+    .clickable-title {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 4px 8px;
+        border-radius: 8px;
+        -webkit-app-region: no-drag;
+    }
+
+    .clickable-title:hover {
+        background: var(--button-background);
+        color: var(--text-color);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
 
 
     .header-actions {
