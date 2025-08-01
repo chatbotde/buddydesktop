@@ -46,6 +46,10 @@ class BuddyCustomModelForm extends LitElement {
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
+            --dropdown-bg: #1a1a1a;
+            --dropdown-text: #ffffff;
+            --dropdown-hover-bg: #333333;
+            --dropdown-border: rgba(255, 255, 255, 0.2);
         }
 
         :host([open]) {
@@ -58,9 +62,9 @@ class BuddyCustomModelForm extends LitElement {
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 16px;
             padding: 24px;
-            max-width: 500px;
+            max-width: 600px;
             width: 90%;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -120,10 +124,82 @@ class BuddyCustomModelForm extends LitElement {
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 8px;
             padding: 12px;
-            color: var(--text-color);
+            color: var(--text-color, #ffffff);
             font-size: 14px;
             box-sizing: border-box;
             transition: all 0.2s ease;
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+            opacity: 1;
+        }
+
+        .form-select {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-color, #ffffff);
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+
+        .form-select option {
+            background: var(--dropdown-bg, #1a1a1a) !important;
+            color: var(--dropdown-text, #ffffff) !important;
+            padding: 8px 12px;
+            border: none;
+            font-size: 14px;
+        }
+
+        .form-select option:hover,
+        .form-select option:focus,
+        .form-select option:checked {
+            background: var(--dropdown-hover-bg, #333333) !important;
+            color: var(--dropdown-text, #ffffff) !important;
+        }
+
+        .form-select option:disabled {
+            background: #0a0a0a !important;
+            color: #666666 !important;
+        }
+
+        /* Additional styling for better cross-browser support */
+        .form-select::-ms-expand {
+            display: none;
+        }
+
+        .form-select:focus {
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Dark theme fallback for better visibility */
+        @media (prefers-color-scheme: dark) {
+            .form-select {
+                background: rgba(40, 40, 40, 0.9);
+                color: #ffffff;
+                border-color: rgba(255, 255, 255, 0.3);
+            }
+            
+            .form-select option {
+                background: #2a2a2a !important;
+                color: #ffffff !important;
+            }
+            
+            .form-select option:hover,
+            .form-select option:checked {
+                background: #404040 !important;
+            }
+        }
+
+        /* Force dark styling regardless of system preference */
+        .form-select {
+            background: rgba(40, 40, 40, 0.9) !important;
+            color: #ffffff !important;
         }
 
         .form-input:focus,
@@ -154,28 +230,40 @@ class BuddyCustomModelForm extends LitElement {
 
         .capability-checkbox {
             display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 10px 12px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s ease;
             font-size: 12px;
+            min-width: 140px;
+            flex: 1;
         }
 
         .capability-checkbox:hover {
             background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
         }
 
         .capability-checkbox.selected {
-            background: rgba(34, 197, 94, 0.2);
+            background: rgba(34, 197, 94, 0.15);
             border-color: #22c55e;
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
         }
 
         .capability-checkbox input {
             margin: 0;
+            margin-top: 2px;
+        }
+
+        .capabilities-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
         }
 
         .form-actions {
@@ -232,11 +320,66 @@ class BuddyCustomModelForm extends LitElement {
         .provider-info {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 6px;
-            padding: 8px;
+            padding: 12px;
             margin-top: 8px;
             font-size: 12px;
             color: var(--text-color);
             opacity: 0.8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .provider-info-header {
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--text-color);
+            opacity: 1;
+        }
+
+        .provider-info-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .provider-info-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+        }
+
+        .provider-info-item a {
+            color: #4ade80;
+            text-decoration: none;
+        }
+
+        .provider-info-item a:hover {
+            text-decoration: underline;
+        }
+
+        .capability-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+        }
+
+        .capability-description {
+            font-size: 10px;
+            opacity: 0.7;
+            line-height: 1.2;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
         }
     `;
 
@@ -282,6 +425,24 @@ class BuddyCustomModelForm extends LitElement {
 
     _onInputChange(field, value) {
         this.formData = { ...this.formData, [field]: value };
+        
+        // Auto-populate base URL when provider changes (if not already set)
+        if (field === 'provider' && value && value !== 'custom' && !this.formData.baseUrl) {
+            const providerInfo = this._getProviderInfo(value);
+            if (providerInfo.baseUrl) {
+                this.formData = { ...this.formData, baseUrl: providerInfo.baseUrl };
+            }
+        }
+        
+        // Auto-populate common capabilities when provider changes (if none selected)
+        if (field === 'provider' && value && this.formData.capabilities.length === 0) {
+            const defaultCapabilities = ['text', 'code']; // Most models support text and code
+            if (['openai', 'google', 'anthropic'].includes(value)) {
+                defaultCapabilities.push('vision'); // These providers commonly support vision
+            }
+            this.formData = { ...this.formData, capabilities: defaultCapabilities };
+        }
+        
         if (this.errors[field]) {
             this.errors = { ...this.errors, [field]: null };
         }
@@ -318,7 +479,14 @@ class BuddyCustomModelForm extends LitElement {
             errors.apiKey = 'API Key is required';
         }
 
-        if (this.formData.baseUrl && !this._isValidUrl(this.formData.baseUrl)) {
+        // Base URL is required for custom providers
+        if (this.formData.provider === 'custom') {
+            if (!this.formData.baseUrl.trim()) {
+                errors.baseUrl = 'Base URL is required for custom providers';
+            } else if (!this._isValidUrl(this.formData.baseUrl)) {
+                errors.baseUrl = 'Please enter a valid URL';
+            }
+        } else if (this.formData.baseUrl && !this._isValidUrl(this.formData.baseUrl)) {
             errors.baseUrl = 'Please enter a valid URL';
         }
 
@@ -387,14 +555,60 @@ class BuddyCustomModelForm extends LitElement {
 
     _getAvailableCapabilities() {
         return [
-            { id: 'text', label: 'Text' },
-            { id: 'vision', label: 'Vision' },
-            { id: 'code', label: 'Code' },
-            { id: 'audio', label: 'Audio' },
-            { id: 'video', label: 'Video' },
-            { id: 'reasoning', label: 'Reasoning' },
-            { id: 'analysis', label: 'Analysis' },
+            { id: 'text', label: '📝 Text', description: 'Text generation and understanding' },
+            { id: 'vision', label: '👁️ Vision', description: 'Image analysis and understanding' },
+            { id: 'code', label: '💻 Code', description: 'Code generation and analysis' },
+            { id: 'audio', label: '🎵 Audio', description: 'Audio processing and generation' },
+            { id: 'video', label: '🎬 Video', description: 'Video analysis and processing' },
+            { id: 'reasoning', label: '🧠 Reasoning', description: 'Advanced logical reasoning' },
+            { id: 'analysis', label: '📊 Analysis', description: 'Data analysis and insights' },
         ];
+    }
+
+    _getProviderInfo(providerId) {
+        const providerInfoMap = {
+            openai: { 
+                description: 'OpenAI models (GPT-4, GPT-3.5, etc.)',
+                baseUrl: 'https://api.openai.com/v1',
+                keyUrl: 'https://platform.openai.com/api-keys'
+            },
+            anthropic: { 
+                description: 'Anthropic Claude models',
+                baseUrl: 'https://api.anthropic.com/v1',
+                keyUrl: 'https://console.anthropic.com/'
+            },
+            google: { 
+                description: 'Google Gemini models',
+                baseUrl: 'https://generativelanguage.googleapis.com/v1',
+                keyUrl: 'https://makersuite.google.com/app/apikey'
+            },
+            deepseek: { 
+                description: 'DeepSeek AI models',
+                baseUrl: 'https://api.deepseek.com/v1',
+                keyUrl: 'https://platform.deepseek.com/api_keys'
+            },
+            openrouter: { 
+                description: 'OpenRouter unified API',
+                baseUrl: 'https://openrouter.ai/api/v1',
+                keyUrl: 'https://openrouter.ai/keys'
+            },
+            xai: { 
+                description: 'xAI Grok models',
+                baseUrl: 'https://api.x.ai/v1',
+                keyUrl: 'https://console.x.ai/'
+            },
+            kimi: { 
+                description: 'Kimi AI models',
+                baseUrl: 'https://api.moonshot.cn/v1',
+                keyUrl: 'https://platform.moonshot.cn/console/api-keys'
+            },
+            custom: { 
+                description: 'Custom API endpoint',
+                baseUrl: '',
+                keyUrl: ''
+            }
+        };
+        return providerInfoMap[providerId] || providerInfoMap.custom;
     }
 
     render() {
@@ -441,8 +655,31 @@ class BuddyCustomModelForm extends LitElement {
                                     <option value=${provider.value}>${provider.name}</option>
                                 `
                             )}
+                            <option value="custom">Custom Provider</option>
                         </select>
                         ${this.errors.provider ? html`<div class="form-error">${this.errors.provider}</div>` : ''}
+                        
+                        ${this.formData.provider ? html`
+                            <div class="provider-info">
+                                <div class="provider-info-header">${this._getProviderInfo(this.formData.provider).description}</div>
+                                <div class="provider-info-details">
+                                    ${this._getProviderInfo(this.formData.provider).baseUrl ? html`
+                                        <div class="provider-info-item">
+                                            <span>🔗 Default API:</span>
+                                            <span>${this._getProviderInfo(this.formData.provider).baseUrl}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${this._getProviderInfo(this.formData.provider).keyUrl ? html`
+                                        <div class="provider-info-item">
+                                            <span>🔑 Get API Key:</span>
+                                            <a href="${this._getProviderInfo(this.formData.provider).keyUrl}" target="_blank">
+                                                ${this._getProviderInfo(this.formData.provider).keyUrl}
+                                            </a>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
 
                     <div class="form-group">
@@ -471,15 +708,21 @@ class BuddyCustomModelForm extends LitElement {
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Base URL (Optional)</label>
+                        <label class="form-label">Base URL ${this.formData.provider === 'custom' ? '*' : '(Optional)'}</label>
                         <input
                             type="url"
                             class="form-input"
                             .value=${this.formData.baseUrl}
                             @input=${e => this._onInputChange('baseUrl', e.target.value)}
-                            placeholder="https://api.example.com"
+                            placeholder=${this.formData.provider && this.formData.provider !== 'custom' 
+                                ? this._getProviderInfo(this.formData.provider).baseUrl || "https://api.example.com"
+                                : "https://api.example.com"}
                         />
-                        <div class="help-text">Custom API endpoint (leave empty to use provider default)</div>
+                        <div class="help-text">
+                            ${this.formData.provider === 'custom' 
+                                ? 'API endpoint for your custom provider'
+                                : 'Custom API endpoint (leave empty to use provider default)'}
+                        </div>
                         ${this.errors.baseUrl ? html`<div class="form-error">${this.errors.baseUrl}</div>` : ''}
                     </div>
 
@@ -501,43 +744,49 @@ class BuddyCustomModelForm extends LitElement {
                                     <label
                                         class="capability-checkbox ${this.formData.capabilities.includes(cap.id) ? 'selected' : ''}"
                                         @click=${() => this._onCapabilityToggle(cap.id)}
+                                        title="${cap.description}"
                                     >
                                         <input
                                             type="checkbox"
                                             .checked=${this.formData.capabilities.includes(cap.id)}
                                             @change=${() => this._onCapabilityToggle(cap.id)}
                                         />
-                                        ${cap.label}
+                                        <div class="capability-item">
+                                            <span>${cap.label}</span>
+                                            <span class="capability-description">${cap.description}</span>
+                                        </div>
                                     </label>
                                 `
                             )}
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Context Window</label>
-                        <input
-                            type="number"
-                            class="form-input"
-                            .value=${this.formData.contextWindow}
-                            @input=${e => this._onInputChange('contextWindow', e.target.value)}
-                            min="1"
-                            placeholder="4096"
-                        />
-                        <div class="help-text">Maximum number of tokens the model can process</div>
-                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Context Window</label>
+                            <input
+                                type="number"
+                                class="form-input"
+                                .value=${this.formData.contextWindow}
+                                @input=${e => this._onInputChange('contextWindow', e.target.value)}
+                                min="1"
+                                placeholder="4096"
+                            />
+                            <div class="help-text">Max tokens the model can process</div>
+                        </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Max Output Tokens</label>
-                        <input
-                            type="number"
-                            class="form-input"
-                            .value=${this.formData.maxTokens}
-                            @input=${e => this._onInputChange('maxTokens', e.target.value)}
-                            min="1"
-                            placeholder="1024"
-                        />
-                        <div class="help-text">Maximum number of tokens the model can generate</div>
+                        <div class="form-group">
+                            <label class="form-label">Max Output Tokens</label>
+                            <input
+                                type="number"
+                                class="form-input"
+                                .value=${this.formData.maxTokens}
+                                @input=${e => this._onInputChange('maxTokens', e.target.value)}
+                                min="1"
+                                placeholder="1024"
+                            />
+                            <div class="help-text">Max tokens the model can generate</div>
+                        </div>
                     </div>
                 </form>
 
