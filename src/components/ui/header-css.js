@@ -1421,20 +1421,22 @@ export const headerStyles = css`
         background: rgba(0, 0, 0, 0.95);
         border: 1px solid rgba(255, 255, 255, 0.2);
         border-radius: 12px;
-        padding: 16px;
-        min-width: clamp(260px, 20vw, 320px);
-        width: clamp(280px, 22vw, 350px);
-        max-width: min(350px, 90vw);
+        padding: 12px;
+        min-width: clamp(200px, 15vw, 240px);
+        width: clamp(220px, 18vw, 280px);
+        max-width: min(280px, 85vw);
         backdrop-filter: blur(20px);
         box-shadow: 
             0 20px 40px rgba(0, 0, 0, 0.3),
             0 8px 16px rgba(0, 0, 0, 0.2);
         z-index: 1000;
         animation: fadeInDown 0.3s ease;
-        max-height: min(80vh, 450px);
+        max-height: min(75vh, 400px);
         height: auto;
         overflow-y: auto;
         overflow-x: hidden;
+        resize: both;
+        min-height: 200px;
     }
 
     .theme-control-dropdown::-webkit-scrollbar {
@@ -1456,8 +1458,24 @@ export const headerStyles = css`
         background: rgba(255, 255, 255, 0.3);
     }
 
+    /* Custom resize handle styling */
+    .theme-control-dropdown::-webkit-resizer {
+        background: linear-gradient(-45deg, 
+            transparent 0%, 
+            transparent 30%, 
+            rgba(255, 255, 255, 0.2) 30%, 
+            rgba(255, 255, 255, 0.2) 40%, 
+            transparent 40%, 
+            transparent 60%, 
+            rgba(255, 255, 255, 0.2) 60%, 
+            rgba(255, 255, 255, 0.2) 70%, 
+            transparent 70%
+        );
+        border-radius: 0 0 12px 0;
+    }
+
     .theme-control-section {
-        margin-bottom: 16px;
+        margin-bottom: 12px;
     }
 
     .theme-control-section:last-child {
@@ -1561,7 +1579,7 @@ export const headerStyles = css`
     .theme-control-divider {
         height: 1px;
         background: rgba(255, 255, 255, 0.1);
-        margin: 16px 0;
+        margin: 12px 0;
     }
 
     /* Opacity presets */
@@ -1646,108 +1664,108 @@ export const headerStyles = css`
     /* Vertical responsive design for theme control dropdown */
     @media (max-height: 800px) {
         .theme-control-dropdown {
-            max-height: min(70vh, 380px);
-            padding: 12px;
-        }
-
-        .theme-control-section {
-            margin-bottom: 12px;
-        }
-
-        .opacity-slider-container {
-            margin-bottom: 8px;
-        }
-    }
-
-    @media (max-height: 600px) {
-        .theme-control-dropdown {
-            max-height: min(65vh, 320px);
+            max-height: min(70vh, 350px);
             padding: 10px;
-            min-width: clamp(240px, 18vw, 280px);
-            width: clamp(260px, 20vw, 300px);
         }
 
         .theme-control-section {
             margin-bottom: 10px;
         }
 
-        .theme-control-label {
-            font-size: 11px;
+        .opacity-slider-container {
             margin-bottom: 6px;
-        }
-
-        .theme-option {
-            padding: 8px 10px;
-            margin-bottom: 3px;
-        }
-
-        .opacity-preset-btn {
-            padding: 6px 10px;
-            font-size: 10px;
-        }
-
-        .scroll-control-toggle {
-            padding: 6px 10px;
-            font-size: 10px;
         }
     }
 
-    @media (max-height: 480px) {
+    @media (max-height: 600px) {
         .theme-control-dropdown {
-            max-height: min(60vh, 260px);
+            max-height: min(65vh, 300px);
             padding: 8px;
-            min-width: clamp(220px, 16vw, 260px);
-            width: clamp(240px, 18vw, 280px);
+            min-width: clamp(180px, 15vw, 220px);
+            width: clamp(200px, 17vw, 250px);
         }
 
         .theme-control-section {
             margin-bottom: 8px;
         }
 
-        .theme-control-divider {
-            margin: 10px 0;
+        .theme-control-label {
+            font-size: 11px;
+            margin-bottom: 5px;
         }
 
         .theme-option {
             padding: 6px 8px;
-            font-size: 11px;
-        }
-
-        .theme-preview {
-            width: 16px;
-            height: 16px;
+            margin-bottom: 2px;
         }
 
         .opacity-preset-btn {
             padding: 5px 8px;
-            font-size: 9px;
+            font-size: 10px;
+        }
+
+        .scroll-control-toggle {
+            padding: 5px 8px;
+            font-size: 10px;
         }
     }
 
-    @media (max-height: 400px) {
+    @media (max-height: 480px) {
         .theme-control-dropdown {
-            max-height: min(55vh, 200px);
+            max-height: min(60vh, 240px);
             padding: 6px;
+            min-width: clamp(160px, 14vw, 200px);
+            width: clamp(180px, 16vw, 220px);
         }
 
         .theme-control-section {
             margin-bottom: 6px;
         }
 
+        .theme-control-divider {
+            margin: 8px 0;
+        }
+
         .theme-option {
             padding: 4px 6px;
             font-size: 10px;
-            margin-bottom: 2px;
+        }
+
+        .theme-preview {
+            width: 14px;
+            height: 14px;
+        }
+
+        .opacity-preset-btn {
+            padding: 4px 6px;
+            font-size: 9px;
+        }
+    }
+
+    @media (max-height: 400px) {
+        .theme-control-dropdown {
+            max-height: min(55vh, 180px);
+            padding: 4px;
+        }
+
+        .theme-control-section {
+            margin-bottom: 4px;
+        }
+
+        .theme-option {
+            padding: 3px 4px;
+            font-size: 9px;
+            margin-bottom: 1px;
         }
 
         .opacity-preset-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 2px;
+            gap: 1px;
         }
 
         .opacity-preset-btn {
-            padding: 4px 6px;
+            padding: 3px 4px;
             font-size: 8px;
         }
     }
@@ -1755,67 +1773,67 @@ export const headerStyles = css`
     /* Horizontal responsive design for theme control dropdown */
     @media (max-width: 768px) {
         .theme-control-dropdown {
-            min-width: clamp(240px, 25vw, 280px);
-            width: clamp(260px, 30vw, 320px);
-            right: -10px;
+            min-width: clamp(180px, 20vw, 220px);
+            width: clamp(200px, 25vw, 250px);
+            right: -5px;
         }
 
         .theme-control-btn {
-            min-width: 70px;
-            padding: 0 10px;
+            min-width: 65px;
+            padding: 0 8px;
             font-size: 11px;
         }
 
         .opacity-percentage {
             font-size: 10px;
-            min-width: 24px;
+            min-width: 22px;
         }
     }
 
     @media (max-width: 480px) {
         .theme-control-dropdown {
-            min-width: clamp(200px, 35vw, 240px);
-            width: clamp(220px, 40vw, 260px);
-            right: -15px;
+            min-width: clamp(160px, 30vw, 200px);
+            width: clamp(180px, 35vw, 220px);
+            right: -10px;
             border-radius: 10px;
         }
 
         .theme-control-btn {
-            min-width: 60px;
-            padding: 0 8px;
+            min-width: 55px;
+            padding: 0 6px;
             font-size: 10px;
             height: 36px;
         }
 
         .theme-option {
-            padding: 6px 8px;
-            font-size: 11px;
-            gap: 8px;
+            padding: 5px 6px;
+            font-size: 10px;
+            gap: 6px;
         }
 
         .theme-preview {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
         }
     }
 
     @media (max-width: 360px) {
         .theme-control-dropdown {
-            min-width: clamp(180px, 45vw, 220px);
-            width: clamp(200px, 50vw, 240px);
-            right: -20px;
+            min-width: clamp(140px, 40vw, 180px);
+            width: clamp(160px, 45vw, 200px);
+            right: -15px;
         }
 
         .theme-control-btn {
-            min-width: 50px;
-            padding: 0 6px;
+            min-width: 45px;
+            padding: 0 4px;
             font-size: 9px;
             height: 32px;
         }
 
         .opacity-percentage {
-            font-size: 9px;
-            min-width: 20px;
+            font-size: 8px;
+            min-width: 18px;
         }
     }
 

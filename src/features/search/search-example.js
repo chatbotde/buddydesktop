@@ -39,6 +39,7 @@ class SearchWindowUI {
             filterBtn: document.getElementById('filterBtn'),
             settingsBtn: document.getElementById('settingsBtn'),
             themeToggle: document.getElementById('themeToggle'),
+            minimizeBtn: document.getElementById('minimizeBtn'),
             closeBtn: document.getElementById('closeBtn'),
             loadingIndicator: document.getElementById('loadingIndicator'),
             resultsSection: document.getElementById('resultsSection'),
@@ -95,6 +96,10 @@ class SearchWindowUI {
         // Header controls
         this.elements.themeToggle.addEventListener('click', () => {
             this.toggleTheme();
+        });
+
+        this.elements.minimizeBtn.addEventListener('click', () => {
+            this.minimizeWindow();
         });
 
         this.elements.closeBtn.addEventListener('click', () => {
@@ -669,9 +674,23 @@ class SearchWindowUI {
         console.log('Theme updated to:', this.currentTheme);
     }
 
+    async minimizeWindow() {
+        console.log('Search window minimize requested');
+        if (window.require) {
+            const { ipcRenderer } = window.require('electron');
+            ipcRenderer.send('search-window-minimize');
+        } else {
+            console.error('Electron require not available');
+        }
+    }
+
     async closeWindow() {
-        if (window.electronAPI && window.electronAPI.invoke) {
-            await window.electronAPI.invoke('search-window-close');
+        console.log('Search window close requested');
+        if (window.require) {
+            const { ipcRenderer } = window.require('electron');
+            ipcRenderer.send('search-window-close');
+        } else {
+            console.error('Electron require not available');
         }
     }
 

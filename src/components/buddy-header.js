@@ -24,6 +24,8 @@ class BuddyHeader extends LitElement {
         isThemeControlDropdownOpen: { type: Boolean },
         currentWindowTheme: { type: String },
         availableThemes: { type: Object },
+        isAudioWindowOpen: { type: Boolean },
+        isSearchWindowOpen: { type: Boolean },
 
         customMenuButtons: { type: Array },
     };
@@ -460,12 +462,16 @@ class BuddyHeader extends LitElement {
                 name: 'Audio Window',
                 icon: 'M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z',
                 handler: '_handleOpenAudioWindow',
+                showStatus: true,
+                statusKey: 'isAudioWindowOpen',
             },
             'search-window': {
                 id: 'search-window',
                 name: 'Search Window',
                 icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
                 handler: '_handleOpenSearchWindow',
+                showStatus: true,
+                statusKey: 'isSearchWindowOpen',
             },
             'new-chat': {
                 id: 'new-chat',

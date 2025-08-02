@@ -98,6 +98,8 @@ class BuddyApp extends LitElement {
         this.isOpacityControlActive = false;
         this.currentWindowTheme = 'transparent';
         this.availableThemes = {};
+        this.isAudioWindowOpen = false;
+        this.isSearchWindowOpen = false;
         
         this.initializeAuth();
         this.loadAvailableThemes();
@@ -747,6 +749,17 @@ class BuddyApp extends LitElement {
                 this._handleMarketplaceButtonsUpdated(data.selectedButtons);
             });
             
+            // Listen for window state changes
+            ipcRenderer.on('audio-window-closed', () => {
+                this.isAudioWindowOpen = false;
+                this.requestUpdate();
+            });
+            
+            ipcRenderer.on('search-window-closed', () => {
+                this.isSearchWindowOpen = false;
+                this.requestUpdate();
+            });
+            
             // Listen for streaming stopped events
             ipcRenderer.on('streaming-stopped', (event, data) => {
                 console.log('🛑 Streaming stopped event received:', data);
@@ -1242,6 +1255,7 @@ class BuddyApp extends LitElement {
             
             if (result.success) {
                 console.log('Audio window opened successfully');
+                this.isAudioWindowOpen = true;
                 
                 // Show brief notification
                 this.statusText = 'Audio window opened';
@@ -1364,6 +1378,7 @@ class BuddyApp extends LitElement {
             
             if (result.success) {
                 console.log('Search window opened successfully');
+                this.isSearchWindowOpen = true;
                 
                 // Show brief notification
                 this.statusText = 'Search window opened';
@@ -1798,6 +1813,8 @@ class BuddyApp extends LitElement {
                         .isOpacityControlActive=${this.isOpacityControlActive}
                         .currentWindowTheme=${this.currentWindowTheme}
                         .availableThemes=${this.availableThemes}
+                        .isAudioWindowOpen=${this.isAudioWindowOpen}
+                        .isSearchWindowOpen=${this.isSearchWindowOpen}
                     ></buddy-header>
                     <div class="main-content">${views[this.currentView]}</div>
                 </div>

@@ -5,6 +5,7 @@ module.exports = {
     packagerConfig: {
         asar: true,
         extraResource: ['./src/SystemAudioDump'],
+        icon: './icons/icon', // Base icon path (Electron Forge will auto-detect extensions)
     },
     rebuildConfig: {},
     makers: [
@@ -16,19 +17,33 @@ module.exports = {
                 shortcutName: 'Buddy',
                 createDesktopShortcut: true,
                 createStartMenuShortcut: true,
+                iconUrl: 'https://raw.githubusercontent.com/your-repo/buddy/main/icons/icon.ico',
+                setupIcon: './icons/icon.ico',
             },
         },
         {
             name: '@electron-forge/maker-dmg',
             platforms: ['darwin'],
+            config: {
+                icon: './icons/icon.icns',
+                background: './icons/dmg-background.png', // Optional: custom DMG background
+            },
         },
         {
             name: '@electron-forge/maker-deb',
-            config: {},
+            config: {
+                options: {
+                    icon: './icons/icon.png',
+                },
+            },
         },
         {
             name: '@electron-forge/maker-rpm',
-            config: {},
+            config: {
+                options: {
+                    icon: './icons/icon.png',
+                },
+            },
         },
     ],
     publishers: [

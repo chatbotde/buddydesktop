@@ -48,6 +48,12 @@ let audioIntervalTimer = null;
 let mouseEventsIgnored = false;
 let messageBuffer = '';
 let currentAIProvider = null;
+
+// Window state management
+const windowStates = {
+    search: { window: null, isMinimized: false },
+    audio: { window: null, isMinimized: false }
+};
 let authService = null;
 let currentUser = null;
 let autoUpdateService = null;
@@ -207,6 +213,8 @@ function createMainWindow() {
         mainWindow.minimize();
     });
 
+
+
     // IPC handler for creating image windows with consistent properties
     ipcMain.handle('create-image-window', async (event, imageData, title = 'Screenshot') => {
         try {
@@ -316,6 +324,17 @@ function createMainWindow() {
     // IPC handler for creating audio window
     ipcMain.handle('create-audio-window', async (event, options = {}) => {
         try {
+            // If window exists and is minimized, restore it
+            if (windowStates.audio.window && !windowStates.audio.window.isDestroyed()) {
+                if (windowStates.audio.isMinimized) {
+                    windowStates.audio.window.restore();
+                    windowStates.audio.isMinimized = false;
+                } else {
+                    windowStates.audio.window.focus();
+                }
+                return { success: true, windowId: windowStates.audio.window.id };
+            }
+
             const audioWindowOptions = {
                 width: 50,
                 height: 50,
@@ -326,7 +345,7 @@ function createMainWindow() {
                 skipTaskbar: true,
                 hiddenInMissionControl: true,
                 resizable: false,
-                minimizable: false,
+                minimizable: true,
                 maximizable: false,
                 closable: true,
                 roundedCorners: true,
@@ -344,6 +363,8 @@ function createMainWindow() {
             };
 
             const audioWindow = createConsistentWindow(audioWindowOptions);
+            windowStates.audio.window = audioWindow;
+            windowStates.audio.isMinimized = false;
 
             // Load the audio window HTML
             const htmlPath = path.join(__dirname, 'features', 'audio', 'audio-window.html');
@@ -368,7 +389,13 @@ function createMainWindow() {
                         // Here you could integrate with your existing audio system
                         // For now, just log the action
                         break;
+                    case 'audio-window-minimize':
+                        console.log('Audio window minimize IPC received');
+                        audioWindow.minimize();
+                        windowStates.audio.isMinimized = true;
+                        break;
                     case 'audio-window-close':
+                        console.log('Audio window close IPC received');
                         audioWindow.close();
                         break;
                     default:
@@ -376,9 +403,29 @@ function createMainWindow() {
                 }
             });
 
+            // Handle window minimize/restore events
+            audioWindow.on('minimize', () => {
+                windowStates.audio.isMinimized = true;
+                console.log('Audio window minimized');
+            });
+
+            audioWindow.on('restore', () => {
+                windowStates.audio.isMinimized = false;
+                console.log('Audio window restored');
+            });
+
             // Handle window close
             audioWindow.on('closed', () => {
+                windowStates.audio.window = null;
+                windowStates.audio.isMinimized = false;
                 console.log('Audio window closed');
+                
+                // Notify main window that audio window was closed
+                const allWindows = BrowserWindow.getAllWindows();
+                const mainWindow = allWindows.find(w => w.id !== audioWindow.id);
+                if (mainWindow) {
+                    mainWindow.webContents.send('audio-window-closed');
+                }
             });
 
             console.log('Audio window created successfully');
@@ -392,6 +439,17 @@ function createMainWindow() {
     // IPC handler for creating search window
     ipcMain.handle('create-search-window', async (event, options = {}) => {
         try {
+            // If window exists and is minimized, restore it
+            if (windowStates.search.window && !windowStates.search.window.isDestroyed()) {
+                if (windowStates.search.isMinimized) {
+                    windowStates.search.window.restore();
+                    windowStates.search.isMinimized = false;
+                } else {
+                    windowStates.search.window.focus();
+                }
+                return { success: true, windowId: windowStates.search.window.id };
+            }
+
             const searchWindowOptions = {
                 width: 450,
                 height: 80,
@@ -402,7 +460,7 @@ function createMainWindow() {
                 skipTaskbar: true,
                 hiddenInMissionControl: true,
                 resizable: false,
-                minimizable: false,
+                minimizable: true,
                 maximizable: false,
                 closable: true,
                 roundedCorners: true,
@@ -420,6 +478,8 @@ function createMainWindow() {
             };
 
             const searchWindow = createConsistentWindow(searchWindowOptions);
+            windowStates.search.window = searchWindow;
+            windowStates.search.isMinimized = false;
 
             // Load the search window HTML
             const htmlPath = path.join(__dirname, 'features', 'search', 'search-window.html');
@@ -443,7 +503,13 @@ function createMainWindow() {
                         console.log('Search window search requested:', data);
                         // Here you could integrate with your search system
                         break;
+                    case 'search-window-minimize':
+                        console.log('Search window minimize IPC received');
+                        searchWindow.minimize();
+                        windowStates.search.isMinimized = true;
+                        break;
                     case 'search-window-close':
+                        console.log('Search window close IPC received');
                         searchWindow.close();
                         break;
                     default:
@@ -451,9 +517,29 @@ function createMainWindow() {
                 }
             });
 
+            // Handle window minimize/restore events
+            searchWindow.on('minimize', () => {
+                windowStates.search.isMinimized = true;
+                console.log('Search window minimized');
+            });
+
+            searchWindow.on('restore', () => {
+                windowStates.search.isMinimized = false;
+                console.log('Search window restored');
+            });
+
             // Handle window close
             searchWindow.on('closed', () => {
+                windowStates.search.window = null;
+                windowStates.search.isMinimized = false;
                 console.log('Search window closed');
+                
+                // Notify main window that search window was closed
+                const allWindows = BrowserWindow.getAllWindows();
+                const mainWindow = allWindows.find(w => w.id !== searchWindow.id);
+                if (mainWindow) {
+                    mainWindow.webContents.send('search-window-closed');
+                }
             });
 
             console.log('Search window created successfully');
