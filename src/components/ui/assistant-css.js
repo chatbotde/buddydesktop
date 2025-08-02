@@ -124,9 +124,9 @@ export const assistantStyles = css`
     padding: var(--spacing-md) var(--spacing-lg);
     border: 1px solid var(--white-alpha-10);
     position: sticky;
-    bottom: var(--spacing-lg);
+    bottom: var(--spacing-xs);
     z-index: 10;
-    margin: 0 var(--spacing-lg) var(--spacing-lg);
+    margin: 0 var(--spacing-lg) var(--spacing-xs);
     backdrop-filter: var(--blur-ultra);
     -webkit-backdrop-filter: var(--blur-ultra);
     transition: all var(--transition-slow);
@@ -655,12 +655,38 @@ export const assistantStyles = css`
     }
 }
 
+/* Responsive Design - Large Mobile/Small Tablet */
+@media (max-width: 900px) {
+    .text-input-container {
+        margin: 0 10px 0;
+        padding: 10px 14px;
+        border-radius: 20px;
+        bottom: 2px;
+    }
+    
+    .textarea-container textarea {
+        font-size: 14px;
+    }
+    
+    .action-btn {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .send-btn,
+    .stop-btn {
+        width: 30px;
+        height: 30px;
+    }
+}
+
 /* Responsive Design - Tablet/Mobile */
 @media (max-width: 768px) {
     .text-input-container {
-        margin: 0 var(--spacing-sm) var(--spacing-sm);
+        margin: 0 var(--spacing-sm) 2px;
         padding: var(--spacing-sm) var(--spacing-md);
         border-radius: var(--border-radius-xl);
+        bottom: 2px;
     }
     
     .input-row {
@@ -779,127 +805,191 @@ export const assistantStyles = css`
 /* Responsive Design - Small Mobile */
 @media (max-width: 480px) {
     .text-input-container {
-        margin: 0 var(--spacing-xs) var(--spacing-xs);
-        padding: var(--spacing-sm) var(--spacing-sm);
-        border-radius: 18px;
+        margin: 0 6px 2px;
+        padding: 8px 10px;
+        border-radius: 16px;
+        bottom: 1px;
     }
     
     .input-row {
-        gap: var(--spacing-sm);
+        gap: 6px;
     }
     
     .textarea-container {
-        padding: var(--spacing-xs) var(--spacing-sm);
-        border-radius: var(--spacing-md);
+        padding: 4px 8px;
+        border-radius: 8px;
     }
     
     .textarea-container textarea {
-        font-size: 13px;
+        font-size: 12px;
+        line-height: 1.3;
     }
     
     .action-buttons,
     .action-buttons-left,
     .action-buttons-right {
-        gap: var(--spacing-xs);
+        gap: 4px;
     }
     
     .action-btn {
-        width: 24px;
-        height: 24px;
-        border-radius: var(--border-radius-sm);
-        font-size: 10px;
+        width: 22px;
+        height: 22px;
+        border-radius: 4px;
+        font-size: 9px;
     }
     
     .auto-screenshot-btn {
-        padding: 0 6px;
-        font-size: 8px;
+        padding: 0 4px;
+        font-size: 7px;
     }
     
     .send-btn,
     .stop-btn {
-        width: 24px;
-        height: 24px;
-        border-radius: var(--border-radius-sm);
-        font-size: 12px;
+        width: 22px;
+        height: 22px;
+        border-radius: 4px;
+        font-size: 11px;
     }
     
     .actions-dropdown {
-        width: 180px;
-        padding: var(--spacing-xs);
-        border-radius: var(--spacing-md);
-        bottom: calc(100% + var(--spacing-xs));
+        width: 160px;
+        padding: 4px;
+        border-radius: 8px;
+        bottom: calc(100% + 4px);
     }
     
     .dropdown-item {
-        padding: 6px var(--spacing-sm);
-        border-radius: var(--border-radius-sm);
-        font-size: 11px;
-        gap: var(--spacing-sm);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        gap: 6px;
     }
     
     .dropdown-item svg {
-        width: 14px;
-        height: 14px;
+        width: 12px;
+        height: 12px;
     }
     
     .dropdown-item-value {
-        font-size: 10px;
+        font-size: 9px;
     }
     
     .screenshot-count-badge {
-        width: 12px;
-        height: 12px;
-        font-size: 7px;
+        width: 10px;
+        height: 10px;
+        font-size: 6px;
     }
     
     .screenshots-preview {
-        padding: 0 0 var(--spacing-md) 0;
-        gap: 6px;
-        margin-bottom: var(--spacing-md);
+        padding: 0 0 8px 0;
+        gap: 4px;
+        margin-bottom: 8px;
     }
     
     .screenshots-grid {
-        gap: 6px;
+        gap: 4px;
     }
     
     .screenshot-item img {
-        width: 45px;
-        height: 34px;
-        border-radius: 5px;
+        width: 40px;
+        height: 30px;
+        border-radius: 4px;
     }
     
     .screenshot-remove {
-        width: 14px;
-        height: 14px;
-        font-size: 9px;
+        width: 12px;
+        height: 12px;
+        font-size: 8px;
     }
     
     .clear-all-btn {
-        padding: 2px 6px;
-        font-size: 9px;
-        border-radius: var(--border-radius-sm);
+        padding: 2px 4px;
+        font-size: 8px;
+        border-radius: 4px;
     }
     
     .chat-container {
-        padding: var(--spacing-sm) var(--spacing-xs);
-        gap: var(--spacing-sm);
+        padding: 8px 6px;
+        gap: 8px;
     }
     
     .welcome-message {
-        padding: 16px var(--spacing-sm);
-        margin: var(--spacing-sm);
-        border-radius: var(--border-radius-lg);
-        font-size: 12px;
+        padding: 12px 8px;
+        margin: 8px;
+        border-radius: 12px;
+        font-size: 11px;
     }
     
     .loading-indicator {
-        padding: var(--spacing-sm) var(--spacing-md);
-        margin: 4px var(--spacing-sm);
+        padding: 6px 8px;
+        margin: 2px 6px;
     }
     
     .loading-dot {
-        width: 5px;
-        height: 5px;
+        width: 4px;
+        height: 4px;
+    }
+}
+
+/* Responsive Design - Extra Small Mobile (320px and below) */
+@media (max-width: 360px) {
+    .text-input-container {
+        margin: 0 4px 1px;
+        padding: 6px 8px;
+        border-radius: 14px;
+        bottom: 0px;
+    }
+    
+    .textarea-container {
+        padding: 2px 6px;
+        border-radius: 6px;
+    }
+    
+    .textarea-container textarea {
+        font-size: 11px;
+        line-height: 1.2;
+    }
+    
+    .action-btn {
+        width: 20px;
+        height: 20px;
+        border-radius: 3px;
+    }
+    
+    .send-btn,
+    .stop-btn {
+        width: 20px;
+        height: 20px;
+        border-radius: 3px;
+        font-size: 10px;
+    }
+    
+    .actions-dropdown {
+        width: 140px;
+        padding: 3px;
+    }
+    
+    .dropdown-item {
+        padding: 3px 6px;
+        font-size: 9px;
+        gap: 4px;
+    }
+    
+    .dropdown-item svg {
+        width: 10px;
+        height: 10px;
+    }
+    
+    .chat-container {
+        padding: 6px 4px;
+        gap: 6px;
+    }
+    
+    .welcome-message {
+        padding: 10px 6px;
+        margin: 6px;
+        border-radius: 10px;
+        font-size: 10px;
     }
 }
 `;
