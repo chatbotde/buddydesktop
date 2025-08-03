@@ -252,11 +252,11 @@ export const chatMessageStyles = css`
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 16px;
-            background: rgba(40, 40, 40, 0.9);
+            padding: 6px 16px;
+            background: oklch(21.6% 0.006 56.043);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
-            min-height: 40px;
+            min-height: 28px;
             flex-shrink: 0;
         }
 
@@ -616,8 +616,8 @@ export const chatMessageStyles = css`
             }
 
             .code-block-header {
-                padding: 8px 12px;
-                min-height: 36px;
+                padding: 6px 12px;
+                min-height: 28px;
             }
 
             .code-block-header::before {
@@ -654,8 +654,8 @@ export const chatMessageStyles = css`
 
         @media (max-width: 480px) {
             .code-block-header {
-                padding: 6px 10px;
-                min-height: 32px;
+                padding: 4px 10px;
+                min-height: 24px;
             }
 
             .code-block-header::before {

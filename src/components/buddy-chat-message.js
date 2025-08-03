@@ -1,8 +1,10 @@
-import { html, LitElement } from '../lit-core-2.7.4.min.js';
+import { html, css, LitElement } from '../lit-core-2.7.4.min.js';
 import { chatMessageStyles } from './ui/chat-message-css.js';
 import { ThemeMixin, themeManager } from './theme.js';
 import { CodeBlockProcessor } from './code-block.js';
 import { enhancedContentProcessor } from './enhanced-content-processor.js';
+import './buddy-response-stream.js';
+import './unified-code-block.js';
 
 class BuddyChatMessage extends ThemeMixin(LitElement) {
     static properties = {
@@ -15,6 +17,13 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         autoScreenshotEnabled: { type: Boolean }, // New property for auto screenshot
         isEditing: { type: Boolean },
         editableContent: { type: String },
+        // Text stream animation properties
+        streamMode: { type: String }, // 'typewriter' or 'fade'
+        streamSpeed: { type: Number },
+        streamFadeDuration: { type: Number },
+        streamSegmentDelay: { type: Number },
+        streamChunkSize: { type: Number },
+        enableTextAnimation: { type: Boolean },
         // Theme properties are now handled by ThemeMixin
     };
 
@@ -24,6 +33,14 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         this.isEditing = false;
         this.editableContent = '';
         this._processedContentCache = new Map(); // Cache for processed content
+        
+        // Text stream animation defaults
+        this.streamMode = 'typewriter';
+        this.streamSpeed = 25;
+        this.streamFadeDuration = null;
+        this.streamSegmentDelay = null;
+        this.streamChunkSize = null;
+        this.enableTextAnimation = true;
     }
 
     // Background theme options - now using centralized config
@@ -158,8 +175,13 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
 
         console.log('🔄 Processing new content...');
         
-        // Use the synchronous version for now to maintain compatibility
-        const processedContent = enhancedContentProcessor.processContentSync(text);
+        // Process code blocks with animation if streaming
+        let processedContent;
+        if (this.isStreaming && this.enableTextAnimation) {
+            processedContent = this._processCodeBlocksWithAnimation(text);
+        } else {
+            processedContent = enhancedContentProcessor.processContentSync(text);
+        }
 
         // Cache the result
         this._processedContentCache.set(text, processedContent);
@@ -171,6 +193,40 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         setTimeout(() => this._setupLinkHandlers(), 0);
 
         return processedContent;
+    }
+
+    _processCodeBlocksWithAnimation(text) {
+        if (!text) return '';
+
+        // Replace code blocks with animated versions
+        const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g;
+        
+        return text.replace(codeBlockRegex, (match, language, code) => {
+            // Preserve original indentation by not trimming
+            const codeId = 'animated-code-' + Math.random().toString(36).substring(2, 11);
+            
+            // Return unified code block element
+            return `<unified-code-block 
+                id="${codeId}"
+                code="${this._escapeAttribute(code)}" 
+                language="${language || ''}" 
+                show-header="true" 
+                show-copy-button="true"
+                writing="true"
+                duration="3"
+                cursor="true"
+                auto-start="true"
+            ></unified-code-block>`;
+        });
+    }
+
+    _escapeAttribute(text) {
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
     }
 
     // Async version for future use
@@ -218,7 +274,41 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         }
     }
 
-    static styles = [chatMessageStyles];
+    static styles = [
+        chatMessageStyles,
+        css`
+            /* Mixed content layout */
+            .mixed-content {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .text-part {
+                /* Text parts use default styling */
+            }
+
+            .code-part {
+                margin: 8px 0;
+            }
+
+            /* Unified code block integration */
+            unified-code-block {
+                display: block;
+                width: 100%;
+            }
+
+            /* Ensure code blocks fit well in chat messages */
+            .message-content unified-code-block {
+                max-width: 100%;
+            }
+
+            /* Smooth transitions */
+            .text-part, .code-part {
+                transition: opacity 0.3s ease;
+            }
+        `
+    ];
 
     firstUpdated() {
         this._setupSelectionHandling();
@@ -419,12 +509,230 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         }
     }
 
+    _onStreamComplete(e) {
+        // Dispatch event to notify parent that streaming animation is complete
+        this.dispatchEvent(new CustomEvent('stream-animation-complete', {
+            detail: { 
+                id: this.id,
+                text: e.detail.text 
+            },
+            bubbles: true,
+            composed: true
+        }));
+    }
+
+    _renderStreamingContent() {
+        if (!this.text) return html``;
+
+        // Check if the message contains code blocks
+        const hasCodeBlocks = this._hasCodeBlocks(this.text);
+        
+        if (!hasCodeBlocks) {
+            // No code blocks - use regular text streaming
+            return html`
+                <buddy-response-stream
+                    .textStream=${this._processMessageContent(this.text)}
+                    .mode=${this.streamMode}
+                    .speed=${this.streamSpeed}
+                    .fadeDuration=${this.streamFadeDuration}
+                    .segmentDelay=${this.streamSegmentDelay}
+                    .chunkSize=${this.streamChunkSize}
+                    .isStreaming=${this.isStreaming}
+                    @stream-complete=${this._onStreamComplete}
+                ></buddy-response-stream>
+            `;
+        }
+
+        // Has code blocks - split content and render parts
+        return this._renderMixedContent();
+    }
+
+    _hasCodeBlocks(text) {
+        const codeBlockRegex = /```[\w]*\n?[\s\S]*?```/g;
+        return codeBlockRegex.test(text);
+    }
+
+    _renderMixedContent() {
+        const parts = this._splitContentIntoParts(this.text);
+        
+        // Initialize streaming state if not already done
+        if (!this._streamingState) {
+            this._streamingState = {
+                currentPartIndex: 0,
+                isActive: this.isStreaming,
+                parts: parts
+            };
+        }
+        
+        return html`
+            <div class="mixed-content">
+                ${parts.map((part, index) => {
+                    const shouldAnimate = this.isStreaming && this._shouldPartAnimate(index);
+                    const isCurrentPart = this._streamingState.currentPartIndex === index;
+                    const shouldShow = !this.isStreaming || index <= this._streamingState.currentPartIndex;
+                    
+                    if (!shouldShow) {
+                        return html``;
+                    }
+                    
+                    if (part.type === 'text') {
+                        return html`
+                            <div class="text-part">
+                                <buddy-response-stream
+                                    .textStream=${this._processMessageContent(part.content)}
+                                    .mode=${this.streamMode}
+                                    .speed=${this.streamSpeed}
+                                    .fadeDuration=${this.streamFadeDuration}
+                                    .segmentDelay=${this.streamSegmentDelay}
+                                    .chunkSize=${this.streamChunkSize}
+                                    .isStreaming=${shouldAnimate && isCurrentPart}
+                                    @stream-complete=${() => this._onPartComplete(index)}
+                                ></buddy-response-stream>
+                            </div>
+                        `;
+                    } else if (part.type === 'code') {
+                        return html`
+                            <div class="code-part">
+                                <unified-code-block
+                                    .code=${part.code}
+                                    .language=${part.language}
+                                    .writing=${shouldAnimate && isCurrentPart}
+                                    .duration=${Math.max(2, part.code.length / 30)}
+                                    .cursor=${true}
+                                    .showHeader=${true}
+                                    .showCopyButton=${true}
+                                    .autoStart=${shouldAnimate && isCurrentPart}
+                                    @animation-complete=${() => this._onPartComplete(index)}
+                                    @code-copied=${this._onCodeCopied}
+                                ></unified-code-block>
+                            </div>
+                        `;
+                    }
+                    return html``;
+                })}
+            </div>
+        `;
+    }
+
+    _shouldPartAnimate(index) {
+        if (!this._streamingState) return false;
+        return this._streamingState.isActive && index <= this._streamingState.currentPartIndex;
+    }
+
+    _onPartComplete(partIndex) {
+        if (!this._streamingState) return;
+        
+        const part = this._streamingState.parts[partIndex];
+        console.log(`✅ Part ${partIndex} completed (${part?.type}):`, part?.type === 'code' ? part.language : 'text');
+        
+        // Move to next part
+        if (partIndex === this._streamingState.currentPartIndex) {
+            this._streamingState.currentPartIndex++;
+            
+            // Check if we've completed all parts
+            if (this._streamingState.currentPartIndex >= this._streamingState.parts.length) {
+                this._streamingState.isActive = false;
+                console.log('🎉 All parts completed!');
+                this.dispatchEvent(new CustomEvent('stream-animation-complete', {
+                    detail: { 
+                        id: this.id,
+                        text: this.text 
+                    },
+                    bubbles: true,
+                    composed: true
+                }));
+            } else {
+                // Trigger update to show next part
+                const nextPart = this._streamingState.parts[this._streamingState.currentPartIndex];
+                console.log(`🚀 Starting part ${this._streamingState.currentPartIndex} (${nextPart?.type})`);
+                this.requestUpdate();
+            }
+        }
+    }
+
+    _splitContentIntoParts(text) {
+        const parts = [];
+        const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g;
+        let lastIndex = 0;
+        let match;
+
+        while ((match = codeBlockRegex.exec(text)) !== null) {
+            // Add text before this code block
+            if (match.index > lastIndex) {
+                const textContent = text.slice(lastIndex, match.index).trim();
+                if (textContent) {
+                    parts.push({
+                        type: 'text',
+                        content: textContent
+                    });
+                }
+            }
+
+            // Add the code block
+            parts.push({
+                type: 'code',
+                language: match[1] || 'text',
+                code: match[2]
+            });
+
+            lastIndex = match.index + match[0].length;
+        }
+
+        // Add remaining text after last code block
+        if (lastIndex < text.length) {
+            const textContent = text.slice(lastIndex).trim();
+            if (textContent) {
+                parts.push({
+                    type: 'text',
+                    content: textContent
+                });
+            }
+        }
+
+        return parts;
+    }
+
+    _onCodeAnimationComplete(e) {
+        console.log('Code animation completed:', e.detail);
+        // Dispatch the same event as text streaming for consistency
+        this.dispatchEvent(new CustomEvent('stream-animation-complete', {
+            detail: { 
+                id: this.id,
+                code: e.detail.code 
+            },
+            bubbles: true,
+            composed: true
+        }));
+    }
+
+    _onCodeCopied(e) {
+        console.log('Code copied:', e.detail);
+        this.dispatchEvent(new CustomEvent('code-copied', {
+            detail: { 
+                id: this.id,
+                code: e.detail.code 
+            },
+            bubbles: true,
+            composed: true
+        }));
+    }
+
     updated(changedProperties) {
         super.updated(changedProperties);
 
         // Clear processed content cache when text changes to prevent stale cached content
         if (changedProperties.has('text')) {
             this._processedContentCache.clear();
+            // Reset streaming state when text changes
+            this._streamingState = null;
+        }
+
+        // Reset streaming state when streaming status changes
+        if (changedProperties.has('isStreaming')) {
+            if (this.isStreaming) {
+                // Starting to stream - reset state
+                this._streamingState = null;
+            }
         }
 
         // Notify parent when assistant message starts (has content for first time)
@@ -689,10 +997,12 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
                         : this.text
                         ? html`
                               <div class="message-content">
-                                  ${this.sender === 'assistant'
+                                  ${this.sender === 'assistant' && this.enableTextAnimation
+                                      ? this._renderStreamingContent()
+                                      : this.sender === 'assistant'
                                       ? html`<div .innerHTML=${this._processMessageContent(this.text)}></div>`
                                       : html`<div>${this.text}</div>`}
-                                  ${this.isStreaming
+                                  ${this.isStreaming && !this.enableTextAnimation
                                       ? html`
                                             <div class="typing-indicator">
                                                 <div class="typing-dot"></div>

@@ -6,7 +6,8 @@ class CodeBlock extends LitElement {
         code: { type: String },
         language: { type: String },
         showHeader: { type: Boolean },
-        showCopyButton: { type: Boolean }
+        showCopyButton: { type: Boolean },
+        showLineNumbers: { type: Boolean }
     };
 
     constructor() {
@@ -15,6 +16,7 @@ class CodeBlock extends LitElement {
         this.language = '';
         this.showHeader = true;
         this.showCopyButton = true;
+        this.showLineNumbers = true;
         this.codeId = 'code-' + Math.random().toString(36).substring(2, 11);
         this._initializeHighlighting();
     }
@@ -45,11 +47,11 @@ class CodeBlock extends LitElement {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 16px;
-            background: linear-gradient(135deg, rgba(0, 122, 255, 0.15), rgba(88, 86, 214, 0.15));
+            padding: 8px 16px;
+            background: oklch(21.6% 0.006 56.043);
             border-bottom: 2px solid rgba(255, 255, 255, 0.1);
             position: relative;
-            min-height: 44px;
+            min-height: 32px;
         }
 
         .code-block-header::before {
@@ -59,7 +61,7 @@ class CodeBlock extends LitElement {
             left: 0;
             right: 0;
             height: 2px;
-            background: linear-gradient(90deg, #007aff, #5856d6, #007aff);
+            background: oklch(21.6% 0.006 56.043);
         }
 
         .code-language {
@@ -101,6 +103,10 @@ class CodeBlock extends LitElement {
             min-height: 60px;
         }
 
+        .code-block.with-line-numbers {
+            padding-left: 60px;
+        }
+
         .code-block::before {
             content: '';
             position: absolute;
@@ -108,8 +114,45 @@ class CodeBlock extends LitElement {
             left: 0;
             width: 3px;
             height: 100%;
-            background: linear-gradient(180deg, #4fc3f7, #007aff);
+            background: oklch(21.6% 0.006 56.043);
             border-radius: 0 2px 2px 0;
+        }
+
+        .line-numbers {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 50px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px 0;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: right;
+            user-select: none;
+            pointer-events: none;
+            box-sizing: border-box;
+        }
+
+        .line-number {
+            display: block;
+            padding-right: 12px;
+            height: 1.6em;
+            box-sizing: border-box;
+        }
+
+        .code-content {
+            position: relative;
+            display: block;
+        }
+
+        .code-line {
+            display: block;
+            min-height: 1.6em;
+            box-sizing: border-box;
         }
 
         .code-block code {
@@ -280,8 +323,8 @@ class CodeBlock extends LitElement {
             }
 
             .code-block-header {
-                padding: 10px 12px;
-                min-height: 40px;
+                padding: 6px 12px;
+                min-height: 28px;
             }
 
             .code-language {
@@ -292,6 +335,16 @@ class CodeBlock extends LitElement {
                 padding: 16px 12px;
                 font-size: 13px;
                 line-height: 1.5;
+            }
+
+            .code-block.with-line-numbers {
+                padding-left: 50px;
+            }
+
+            .line-numbers {
+                width: 40px;
+                font-size: 11px;
+                padding: 16px 0;
             }
 
             .code-copy-btn {
@@ -308,6 +361,16 @@ class CodeBlock extends LitElement {
                 font-size: 12px;
                 overflow-x: auto;
                 white-space: pre;
+            }
+
+            .code-block.with-line-numbers {
+                padding-left: 45px;
+            }
+
+            .line-numbers {
+                width: 35px;
+                font-size: 10px;
+                padding: 12px 0;
             }
 
             .code-language {
@@ -337,6 +400,12 @@ class CodeBlock extends LitElement {
             .code-block {
                 background: #fff !important;
                 color: #333 !important;
+            }
+
+            .line-numbers {
+                background: #f0f0f0 !important;
+                color: #666 !important;
+                border-right: 1px solid #ddd !important;
             }
 
             .code-copy-btn {
@@ -410,6 +479,11 @@ class CodeBlock extends LitElement {
         return div.innerHTML;
     }
 
+    _generateLineNumbers(code) {
+        const lines = code.split('\n');
+        return lines.map((_, index) => index + 1).join('\n');
+    }
+
     _getHighlightedCode() {
         const trimmedCode = this.code.trim();
         const detectedLang = this.language || this._detectLanguage(trimmedCode);
@@ -478,6 +552,9 @@ class CodeBlock extends LitElement {
         if (!this.code) return html``;
 
         const { highlightedCode, detectedLang } = this._getHighlightedCode();
+        const lines = highlightedCode.split('\n');
+        const hasMultipleLines = lines.length > 1;
+        const shouldShowLineNumbers = this.showLineNumbers && hasMultipleLines;
 
         return html`
             <div class="code-block-container">
@@ -486,8 +563,15 @@ class CodeBlock extends LitElement {
                         <span class="code-language">${detectedLang}</span>
                     </div>
                 ` : ''}
-                <pre class="code-block">
-                    <code id="${this.codeId}" class="hljs ${detectedLang}" .innerHTML="${highlightedCode}"></code>
+                <pre class="code-block ${shouldShowLineNumbers ? 'with-line-numbers' : ''}">
+                    ${shouldShowLineNumbers ? html`
+                        <div class="line-numbers">
+                            ${lines.map((_, index) => html`<span class="line-number">${index + 1}</span>`)}
+                        </div>
+                    ` : ''}
+                    <code id="${this.codeId}" class="hljs ${detectedLang}">
+                        ${lines.map(line => html`<span class="code-line">${line || ' '}</span>`)}
+                    </code>
                 </pre>
                 ${this.showCopyButton ? html`
                     <button class="code-copy-btn" @click=${this._copyCode} title="Copy code">
@@ -603,12 +687,21 @@ export class CodeBlockProcessor {
             const hasMultipleLines = lines.length > 1;
             
             let processedCode;
+            let lineNumbersHtml = '';
+            
             if (hasMultipleLines) {
                 // Create line-numbered version
                 const numberedLines = lines.map((line, index) => {
                     return `<span class="code-line">${line || ' '}</span>`;
                 }).join('\n');
                 processedCode = numberedLines;
+                
+                // Generate line numbers HTML
+                lineNumbersHtml = `
+                    <div class="line-numbers">
+                        ${lines.map((_, index) => `<span class="line-number">${index + 1}</span>`).join('')}
+                    </div>
+                `;
             } else {
                 // Single line - no line numbers needed
                 processedCode = highlightedCode;
@@ -628,7 +721,7 @@ export class CodeBlockProcessor {
             `;
             
             const codeBlockClass = hasMultipleLines ? 'code-block with-line-numbers' : 'code-block';
-            const preformattedCode = `<pre class="${codeBlockClass}"><code id="${codeId}" class="hljs ${detectedLang}">${processedCode}</code></pre>`;
+            const preformattedCode = `<pre class="${codeBlockClass}">${lineNumbersHtml}<code id="${codeId}" class="hljs ${detectedLang}">${processedCode}</code></pre>`;
 
             return `
                 <div class="code-block-container">
