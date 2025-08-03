@@ -1770,6 +1770,7 @@ class BuddyApp extends LitElement {
             assistant: html`<buddy-assistant-view
                 .chatMessages=${this.chatMessages}
                 .isStreamingActive=${this.isStreamingActive}
+                .selectedModel=${this.selectedModel}
             ></buddy-assistant-view>`,
             settings: html`<buddy-settings-view
                 .selectedProvider=${this.selectedProvider}

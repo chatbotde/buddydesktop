@@ -1,8 +1,10 @@
 import { html, LitElement } from '../lit-core-2.7.4.min.js';
 import './buddy-chat-message.js';
 import { assistantStyles } from './ui/assistant-css.js';
+import { CapabilityAwareMixin, capabilityAwareStyles } from '../mixins/capability-aware-mixin.js';
+import { CAPABILITY_TYPES } from '../services/capability-service.js';
 
-class BuddyAssistantView extends LitElement {
+class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
     static properties = {
         chatMessages: { type: Array },
         isStreamingActive: { type: Boolean },
@@ -197,12 +199,19 @@ class BuddyAssistantView extends LitElement {
         }, 100);
     }
 
-    static styles = [assistantStyles];
+    static styles = [assistantStyles, capabilityAwareStyles];
 
     async _onCaptureScreenshot() {
         this._closeActionsMenu();
+        
+        // Check if vision capability is available
+        if (!this.isFeatureEnabled('screenshot-capture')) {
+            this.handleDisabledFeatureClick('screenshot-capture', CAPABILITY_TYPES.VISION);
+            return;
+        }
+        
         if (this.attachedScreenshots.length >= 3) {
-            console.warn('3-max');
+            this._showNotification('Maximum 3 images allowed', 'warning');
             return;
         }
 
@@ -212,9 +221,11 @@ class BuddyAssistantView extends LitElement {
             if (screenshotData) {
                 this.attachedScreenshots = [...this.attachedScreenshots, screenshotData];
                 this.requestUpdate();
+                this._showNotification('Screenshot captured successfully!', 'success');
             }
         } catch (error) {
             console.error('Failed to capture screenshot:', error);
+            this._showNotification('Failed to capture screenshot', 'error');
         }
     }
 
@@ -399,6 +410,13 @@ class BuddyAssistantView extends LitElement {
     }
 
     _onUploadImageClick() {
+        // Check if vision capability is available
+        if (!this.isFeatureEnabled('image-upload')) {
+            this.handleDisabledFeatureClick('image-upload', CAPABILITY_TYPES.VISION);
+            this._closeActionsMenu();
+            return;
+        }
+        
         this.renderRoot.querySelector('#fileInput').click();
         this._closeActionsMenu();
     }
@@ -438,6 +456,12 @@ class BuddyAssistantView extends LitElement {
             // Check if the pasted item is an image
             if (item.type.indexOf('image') !== -1) {
                 e.preventDefault();
+
+                // Check if vision capability is available
+                if (!this.isFeatureEnabled('image-paste')) {
+                    this.handleDisabledFeatureClick('image-paste', CAPABILITY_TYPES.VISION);
+                    return;
+                }
 
                 if (this.attachedScreenshots.length >= 3) {
                     this._showNotification('Maximum 3 images allowed', 'warning');
@@ -521,6 +545,11 @@ class BuddyAssistantView extends LitElement {
 
     // Handle drag and drop for images
     _handleDragOver(e) {
+        // Check if vision capability is available
+        if (!this.isFeatureEnabled('image-drag-drop')) {
+            return;
+        }
+        
         e.preventDefault();
         e.stopPropagation();
         e.currentTarget.classList.add('drag-over');
@@ -538,6 +567,12 @@ class BuddyAssistantView extends LitElement {
 
         // Reset styling
         e.currentTarget.classList.remove('drag-over');
+
+        // Check if vision capability is available
+        if (!this.isFeatureEnabled('image-drag-drop')) {
+            this.handleDisabledFeatureClick('image-drag-drop', CAPABILITY_TYPES.VISION);
+            return;
+        }
 
         const files = e.dataTransfer.files;
         if (files.length > 0) {
@@ -637,7 +672,7 @@ class BuddyAssistantView extends LitElement {
                         : ''}
                 </div>
                 <div
-                    class="text-input-container"
+                    class="text-input-container ${this.isFeatureEnabled('image-drag-drop') ? 'drag-enabled' : 'drag-disabled'}"
                     @dragover=${this.autoScreenshotEnabled ? null : this._handleDragOver}
                     @dragleave=${this.autoScreenshotEnabled ? null : this._handleDragLeave}
                     @drop=${this.autoScreenshotEnabled ? null : this._handleDrop}
@@ -684,7 +719,7 @@ class BuddyAssistantView extends LitElement {
                                     : 'Ask me anything...'}"
                                 @keydown=${this._onKeydown}
                                 @input=${this._onTextInput}
-                                @paste=${this.autoScreenshotEnabled ? null : this._handlePaste}
+                                @paste=${this.autoScreenshotEnabled || !this.isFeatureEnabled('image-paste') ? null : this._handlePaste}
                             ></textarea>
                         </div>
                         <div class="action-buttons">
@@ -717,74 +752,102 @@ class BuddyAssistantView extends LitElement {
                                     ${this.isActionsMenuOpen
                                         ? html`
                                               <div class="actions-dropdown">
-                                                  <button class="dropdown-item" @click=${this._toggleAutoScreenshot}>
-                                                      <svg
-                                                          xmlns="http://www.w3.org/2000/svg"
-                                                          width="24"
-                                                          height="24"
-                                                          viewBox="0 0 24 24"
-                                                          fill="none"
-                                                          stroke="currentColor"
-                                                          stroke-width="2"
-                                                          stroke-linecap="round"
-                                                          stroke-linejoin="round"
-                                                      >
-                                                          <path
-                                                              d="M12 4.5v3m0 9v3m4.5-10.5l-2.12 2.12M6.62 17.38l-2.12 2.12M19.5 12h-3m-9 0H4.5m10.5 2.12-2.12 2.12M6.62 6.62 4.5 4.5"
-                                                          />
-                                                      </svg>
-                                                      <span class="dropdown-item-label">add screen info</span>
-                                                      <span class="dropdown-item-value">${this.autoScreenshotEnabled ? 'ON' : 'OFF'}</span>
-                                                  </button>
-                                                  ${!this.autoScreenshotEnabled
-                                                      ? html`
-                                                            <button
-                                                                class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
-                                                                @click=${this._onUploadImageClick}
-                                                                ?disabled=${this.isStreamingActive || isAtLimit}
-                                                            >
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    width="18"
-                                                                    height="18"
-                                                                    viewBox="0 0 24 24"
-                                                                    fill="none"
-                                                                    stroke="currentColor"
-                                                                    stroke-width="2"
-                                                                    stroke-linecap="round"
-                                                                    stroke-linejoin="round"
-                                                                >
-                                                                    <path
-                                                                        d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
-                                                                    ></path>
-                                                                </svg>
-                                                                <span class="dropdown-item-label">Attach image</span>
-                                                            </button>
-                                                            <button
-                                                                class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
-                                                                @click=${this._onCaptureScreenshot}
-                                                                ?disabled=${this.isStreamingActive || isAtLimit}
-                                                            >
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    width="18"
-                                                                    height="18"
-                                                                    viewBox="0 0 24 24"
-                                                                    fill="none"
-                                                                    stroke="currentColor"
-                                                                    stroke-width="2"
-                                                                    stroke-linecap="round"
-                                                                    stroke-linejoin="round"
-                                                                >
-                                                                    <path
-                                                                        d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"
-                                                                    ></path>
-                                                                    <circle cx="12" cy="13" r="3"></circle>
-                                                                </svg>
-                                                                <span class="dropdown-item-label">Capture screenshot</span>
-                                                            </button>
-                                                        `
-                                                      : ''}
+                                                  <!-- Model Capability Status -->
+                                                  ${this.capabilityStatus ? html`
+                                                      <div class="capability-status">
+                                                          <div class="capability-model-name">${this.capabilityStatus.modelName}</div>
+                                                          <div class="capability-summary">${this.getCapabilitySummary()}</div>
+                                                      </div>
+                                                      <div class="dropdown-divider"></div>
+                                                  ` : ''}
+                                                  
+                                                  <!-- Auto Screenshot Toggle (Vision-dependent) -->
+                                                  ${this.renderIfCapable(
+                                                      'screenshot-capture',
+                                                      CAPABILITY_TYPES.VISION,
+                                                      html`
+                                                          <button class="dropdown-item" @click=${this._toggleAutoScreenshot}>
+                                                              <svg
+                                                                  xmlns="http://www.w3.org/2000/svg"
+                                                                  width="24"
+                                                                  height="24"
+                                                                  viewBox="0 0 24 24"
+                                                                  fill="none"
+                                                                  stroke="currentColor"
+                                                                  stroke-width="2"
+                                                                  stroke-linecap="round"
+                                                                  stroke-linejoin="round"
+                                                              >
+                                                                  <path
+                                                                      d="M12 4.5v3m0 9v3m4.5-10.5l-2.12 2.12M6.62 17.38l-2.12 2.12M19.5 12h-3m-9 0H4.5m10.5 2.12-2.12 2.12M6.62 6.62 4.5 4.5"
+                                                                  />
+                                                              </svg>
+                                                              <span class="dropdown-item-label">add screen info</span>
+                                                              <span class="dropdown-item-value">${this.autoScreenshotEnabled ? 'ON' : 'OFF'}</span>
+                                                          </button>
+                                                      `
+                                                  )}
+                                                  
+                                                  <!-- Image Upload (Vision-dependent) -->
+                                                  ${!this.autoScreenshotEnabled ? this.renderIfCapable(
+                                                      'image-upload',
+                                                      CAPABILITY_TYPES.VISION,
+                                                      html`
+                                                          <button
+                                                              class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
+                                                              @click=${this._onUploadImageClick}
+                                                              ?disabled=${this.isStreamingActive || isAtLimit}
+                                                          >
+                                                              <svg
+                                                                  xmlns="http://www.w3.org/2000/svg"
+                                                                  width="18"
+                                                                  height="18"
+                                                                  viewBox="0 0 24 24"
+                                                                  fill="none"
+                                                                  stroke="currentColor"
+                                                                  stroke-width="2"
+                                                                  stroke-linecap="round"
+                                                                  stroke-linejoin="round"
+                                                              >
+                                                                  <path
+                                                                      d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
+                                                                  ></path>
+                                                              </svg>
+                                                              <span class="dropdown-item-label">Attach image</span>
+                                                          </button>
+                                                      `
+                                                  ) : ''}
+                                                  
+                                                  <!-- Screenshot Capture (Vision-dependent) -->
+                                                  ${!this.autoScreenshotEnabled ? this.renderIfCapable(
+                                                      'screenshot-capture',
+                                                      CAPABILITY_TYPES.VISION,
+                                                      html`
+                                                          <button
+                                                              class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
+                                                              @click=${this._onCaptureScreenshot}
+                                                              ?disabled=${this.isStreamingActive || isAtLimit}
+                                                          >
+                                                              <svg
+                                                                  xmlns="http://www.w3.org/2000/svg"
+                                                                  width="18"
+                                                                  height="18"
+                                                                  viewBox="0 0 24 24"
+                                                                  fill="none"
+                                                                  stroke="currentColor"
+                                                                  stroke-width="2"
+                                                                  stroke-linecap="round"
+                                                                  stroke-linejoin="round"
+                                                              >
+                                                                  <path
+                                                                      d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"
+                                                                  ></path>
+                                                                  <circle cx="12" cy="13" r="3"></circle>
+                                                              </svg>
+                                                              <span class="dropdown-item-label">Capture screenshot</span>
+                                                          </button>
+                                                      `
+                                                  ) : ''}
                                               </div>
                                           `
                                         : ''}

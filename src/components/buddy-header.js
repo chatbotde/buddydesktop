@@ -1,8 +1,10 @@
 import { html, css, LitElement } from '../lit-core-2.7.4.min.js';
 import { headerStyles } from './ui/header-css.js';
 import { getEnabledModels } from '../services/models-service.js';
+import { CapabilityAwareMixin, capabilityAwareStyles } from '../mixins/capability-aware-mixin.js';
+import { CAPABILITY_TYPES } from '../services/capability-service.js';
 
-class BuddyHeader extends LitElement {
+class BuddyHeader extends CapabilityAwareMixin(LitElement) {
     static properties = {
         currentView: { type: String },
         sessionActive: { type: Boolean },
@@ -49,7 +51,7 @@ class BuddyHeader extends LitElement {
         this.eventListenerTimeout = null;
     }
 
-    static styles = [headerStyles];
+    static styles = [headerStyles, capabilityAwareStyles];
 
     disconnectedCallback() {
         super.disconnectedCallback();
@@ -263,10 +265,22 @@ class BuddyHeader extends LitElement {
     }
     _handleToggleAudio() {
         this._closeControlsMenu();
+        
+        if (!this.isFeatureEnabled('audio-capture')) {
+            this.handleDisabledFeatureClick('audio-capture', CAPABILITY_TYPES.AUDIO);
+            return;
+        }
+        
         this.dispatchEvent(new CustomEvent('toggle-audio', { bubbles: true, composed: true }));
     }
     _handleToggleScreen() {
         this._closeControlsMenu();
+        
+        if (!this.isFeatureEnabled('screen-capture')) {
+            this.handleDisabledFeatureClick('screen-capture', CAPABILITY_TYPES.VIDEO);
+            return;
+        }
+        
         this.dispatchEvent(new CustomEvent('toggle-screen', { bubbles: true, composed: true }));
     }
     _handleClose() {
@@ -284,11 +298,23 @@ class BuddyHeader extends LitElement {
 
     _handleMenuToggleAudio() {
         this._closeMainMenu();
+        
+        if (!this.isFeatureEnabled('audio-capture')) {
+            this.handleDisabledFeatureClick('audio-capture', CAPABILITY_TYPES.AUDIO);
+            return;
+        }
+        
         this.dispatchEvent(new CustomEvent('toggle-audio', { bubbles: true, composed: true }));
     }
 
     _handleMenuToggleScreen() {
         this._closeMainMenu();
+        
+        if (!this.isFeatureEnabled('screen-capture')) {
+            this.handleDisabledFeatureClick('screen-capture', CAPABILITY_TYPES.VIDEO);
+            return;
+        }
+        
         this.dispatchEvent(new CustomEvent('toggle-screen', { bubbles: true, composed: true }));
     }
 
