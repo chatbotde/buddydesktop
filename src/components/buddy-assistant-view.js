@@ -1,6 +1,7 @@
 import { html, LitElement } from '../lit-core-2.7.4.min.js';
 import './buddy-chat-message.js';
 import { assistantStyles } from './ui/assistant-css.js';
+import { tooltipContainer } from './css-componets/tooltip-css.js';
 import { CapabilityAwareMixin, capabilityAwareStyles } from '../mixins/capability-aware-mixin.js';
 import { CAPABILITY_TYPES } from '../services/capability-service.js';
 
@@ -199,7 +200,7 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
         }, 100);
     }
 
-    static styles = [assistantStyles, capabilityAwareStyles];
+    static styles = [assistantStyles, capabilityAwareStyles, tooltipContainer];
 
     async _onCaptureScreenshot() {
         this._closeActionsMenu();
@@ -682,25 +683,32 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                               <div class="screenshots-preview">
                                   <div class="screenshots-header">
                                       <span class="screenshot-count">${this.attachedScreenshots.length}/3 images</span>
-                                      <button class="clear-all-btn" @click=${this._onClearAllScreenshots} title="Clear all images">Clear all</button>
+                                      <div class="tooltip-container">
+                                          <button class="clear-all-btn" @click=${this._onClearAllScreenshots}>Clear all</button>
+                                          <span class="tooltip">Clear all images</span>
+                                      </div>
                                   </div>
                                   <div class="screenshots-grid">
                                       ${this.attachedScreenshots.map(
                                           (screenshot, index) => html`
                                               <div class="screenshot-item">
-                                                  <img
-                                                      src="data:image/jpeg;base64,${screenshot}"
-                                                      alt="Attached image ${index + 1}"
-                                                      @click=${() => this._onViewScreenshot(screenshot)}
-                                                      title="Click to view full size"
-                                                  />
-                                                  <button
-                                                      class="screenshot-remove"
-                                                      @click=${() => this._onRemoveScreenshot(index)}
-                                                      title="Remove image"
-                                                  >
-                                                      ×
-                                                  </button>
+                                                  <div class="tooltip-container">
+                                                      <img
+                                                          src="data:image/jpeg;base64,${screenshot}"
+                                                          alt="Attached image ${index + 1}"
+                                                          @click=${() => this._onViewScreenshot(screenshot)}
+                                                      />
+                                                      <span class="tooltip">Click to view full size</span>
+                                                  </div>
+                                                  <div class="tooltip-container">
+                                                      <button
+                                                          class="screenshot-remove"
+                                                          @click=${() => this._onRemoveScreenshot(index)}
+                                                      >
+                                                          ×
+                                                      </button>
+                                                      <span class="tooltip">Remove image</span>
+                                                  </div>
                                                   <div class="screenshot-number">#${index + 1}</div>
                                               </div>
                                           `
@@ -728,7 +736,8 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                             </div>
                             <div class="action-buttons-right">
                                 <div class="actions-dropdown-container">
-                                    <button class="action-btn" @click=${this._toggleActionsMenu} title="More actions">
+                                    <div class="tooltip-container">
+                                        <button class="action-btn" @click=${this._toggleActionsMenu}>
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             width="18"
@@ -748,6 +757,8 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                                             ? html` <span class="screenshot-count-badge">${this.attachedScreenshots.length}</span> `
                                             : ''}
                                     </button>
+                                    <span class="tooltip">More actions</span>
+                                </div>
 
                                     ${this.isActionsMenuOpen
                                         ? html`
@@ -855,7 +866,8 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
 
                                 ${this.isStreamingActive
                                     ? html`
-                                          <button class="stop-btn" @click=${this._onStop} title="Stop streaming">
+                                          <div class="tooltip-container">
+                                              <button class="stop-btn" @click=${this._onStop}>
                                               <svg
                                                   xmlns="http://www.w3.org/2000/svg"
                                                   width="20"
@@ -870,9 +882,12 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                                                   <rect x="6" y="6" width="12" height="12" rx="2" />
                                               </svg>
                                           </button>
+                                          <span class="tooltip">Stop streaming</span>
+                                      </div>
                                       `
                                     : html`
-                                          <button class="send-btn" @click=${this._onSend} title="Send message" ?disabled=${this.isWaitingForResponse}>
+                                          <div class="tooltip-container">
+                                              <button class="send-btn" @click=${this._onSend} ?disabled=${this.isWaitingForResponse}>
                                               <svg
                                                   xmlns="http://www.w3.org/2000/svg"
                                                   width="24"
@@ -889,6 +904,8 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                                                   <path d="M12 19V5" />
                                               </svg>
                                           </button>
+                                          <span class="tooltip">Send message</span>
+                                      </div>
                                       `}
                             </div>
                         </div>

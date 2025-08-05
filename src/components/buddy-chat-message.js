@@ -924,7 +924,7 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         return html`
             <div class="message-wrapper ${this.sender}">
                 <!-- Copy button that appears on hover -->
-                <button class="message-copy-btn" @click=${this._onCopyMessage} title="Copy message">
+                <button class="message-copy-btn" @click=${this._onCopyMessage} title=" ">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="16"

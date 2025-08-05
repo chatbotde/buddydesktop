@@ -1,5 +1,6 @@
 import { html, css, LitElement } from '../lit-core-2.7.4.min.js';
 import { headerStyles } from './ui/header-css.js';
+import { tooltipContainer } from './css-componets/tooltip-css.js';
 import { getEnabledModels } from '../services/models-service.js';
 import { CapabilityAwareMixin, capabilityAwareStyles } from '../mixins/capability-aware-mixin.js';
 import { CAPABILITY_TYPES } from '../services/capability-service.js';
@@ -51,7 +52,7 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
         this.eventListenerTimeout = null;
     }
 
-    static styles = [headerStyles, capabilityAwareStyles];
+    static styles = [headerStyles, capabilityAwareStyles, tooltipContainer];
 
     disconnectedCallback() {
         super.disconnectedCallback();
@@ -577,21 +578,24 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
                     </div>
                     <div class="header-actions">
                         <!-- Only show close button on login page -->
-                        <button class="close-btn" @click=${this._handleClose} title="Close Application">
-                            <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <line x1="18" y1="6" x2="6" y2="18" />
-                                <line x1="6" y1="6" x2="18" y2="18" />
-                            </svg>
-                        </button>
+                        <div class="tooltip-container">
+                            <button class="close-btn" @click=${this._handleClose}>
+                                <svg
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </button>
+                            <span class="tooltip">Close Application</span>
+                        </div>
                     </div>
                 </div>
             `;
@@ -601,7 +605,7 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
         return html`
             <div class="header">
                 <div class="header-title">
-                    <span class="header-title-text clickable-title" @click=${this._handleTitleClick} title="Go to Chat"
+                    <span class="header-title-text clickable-title" @click=${this._handleTitleClick} title=" "
                         >${titles[this.currentView]}</span
                     >
                     ${this.isAuthenticated && this.user && this.currentView !== 'login'
@@ -624,16 +628,17 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
 
                     <!-- Combined Theme & Opacity Control Dropdown -->
                     <div class="theme-control-dropdown-container">
-                        <button class="theme-control-btn" @click=${this._toggleThemeControlDropdown} title="Theme & Opacity Settings">
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
+                        <div class="tooltip-container">
+                            <button class="theme-control-btn" @click=${this._toggleThemeControlDropdown}>
+                                <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
                             >
                                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                             </svg>
@@ -651,6 +656,8 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
                                 <polyline points="6,9 12,15 18,9"></polyline>
                             </svg>
                         </button>
+                        <span class="tooltip">Theme & Opacity Settings</span>
+                    </div>
 
                         ${this.isThemeControlDropdownOpen
                             ? html`
@@ -787,7 +794,8 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
                     ${this.enabledModels && this.enabledModels.length > 0
                         ? html`
                               <div class="models-dropdown-container">
-                                  <button class="models-dropdown-btn" @click=${this._toggleModelsDropdown} title="Select Model">
+                                  <div class="tooltip-container">
+                                      <button class="models-dropdown-btn" @click=${this._toggleModelsDropdown}>
                                       <svg
                                           width="16"
                                           height="16"
@@ -818,6 +826,8 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
                                           <polyline points="6,9 12,15 18,9"></polyline>
                                       </svg>
                                   </button>
+                                  <span class="tooltip">Select Model</span>
+                              </div>
 
                                   ${this.isModelsDropdownOpen
                                       ? html`
@@ -868,7 +878,8 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
 
                     <!-- Main Menu Dropdown -->
                     <div class="main-menu-dropdown-container">
-                        <button class="main-menu-btn" @click=${this._toggleMainMenu} title="Menu">
+                        <div class="tooltip-container">
+                            <button class="main-menu-btn" @click=${this._toggleMainMenu}>
                             <svg
                                 width="20"
                                 height="20"
@@ -884,6 +895,8 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
                                 <circle cx="5" cy="12" r="1" />
                             </svg>
                         </button>
+                        <span class="tooltip">Menu</span>
+                    </div>
 
                         ${this.isMainMenuOpen
                             ? html`
