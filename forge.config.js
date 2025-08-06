@@ -45,7 +45,7 @@ module.exports = {
             platforms: ['darwin'],
             config: {
                 icon: './icons/icon.icns',
-                background: './icons/dmg-background.png', // Optional: custom DMG background
+                // Removed background reference to avoid build errors
             },
         },
     ],
