@@ -9,6 +9,7 @@
         "package": "electron-forge package",
         "make": "electron-forge make",
         "publish": "electron-forge publish",
+        "publish-with-env": "node scripts/publish-with-env.js",
         "release": "node scripts/release.js",
         "release-protected": "node scripts/protected-release.js",
         "lint": "echo \"No linting configured\""
@@ -46,6 +47,7 @@
         "@electron-forge/maker-zip": "^7.8.1",
         "@electron-forge/plugin-auto-unpack-natives": "^7.8.1",
         "@electron-forge/plugin-fuses": "^7.8.1",
+        "@electron-forge/publisher-github": "^7.8.3",
         "@electron/fuses": "^1.8.0",
         "electron": "^30.5.1"
     }

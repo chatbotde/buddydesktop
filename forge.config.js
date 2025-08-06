@@ -36,7 +36,7 @@ module.exports = {
                 shortcutName: 'Buddy',
                 createDesktopShortcut: true,
                 createStartMenuShortcut: true,
-                iconUrl: 'https://raw.githubusercontent.com/your-repo/buddy/main/icons/icon.ico',
+                iconUrl: 'https://raw.githubusercontent.com/chatbotde/buddydesktop/main/icons/icon.ico',
                 setupIcon: './icons/icon.ico',
             },
         },
@@ -70,8 +70,8 @@ module.exports = {
             name: '@electron-forge/publisher-github',
             config: {
                 repository: {
-                    owner: 'your-github-username',
-                    name: 'buddy'
+                    owner: 'chatbotde',
+                    name: 'buddydesktop'
                 },
                 prerelease: false,
                 draft: true,

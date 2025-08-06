@@ -13,7 +13,12 @@ console.log('📦 This will only release compiled packages, source code will be 
 console.log('\n🧹 Cleaning previous builds...');
 try {
     if (fs.existsSync('./out')) {
-        execSync('rm -rf ./out', { stdio: 'inherit' });
+        // Use cross-platform command
+        if (process.platform === 'win32') {
+            execSync('Remove-Item -Recurse -Force out', { stdio: 'inherit', shell: 'powershell' });
+        } else {
+            execSync('rm -rf ./out', { stdio: 'inherit' });
+        }
     }
     console.log('✅ Clean completed successfully');
 } catch (error) {
