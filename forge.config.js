@@ -48,22 +48,6 @@ module.exports = {
                 background: './icons/dmg-background.png', // Optional: custom DMG background
             },
         },
-        {
-            name: '@electron-forge/maker-deb',
-            config: {
-                options: {
-                    icon: './icons/icon.png',
-                },
-            },
-        },
-        {
-            name: '@electron-forge/maker-rpm',
-            config: {
-                options: {
-                    icon: './icons/icon.png',
-                },
-            },
-        },
     ],
     publishers: [
         {
@@ -87,10 +71,6 @@ module.exports = {
                     {
                         name: 'buddy-mac-x64.dmg',
                         path: './out/make/buddy-{{ version }}-x64.dmg'
-                    },
-                    {
-                        name: 'buddy-linux-x64.deb',
-                        path: './out/make/buddy_{{ version }}_amd64.deb'
                     }
                 ]
             }
