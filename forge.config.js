@@ -3,6 +3,8 @@ const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 
 module.exports = {
     packagerConfig: {
+    externals: ['electron-squirrel-startup'],
+    
         asar: true,
         extraResource: ['./src/SystemAudioDump'],
         icon: './icons/icon', // Base icon path (Electron Forge will auto-detect extensions)

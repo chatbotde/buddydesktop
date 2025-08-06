@@ -4,8 +4,13 @@
  */
 
 // Check for Squirrel startup and exit early if needed
-if (require('electron-squirrel-startup')) {
-    process.exit(0);
+try {
+    if (require('electron-squirrel-startup')) {
+        process.exit(0);
+    }
+} catch (error) {
+    // Ignore if electron-squirrel-startup is not available
+    console.log('ℹ️ electron-squirrel-startup not available, continuing...');
 }
 
 // Load environment variables from .env file
