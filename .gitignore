@@ -89,7 +89,40 @@ typings/
 # Vite
 .vite/
 
-# Electron-Forge
+# Electron-Forge - PROTECTED: Compiled packages only
 out/
 .specstory
 .specstory/
+
+# Source code protection
+src/
+components/
+core/
+features/
+lib/
+main/
+mixins/
+providers/
+services/
+math/
+
+# Configuration files that might contain sensitive data
+.env.local
+.env.production
+.env.development
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp

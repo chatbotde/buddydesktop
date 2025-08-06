@@ -501,24 +501,14 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: ${
-                type === 'success'
-                    ? 'rgba(34, 197, 94, 0.9)'
-                    : type === 'warning'
-                    ? 'rgba(251, 191, 36, 0.9)'
-                    : type === 'error'
-                    ? 'rgba(239, 68, 68, 0.9)'
-                    : 'rgba(59, 130, 246, 0.9)'
-            };
-            color: white;
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
             padding: 12px 16px;
-            border-radius: 8px;
+            border-radius: 6px;
             font-size: 14px;
-            font-weight: 500;
             z-index: 10000;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             transform: translateX(100%);
             transition: transform 0.3s ease;
             max-width: 300px;

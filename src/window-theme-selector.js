@@ -54,7 +54,8 @@ class WindowThemeSelector extends HTMLElement {
                 border-radius: 8px;
                 padding: 12px;
                 color: white;
-                max-width: 300px;
+                max-width: min(300px, 90vw);
+                width: min(300px, 90vw);
             }
             .theme-selector h3 {
                 margin: 0 0 12px 0;
@@ -63,7 +64,7 @@ class WindowThemeSelector extends HTMLElement {
             }
             .theme-list {
                 display: grid;
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
                 gap: 8px;
             }
             .theme-button {
@@ -92,6 +93,65 @@ class WindowThemeSelector extends HTMLElement {
             .theme-description {
                 font-size: 12px;
                 opacity: 0.8;
+            }
+            
+            /* Responsive adjustments for smaller windows */
+            @media (max-width: 480px) {
+                .theme-selector {
+                    max-width: calc(100vw - 32px);
+                    width: calc(100vw - 32px);
+                    padding: 10px;
+                }
+                
+                .theme-list {
+                    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                    gap: 6px;
+                }
+                
+                .theme-button {
+                    padding: 6px;
+                }
+                
+                .theme-name {
+                    font-size: 14px;
+                }
+                
+                .theme-description {
+                    font-size: 11px;
+                }
+                
+                .theme-selector h3 {
+                    font-size: 14px;
+                }
+            }
+            
+            @media (max-width: 360px) {
+                .theme-selector {
+                    max-width: calc(100vw - 16px);
+                    width: calc(100vw - 16px);
+                    padding: 8px;
+                }
+                
+                .theme-list {
+                    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+                    gap: 4px;
+                }
+                
+                .theme-button {
+                    padding: 4px;
+                }
+                
+                .theme-name {
+                    font-size: 12px;
+                }
+                
+                .theme-description {
+                    font-size: 10px;
+                }
+                
+                .theme-selector h3 {
+                    font-size: 13px;
+                }
             }
         `;
 

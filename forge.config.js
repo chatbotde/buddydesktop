@@ -6,6 +6,25 @@ module.exports = {
         asar: true,
         extraResource: ['./src/SystemAudioDump'],
         icon: './icons/icon', // Base icon path (Electron Forge will auto-detect extensions)
+        // Protect source code by ensuring everything is bundled
+        ignore: [
+            /^\/(?!src|icons|package\.json|forge\.config\.js)/,
+            /\.git/,
+            /\.github/,
+            /docs/,
+            /scripts/,
+            /\.md$/,
+            /\.txt$/,
+            /\.example$/,
+            /env\.example/,
+            /CHANGELOG\.md/,
+            /RELEASE_CHECKLIST\.md/,
+            /SYSTEM-DESIGN\.md/,
+            /README\.md/
+        ],
+        // Additional protection
+        overwrite: true,
+        prune: true
     },
     rebuildConfig: {},
     makers: [
@@ -55,7 +74,25 @@ module.exports = {
                     name: 'buddy'
                 },
                 prerelease: false,
-                draft: false
+                draft: true,
+                tagName: 'v{{ version }}',
+                name: 'v{{ version }}',
+                body: 'Release {{ version }} of Buddy Desktop - Compiled packages only. Source code is protected.',
+                // Only upload the compiled packages, not source code
+                assets: [
+                    {
+                        name: 'buddy-win-x64.exe',
+                        path: './out/make/squirrel.windows/x64/buddy-{{ version }} Setup.exe'
+                    },
+                    {
+                        name: 'buddy-mac-x64.dmg',
+                        path: './out/make/buddy-{{ version }}-x64.dmg'
+                    },
+                    {
+                        name: 'buddy-linux-x64.deb',
+                        path: './out/make/buddy_{{ version }}_amd64.deb'
+                    }
+                ]
             }
         }
     ],

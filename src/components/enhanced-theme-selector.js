@@ -57,8 +57,9 @@ class EnhancedThemeSelector extends LitElement {
             border: 1px solid #333;
             border-radius: 12px;
             padding: 16px;
-            min-width: 320px;
-            max-width: 400px;
+            min-width: 280px;
+            max-width: min(400px, 90vw);
+            width: min(400px, 90vw);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(16px);
             z-index: 1000;
@@ -66,6 +67,70 @@ class EnhancedThemeSelector extends LitElement {
             visibility: hidden;
             transform: translateY(-10px);
             transition: all 0.3s ease;
+        }
+
+        /* Responsive adjustments for smaller windows */
+        @media (max-width: 480px) {
+            .theme-dropdown {
+                min-width: 260px;
+                max-width: calc(100vw - 32px);
+                width: calc(100vw - 32px);
+                right: -8px;
+                padding: 12px;
+            }
+            
+            .themes-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 6px;
+            }
+            
+            .theme-option {
+                padding: 6px;
+            }
+            
+            .theme-name {
+                font-size: 10px;
+            }
+            
+            .category-tabs {
+                gap: 3px;
+            }
+            
+            .category-tab {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .theme-dropdown {
+                min-width: 240px;
+                max-width: calc(100vw - 16px);
+                width: calc(100vw - 16px);
+                right: -4px;
+                padding: 10px;
+            }
+            
+            .themes-grid {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+                gap: 4px;
+            }
+            
+            .theme-option {
+                padding: 4px;
+            }
+            
+            .theme-name {
+                font-size: 9px;
+            }
+            
+            .dropdown-title {
+                font-size: 14px;
+            }
+            
+            .section-title {
+                font-size: 12px;
+            }
         }
 
         .theme-dropdown.open {

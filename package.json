@@ -9,6 +9,8 @@
         "package": "electron-forge package",
         "make": "electron-forge make",
         "publish": "electron-forge publish",
+        "release": "node scripts/release.js",
+        "release-protected": "node scripts/protected-release.js",
         "lint": "echo \"No linting configured\""
     },
     "keywords": [

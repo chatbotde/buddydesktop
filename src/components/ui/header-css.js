@@ -1422,9 +1422,9 @@ export const headerStyles = css`
         border: 1px solid rgba(255, 255, 255, 0.2);
         border-radius: 12px;
         padding: 12px;
-        min-width: clamp(200px, 15vw, 240px);
-        width: clamp(220px, 18vw, 280px);
-        max-width: min(280px, 85vw);
+        min-width: min(200px, calc(100vw - 40px));
+        width: min(280px, calc(100vw - 20px));
+        max-width: min(280px, calc(100vw - 20px));
         backdrop-filter: blur(20px);
         box-shadow: 
             0 20px 40px rgba(0, 0, 0, 0.3),
@@ -1681,8 +1681,9 @@ export const headerStyles = css`
         .theme-control-dropdown {
             max-height: min(65vh, 300px);
             padding: 8px;
-            min-width: clamp(180px, 15vw, 220px);
-            width: clamp(200px, 17vw, 250px);
+            min-width: min(180px, calc(100vw - 60px));
+            width: min(250px, calc(100vw - 40px));
+            max-width: min(250px, calc(100vw - 40px));
         }
 
         .theme-control-section {
@@ -1714,8 +1715,9 @@ export const headerStyles = css`
         .theme-control-dropdown {
             max-height: min(60vh, 240px);
             padding: 6px;
-            min-width: clamp(160px, 14vw, 200px);
-            width: clamp(180px, 16vw, 220px);
+            min-width: min(160px, calc(100vw - 80px));
+            width: min(220px, calc(100vw - 60px));
+            max-width: min(220px, calc(100vw - 60px));
         }
 
         .theme-control-section {
@@ -1773,8 +1775,9 @@ export const headerStyles = css`
     /* Horizontal responsive design for theme control dropdown */
     @media (max-width: 768px) {
         .theme-control-dropdown {
-            min-width: clamp(180px, 20vw, 220px);
-            width: clamp(200px, 25vw, 250px);
+            min-width: min(180px, calc(100vw - 60px));
+            width: min(250px, calc(100vw - 40px));
+            max-width: min(250px, calc(100vw - 40px));
             right: -5px;
         }
 
@@ -1792,8 +1795,9 @@ export const headerStyles = css`
 
     @media (max-width: 480px) {
         .theme-control-dropdown {
-            min-width: clamp(160px, 30vw, 200px);
-            width: clamp(180px, 35vw, 220px);
+            min-width: min(160px, calc(100vw - 80px));
+            width: min(220px, calc(100vw - 60px));
+            max-width: min(220px, calc(100vw - 60px));
             right: -10px;
             border-radius: 10px;
         }
@@ -1819,8 +1823,9 @@ export const headerStyles = css`
 
     @media (max-width: 360px) {
         .theme-control-dropdown {
-            min-width: clamp(140px, 40vw, 180px);
-            width: clamp(160px, 45vw, 200px);
+            min-width: min(140px, calc(100vw - 100px));
+            width: min(200px, calc(100vw - 80px));
+            max-width: min(200px, calc(100vw - 80px));
             right: -15px;
         }
 
@@ -3252,8 +3257,9 @@ export const headerStyles = css`
         .models-dropdown,
         .theme-control-dropdown,
         .main-menu-dropdown {
-            min-width: 180px;
-            width: 200px;
+            min-width: min(180px, calc(100vw - 100px));
+            width: min(200px, calc(100vw - 80px));
+            max-width: min(200px, calc(100vw - 80px));
             right: -20px;
         }
 
