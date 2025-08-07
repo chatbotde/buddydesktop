@@ -13,6 +13,7 @@
         "release": "node scripts/release.js",
         "release-protected": "node scripts/protected-release.js",
         "create-release": "node scripts/create-release.js",
+        "manual-release": "node scripts/manual-release.js",
         "build-windows": "npm run make",
         "lint": "echo \"No linting configured\""
     },

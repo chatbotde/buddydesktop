@@ -106,6 +106,37 @@ The application includes `electron-updater` which will automatically check for a
 
 ## Troubleshooting
 
+### GitHub Actions Token Issues
+
+**Error**: `Resource not accessible by integration` or `GITHUB_TOKEN` permission errors
+
+**Solution**: Fix repository permissions:
+1. Go to https://github.com/chatbotde/buddydesktop/settings/actions
+2. Under "Workflow permissions":
+   - Select **"Read and write permissions"**
+   - Check **"Allow GitHub Actions to create and approve pull requests"**
+3. Click **Save**
+4. Re-run the failed workflow or create a new release
+
+### Alternative: Manual Releases
+
+If GitHub Actions continues to fail, you can create releases manually:
+
+1. **Install GitHub CLI**:
+   - Download from: https://cli.github.com/
+   - Or use: `winget install GitHub.cli` (if winget is available)
+   - Or use: `choco install gh` (if Chocolatey is installed)
+
+2. **Login to GitHub CLI**:
+   ```bash
+   gh auth login
+   ```
+
+3. **Create manual release**:
+   ```bash
+   npm run manual-release
+   ```
+
 ### Build Fails
 1. Check the GitHub Actions logs for detailed error messages
 2. Ensure all dependencies are properly listed in `package.json`
