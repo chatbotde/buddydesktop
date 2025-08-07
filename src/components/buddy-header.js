@@ -266,22 +266,22 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
     }
     _handleToggleAudio() {
         this._closeControlsMenu();
-        
+
         if (!this.isFeatureEnabled('audio-capture')) {
             this.handleDisabledFeatureClick('audio-capture', CAPABILITY_TYPES.AUDIO);
             return;
         }
-        
+
         this.dispatchEvent(new CustomEvent('toggle-audio', { bubbles: true, composed: true }));
     }
     _handleToggleScreen() {
         this._closeControlsMenu();
-        
+
         if (!this.isFeatureEnabled('screen-capture')) {
             this.handleDisabledFeatureClick('screen-capture', CAPABILITY_TYPES.VIDEO);
             return;
         }
-        
+
         this.dispatchEvent(new CustomEvent('toggle-screen', { bubbles: true, composed: true }));
     }
     _handleClose() {
@@ -299,23 +299,23 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
 
     _handleMenuToggleAudio() {
         this._closeMainMenu();
-        
+
         if (!this.isFeatureEnabled('audio-capture')) {
             this.handleDisabledFeatureClick('audio-capture', CAPABILITY_TYPES.AUDIO);
             return;
         }
-        
+
         this.dispatchEvent(new CustomEvent('toggle-audio', { bubbles: true, composed: true }));
     }
 
     _handleMenuToggleScreen() {
         this._closeMainMenu();
-        
+
         if (!this.isFeatureEnabled('screen-capture')) {
             this.handleDisabledFeatureClick('screen-capture', CAPABILITY_TYPES.VIDEO);
             return;
         }
-        
+
         this.dispatchEvent(new CustomEvent('toggle-screen', { bubbles: true, composed: true }));
     }
 
@@ -594,7 +594,7 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
                                     <line x1="6" y1="6" x2="18" y2="18" />
                                 </svg>
                             </button>
-                            <span class="tooltip">Close Application</span>
+                            <span class="tooltip"></span>
                         </div>
                     </div>
                 </div>
@@ -605,9 +605,7 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
         return html`
             <div class="header">
                 <div class="header-title">
-                    <span class="header-title-text clickable-title" @click=${this._handleTitleClick} title=" "
-                        >${titles[this.currentView]}</span
-                    >
+                    <span class="header-title-text clickable-title" @click=${this._handleTitleClick} title=" ">${titles[this.currentView]}</span>
                     ${this.isAuthenticated && this.user && this.currentView !== 'login'
                         ? html`
                               <div class="user-info">
@@ -639,25 +637,25 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
                                     stroke-width="2"
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
-                            >
-                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                            </svg>
-                            <span class="opacity-percentage">${Math.round(this.windowOpacity * 100)}%</span>
-                            <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <polyline points="6,9 12,15 18,9"></polyline>
-                            </svg>
-                        </button>
-                        <span class="tooltip">Theme & Opacity Settings</span>
-                    </div>
+                                >
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                                </svg>
+                                <span class="opacity-percentage">${Math.round(this.windowOpacity * 100)}%</span>
+                                <svg
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <polyline points="6,9 12,15 18,9"></polyline>
+                                </svg>
+                            </button>
+                            <span class="tooltip"></span>
+                        </div>
 
                         ${this.isThemeControlDropdownOpen
                             ? html`
@@ -796,38 +794,38 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
                               <div class="models-dropdown-container">
                                   <div class="tooltip-container">
                                       <button class="models-dropdown-btn" @click=${this._toggleModelsDropdown}>
-                                      <svg
-                                          width="16"
-                                          height="16"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          stroke-width="2"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      >
-                                          <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z" />
-                                      </svg>
-                                      <span class="models-dropdown-text">
-                                          ${this.selectedModel
-                                              ? this._getEnabledModelsData().find(m => m.id === this.selectedModel)?.name || this.selectedModel
-                                              : 'Select Model'}
-                                      </span>
-                                      <svg
-                                          width="12"
-                                          height="12"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          stroke-width="2"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                      >
-                                          <polyline points="6,9 12,15 18,9"></polyline>
-                                      </svg>
-                                  </button>
-                                  <span class="tooltip">Select Model</span>
-                              </div>
+                                          <svg
+                                              width="16"
+                                              height="16"
+                                              viewBox="0 0 24 24"
+                                              fill="none"
+                                              stroke="currentColor"
+                                              stroke-width="2"
+                                              stroke-linecap="round"
+                                              stroke-linejoin="round"
+                                          >
+                                              <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z" />
+                                          </svg>
+                                          <span class="models-dropdown-text">
+                                              ${this.selectedModel
+                                                  ? this._getEnabledModelsData().find(m => m.id === this.selectedModel)?.name || this.selectedModel
+                                                  : 'Select Model'}
+                                          </span>
+                                          <svg
+                                              width="12"
+                                              height="12"
+                                              viewBox="0 0 24 24"
+                                              fill="none"
+                                              stroke="currentColor"
+                                              stroke-width="2"
+                                              stroke-linecap="round"
+                                              stroke-linejoin="round"
+                                          >
+                                              <polyline points="6,9 12,15 18,9"></polyline>
+                                          </svg>
+                                      </button>
+                                      <span class="tooltip"> </span>
+                                  </div>
 
                                   ${this.isModelsDropdownOpen
                                       ? html`
@@ -876,27 +874,53 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
                           `
                         : ''}
 
+                    <!-- Clear Chat Button (only for assistant view) -->
+                    ${this.currentView === 'assistant'
+                        ? html`
+                              <div class="tooltip-container">
+                                  <button class="clear-chat-btn" @click=${this._handleNewChat} title="Clear Chat (Ctrl+K / Cmd+K)">
+                                      <svg
+                                          width="18"
+                                          height="18"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                      >
+                                          <path d="M3 6h18l-2 13H5L3 6z" />
+                                          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                          <line x1="10" y1="11" x2="10" y2="17" />
+                                          <line x1="14" y1="11" x2="14" y2="17" />
+                                      </svg>
+                                  </button>
+                                  <span class="tooltip">Clear Chat</span>
+                              </div>
+                          `
+                        : ''}
+
                     <!-- Main Menu Dropdown -->
                     <div class="main-menu-dropdown-container">
                         <div class="tooltip-container">
                             <button class="main-menu-btn" @click=${this._toggleMainMenu}>
-                            <svg
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <circle cx="12" cy="12" r="1" />
-                                <circle cx="19" cy="12" r="1" />
-                                <circle cx="5" cy="12" r="1" />
-                            </svg>
-                        </button>
-                        <span class="tooltip">Menu</span>
-                    </div>
+                                <svg
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <circle cx="12" cy="12" r="1" />
+                                    <circle cx="19" cy="12" r="1" />
+                                    <circle cx="5" cy="12" r="1" />
+                                </svg>
+                            </button>
+                            <span class="tooltip"> </span>
+                        </div>
 
                         ${this.isMainMenuOpen
                             ? html`

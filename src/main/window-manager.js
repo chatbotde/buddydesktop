@@ -115,6 +115,20 @@ function setupGlobalShortcuts(mainWindow) {
             console.error('Error triggering screen analysis:', error);
         }
     });
+
+    // Clear chat shortcut
+    globalShortcut.register(shortcuts.clearChat, async () => {
+        console.log('Clear chat shortcut triggered');
+        try {
+            // Send command to renderer to clear chat
+            const windows = BrowserWindow.getAllWindows();
+            if (windows.length > 0) {
+                windows[0].webContents.send('clear-chat-shortcut');
+            }
+        } catch (error) {
+            console.error('Error triggering clear chat:', error);
+        }
+    });
 }
 
 /**

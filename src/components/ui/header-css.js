@@ -223,6 +223,11 @@ export const headerStyles = css`
             width: 36px;
             height: 36px;
         }
+        
+        .clear-chat-btn {
+            width: 36px;
+            height: 36px;
+        }
     }
 
     @media (max-height: 600px) {
@@ -275,6 +280,12 @@ export const headerStyles = css`
         }
         
         .main-menu-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+        }
+        
+        .clear-chat-btn {
             width: 32px;
             height: 32px;
             border-radius: 8px;
@@ -336,6 +347,12 @@ export const headerStyles = css`
         }
         
         .main-menu-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+        }
+        
+        .clear-chat-btn {
             width: 28px;
             height: 28px;
             border-radius: 6px;
@@ -407,6 +424,12 @@ export const headerStyles = css`
             border-radius: 4px;
         }
         
+        .clear-chat-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+        
         .status-indicator {
             width: 4px;
             height: 4px;
@@ -462,6 +485,11 @@ export const headerStyles = css`
         }
         
         .main-menu-btn {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .clear-chat-btn {
             width: 20px;
             height: 20px;
         }
@@ -803,6 +831,11 @@ export const headerStyles = css`
             width: 20px;
             height: 20px;
         }
+        
+        .clear-chat-btn {
+            width: 20px;
+            height: 20px;
+        }
     }
 
     /* Combined Horizontal and Vertical Responsive Design */
@@ -1012,6 +1045,11 @@ export const headerStyles = css`
             width: 28px;
             height: 28px;
         }
+        
+        .clear-chat-btn {
+            width: 28px;
+            height: 28px;
+        }
     }
 
     @media (orientation: landscape) and (max-height: 400px) {
@@ -1036,6 +1074,11 @@ export const headerStyles = css`
         }
         
         .main-menu-btn {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .clear-chat-btn {
             width: 24px;
             height: 24px;
         }
@@ -2817,6 +2860,40 @@ export const headerStyles = css`
     }
 
     .main-menu-btn:hover svg {
+        transform: scale(1.1);
+    }
+
+    /* Clear Chat Button */
+    .clear-chat-btn {
+        -webkit-app-region: no-drag;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-color);
+        width: 36px;
+        height: 36px;
+    }
+
+    .clear-chat-btn:hover:not(:disabled) {
+        background: rgba(239, 68, 68, 0.2);
+        border-color: rgba(239, 68, 68, 0.4);
+        color: #ef4444;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    }
+
+    .clear-chat-btn svg {
+        color: inherit;
+        transition: transform 0.3s ease;
+    }
+
+    .clear-chat-btn:hover svg {
         transform: scale(1.1);
     }
 

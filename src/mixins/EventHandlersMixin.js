@@ -338,6 +338,12 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
                     assistantView.requestUpdate();
                 }
             });
+
+            // Listen for clear chat shortcut
+            ipcRenderer.on('clear-chat-shortcut', async () => {
+                console.log('🧹 Clear chat shortcut triggered');
+                await this.handleNewChat();
+            });
         }
     }
 
@@ -367,6 +373,7 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
             ipcRenderer.removeAllListeners('update-response');
             ipcRenderer.removeAllListeners('update-status');
             ipcRenderer.removeAllListeners('marketplace-buttons-updated');
+            ipcRenderer.removeAllListeners('clear-chat-shortcut');
         }
     }
 

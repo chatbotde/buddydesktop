@@ -747,7 +747,7 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                                             ? html` <span class="screenshot-count-badge">${this.attachedScreenshots.length}</span> `
                                             : ''}
                                     </button>
-                                    <span class="tooltip">More actions</span>
+                                    <span class="tooltip"> </span>
                                 </div>
 
                                     ${this.isActionsMenuOpen
@@ -894,7 +894,7 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                                                   <path d="M12 19V5" />
                                               </svg>
                                           </button>
-                                          <span class="tooltip">Send message</span>
+                                          <span class="tooltip"> </span>
                                       </div>
                                       `}
                             </div>
