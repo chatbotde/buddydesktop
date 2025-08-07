@@ -1,5 +1,10 @@
 name: Release
 
+permissions:
+  contents: write
+  actions: read
+  packages: write
+
 on:
   push:
     tags:
@@ -7,9 +12,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g., v0.1.8)'
+        description: 'Version to release (e.g., v0.1.9)'
         required: true
-        default: 'v0.1.8'
+        default: 'v0.1.9'
 
 jobs:
   build-windows:
@@ -97,66 +102,37 @@ jobs:
             echo "version_number=${GITHUB_REF#refs/tags/}" | sed 's/v//' >> $GITHUB_OUTPUT
           fi
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.get_version.outputs.version }}
-          release_name: Buddy Desktop ${{ steps.get_version.outputs.version }}
-          body: |
-            ## Buddy Desktop ${{ steps.get_version.outputs.version }}
-
-            ### Downloads
-            - **Windows**: Download `buddy-setup.exe` for Windows 10/11 (x64)
-            - **macOS Intel**: Download `buddy-mac-x64.dmg` for Intel Macs
-            - **macOS Apple Silicon**: Download `buddy-mac-arm64.dmg` for M1/M2/M3 Macs
-
-            ### Installation
-            - **Windows**: Run the setup.exe file and follow the installation wizard
-            - **macOS**: Open the .dmg file and drag Buddy to Applications folder
-
-            ### What's New
-            - Bug fixes and improvements
-            - Enhanced performance
-
-            ---
-            *This release contains compiled binaries only. Source code is protected.*
-          draft: false
-          prerelease: false
-
-      - name: Upload Windows Setup
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./windows-build/buddy-${{ steps.get_version.outputs.version_number }} Setup.exe
-          asset_name: buddy-setup.exe
-          asset_content_type: application/octet-stream
-
-      - name: List macOS files
+      - name: List all artifacts
         run: |
+          echo "Listing Windows build files:"
+          find ./windows-build -name "*" -type f
           echo "Listing macOS build files:"
-          find ./macos-build -type f -name "*.dmg" -exec basename {} \;
+          find ./macos-build -name "*" -type f
 
-      - name: Upload macOS Intel DMG
-        uses: actions/upload-release-asset@v1
+      - name: Create Release with GitHub CLI
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./macos-build/buddy-${{ steps.get_version.outputs.version_number }}-x64.dmg
-          asset_name: buddy-mac-x64.dmg
-          asset_content_type: application/octet-stream
-
-      - name: Upload macOS ARM64 DMG
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./macos-build/buddy-${{ steps.get_version.outputs.version_number }}-arm64.dmg
-          asset_name: buddy-mac-arm64.dmg
-          asset_content_type: application/octet-stream
+        run: |
+          # Create the release
+          gh release create ${{ steps.get_version.outputs.version }} \
+            --title "Buddy Desktop ${{ steps.get_version.outputs.version }}" \
+            --notes "## Buddy Desktop ${{ steps.get_version.outputs.version }}
+          
+          ### Downloads
+          - **Windows**: Download \`buddy-setup.exe\` for Windows 10/11 (x64)
+          - **macOS Intel**: Download \`buddy-mac-x64.dmg\` for Intel Macs
+          - **macOS Apple Silicon**: Download \`buddy-mac-arm64.dmg\` for M1/M2/M3 Macs
+          
+          ### Installation
+          - **Windows**: Run the setup.exe file and follow the installation wizard
+          - **macOS**: Open the .dmg file and drag Buddy to Applications folder
+          
+          ### What's New
+          - Bug fixes and improvements
+          - Enhanced performance
+          
+          ---
+          *This release contains compiled binaries only. Source code is protected.*" \
+            ./windows-build/buddy-${{ steps.get_version.outputs.version_number }}\ Setup.exe#buddy-setup.exe \
+            ./macos-build/buddy-${{ steps.get_version.outputs.version_number }}-x64.dmg#buddy-mac-x64.dmg \
+            ./macos-build/buddy-${{ steps.get_version.outputs.version_number }}-arm64.dmg#buddy-mac-arm64.dmg
