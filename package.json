@@ -12,6 +12,8 @@
         "publish-with-env": "node scripts/publish-with-env.js",
         "release": "node scripts/release.js",
         "release-protected": "node scripts/protected-release.js",
+        "create-release": "node scripts/create-release.js",
+        "build-windows": "npm run make",
         "lint": "echo \"No linting configured\""
     },
     "keywords": [
