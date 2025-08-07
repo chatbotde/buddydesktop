@@ -109,19 +109,41 @@ jobs:
           echo "Listing macOS build files:"
           find ./macos-build -name "*" -type f
 
-      - name: Create Release with GitHub CLI
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Find and rename files
         run: |
-          # Create the release
-          gh release create ${{ steps.get_version.outputs.version }} \
-            --title "Buddy Desktop ${{ steps.get_version.outputs.version }}" \
-            --notes "## Buddy Desktop ${{ steps.get_version.outputs.version }}
+          # Find and rename Windows file
+          WINDOWS_FILE=$(find ./windows-build -name "*.exe" -type f | head -1)
+          if [ -n "$WINDOWS_FILE" ]; then
+            cp "$WINDOWS_FILE" ./buddy-setup.exe
+            echo "Windows file ready: buddy-setup.exe"
+          fi
+          
+          # Find and rename macOS files
+          MACOS_X64_FILE=$(find ./macos-build -name "*x64*.dmg" -o -name "*darwin*.dmg" | head -1)
+          MACOS_ARM64_FILE=$(find ./macos-build -name "*arm64*.dmg" | head -1)
+          
+          if [ -n "$MACOS_X64_FILE" ]; then
+            cp "$MACOS_X64_FILE" ./buddy-mac-x64.dmg
+            echo "macOS x64 file ready: buddy-mac-x64.dmg"
+          fi
+          
+          if [ -n "$MACOS_ARM64_FILE" ]; then
+            cp "$MACOS_ARM64_FILE" ./buddy-mac-arm64.dmg
+            echo "macOS ARM64 file ready: buddy-mac-arm64.dmg"
+          fi
+          
+          # List final files
+          ls -la *.exe *.dmg 2>/dev/null || echo "Some files might be missing"
+
+      - name: Create release notes
+        run: |
+          cat > release-notes.md << 'EOF'
+          ## Buddy Desktop ${{ steps.get_version.outputs.version }}
           
           ### Downloads
-          - **Windows**: Download \`buddy-setup.exe\` for Windows 10/11 (x64)
-          - **macOS Intel**: Download \`buddy-mac-x64.dmg\` for Intel Macs
-          - **macOS Apple Silicon**: Download \`buddy-mac-arm64.dmg\` for M1/M2/M3 Macs
+          - **Windows**: Download `buddy-setup.exe` for Windows 10/11 (x64)
+          - **macOS Intel**: Download `buddy-mac-x64.dmg` for Intel Macs  
+          - **macOS Apple Silicon**: Download `buddy-mac-arm64.dmg` for M1/M2/M3 Macs
           
           ### Installation
           - **Windows**: Run the setup.exe file and follow the installation wizard
@@ -132,7 +154,20 @@ jobs:
           - Enhanced performance
           
           ---
-          *This release contains compiled binaries only. Source code is protected.*" \
-            ./windows-build/buddy-${{ steps.get_version.outputs.version_number }}\ Setup.exe#buddy-setup.exe \
-            ./macos-build/buddy-${{ steps.get_version.outputs.version_number }}-x64.dmg#buddy-mac-x64.dmg \
-            ./macos-build/buddy-${{ steps.get_version.outputs.version_number }}-arm64.dmg#buddy-mac-arm64.dmg
+          *This release contains compiled binaries only. Source code is protected.*
+          EOF
+
+      - name: Create Release with GitHub CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create the release with files
+          FILES=""
+          [ -f "buddy-setup.exe" ] && FILES="$FILES buddy-setup.exe"
+          [ -f "buddy-mac-x64.dmg" ] && FILES="$FILES buddy-mac-x64.dmg" 
+          [ -f "buddy-mac-arm64.dmg" ] && FILES="$FILES buddy-mac-arm64.dmg"
+          
+          gh release create ${{ steps.get_version.outputs.version }} \
+            --title "Buddy Desktop ${{ steps.get_version.outputs.version }}" \
+            --notes-file release-notes.md \
+            $FILES
