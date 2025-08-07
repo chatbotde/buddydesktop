@@ -1,6 +1,7 @@
 import { html, css, LitElement } from '../lit-core-2.7.4.min.js';
 import { modelsStyles } from './ui/models-css.js';
 import { getAllModels, getCustomModels, saveCustomModel, deleteCustomModel, isCustomModel, DEFAULT_ENABLED_MODELS } from '../services/models-service.js';
+import { formatCapabilityName, getUniqueCapabilities, filterModelsByCapability } from '../services/capabilities-service.js';
 import './buddy-custom-model-form.js';
 
 class BuddyModelsView extends LitElement {
@@ -8,6 +9,7 @@ class BuddyModelsView extends LitElement {
         models: { type: Array },
         searchQuery: { type: String },
         enabledModels: { type: Array },
+        selectedCapabilityFilter: { type: String },
     };
 
     constructor() {
@@ -15,6 +17,7 @@ class BuddyModelsView extends LitElement {
         this.models = getAllModels();
         this.searchQuery = '';
         this.enabledModels = [];
+        this.selectedCapabilityFilter = '';
         this.apiKeyStatuses = new Map(); // Cache for API key statuses
     }
 
@@ -45,6 +48,50 @@ class BuddyModelsView extends LitElement {
             .search-container {
                 margin-bottom: 24px;
                 position: relative;
+            }
+
+            .filters-container {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 16px;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+
+            .capability-filter {
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                padding: 8px 12px;
+                color: var(--text-color);
+                font-size: 14px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                appearance: none;
+                background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+                background-repeat: no-repeat;
+                background-position: right 8px center;
+                background-size: 12px;
+                padding-right: 32px;
+                min-width: 140px;
+            }
+
+            .capability-filter:focus {
+                outline: none;
+                border-color: var(--text-color);
+                background: rgba(255, 255, 255, 0.12);
+            }
+
+            .capability-filter option {
+                background: #1a1a1a;
+                color: #ffffff;
+            }
+
+            .filter-label {
+                font-size: 14px;
+                color: var(--text-color);
+                opacity: 0.8;
+                font-weight: 500;
             }
 
             .search-input {
@@ -204,6 +251,34 @@ class BuddyModelsView extends LitElement {
                 line-height: 1.3;
                 margin-top: 2px;
             }
+
+            .model-capabilities {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+                margin-top: 6px;
+            }
+
+            .capability-badge {
+                font-size: 10px;
+                padding: 2px 6px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 4px;
+                color: var(--text-color);
+                opacity: 0.8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                font-weight: 500;
+            }
+
+            .capability-badge.text { background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); }
+            .capability-badge.vision { background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.3); }
+            .capability-badge.code { background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); }
+            .capability-badge.audio { background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); }
+            .capability-badge.video { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); }
+            .capability-badge.reasoning { background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.3); }
+            .capability-badge.realtime { background: rgba(236, 72, 153, 0.15); border-color: rgba(236, 72, 153, 0.3); }
 
             .api-key-status {
                 display: flex;
@@ -456,6 +531,11 @@ class BuddyModelsView extends LitElement {
         this.requestUpdate();
     }
 
+    _onCapabilityFilterChange(e) {
+        this.selectedCapabilityFilter = e.target.value;
+        this.requestUpdate();
+    }
+
     _toggleModel(modelId) {
         const isEnabled = this.enabledModels.includes(modelId);
         if (isEnabled) {
@@ -476,13 +556,24 @@ class BuddyModelsView extends LitElement {
     }
 
     _getFilteredModels() {
-        if (!this.searchQuery) {
-            return this.models;
+        let filtered = this.models;
+
+        // Apply search filter
+        if (this.searchQuery) {
+            filtered = filtered.filter(
+                model => 
+                    model.name.toLowerCase().includes(this.searchQuery) || 
+                    model.provider.toLowerCase().includes(this.searchQuery) ||
+                    (model.description && model.description.toLowerCase().includes(this.searchQuery))
+            );
         }
 
-        return this.models.filter(
-            model => model.name.toLowerCase().includes(this.searchQuery) || model.provider.toLowerCase().includes(this.searchQuery)
-        );
+        // Apply capability filter
+        if (this.selectedCapabilityFilter) {
+            filtered = filterModelsByCapability(filtered, this.selectedCapabilityFilter);
+        }
+
+        return filtered;
     }
 
     _getLiveModels() {
@@ -638,6 +729,14 @@ class BuddyModelsView extends LitElement {
         }
     }
 
+    _getAvailableCapabilities() {
+        return getUniqueCapabilities(this.models);
+    }
+
+    _formatCapabilityName(capability) {
+        return formatCapabilityName(capability);
+    }
+
     render() {
         const filteredModels = this._getFilteredModels();
 
@@ -651,6 +750,20 @@ class BuddyModelsView extends LitElement {
                         .value=${this.searchQuery}
                         @input=${this._onSearchInput}
                     />
+                </div>
+
+                <div class="filters-container">
+                    <span class="filter-label">Filter by capability:</span>
+                    <select
+                        class="capability-filter"
+                        .value=${this.selectedCapabilityFilter}
+                        @change=${this._onCapabilityFilterChange}
+                    >
+                        <option value="">All Capabilities</option>
+                        ${this._getAvailableCapabilities().map(capability => html`
+                            <option value="${capability}">${this._formatCapabilityName(capability)}</option>
+                        `)}
+                    </select>
                 </div>
 
                 <div class="controls-container">
@@ -725,6 +838,16 @@ class BuddyModelsView extends LitElement {
                                                                         : `${this._getEnvironmentKeyName(model.provider)} Required`}
                                                                 </span>
                                                             </div>
+                                                            ${model.capabilities && model.capabilities.length > 0 ? html`
+                                                                <div class="model-capabilities">
+                                                                    ${model.capabilities.slice(0, 6).map(cap => html`
+                                                                        <span class="capability-badge ${cap}">${this._formatCapabilityName(cap)}</span>
+                                                                    `)}
+                                                                    ${model.capabilities.length > 6 ? html`
+                                                                        <span class="capability-badge">+${model.capabilities.length - 6}</span>
+                                                                    ` : ''}
+                                                                </div>
+                                                            ` : ''}
                                                         </div>
                                                     </div>
                                                     <button
@@ -776,6 +899,16 @@ class BuddyModelsView extends LitElement {
                                                                         : `${this._getEnvironmentKeyName(model.provider)} Required`}
                                                                 </span>
                                                             </div>
+                                                            ${model.capabilities && model.capabilities.length > 0 ? html`
+                                                                <div class="model-capabilities">
+                                                                    ${model.capabilities.slice(0, 6).map(cap => html`
+                                                                        <span class="capability-badge ${cap}">${this._formatCapabilityName(cap)}</span>
+                                                                    `)}
+                                                                    ${model.capabilities.length > 6 ? html`
+                                                                        <span class="capability-badge">+${model.capabilities.length - 6}</span>
+                                                                    ` : ''}
+                                                                </div>
+                                                            ` : ''}
                                                         </div>
                                                     </div>
                                                     <button
@@ -819,6 +952,16 @@ class BuddyModelsView extends LitElement {
                                                                 <div class="api-key-indicator configured"></div>
                                                                 <span class="api-key-text">Custom API Key Configured</span>
                                                             </div>
+                                                            ${model.capabilities && model.capabilities.length > 0 ? html`
+                                                                <div class="model-capabilities">
+                                                                    ${model.capabilities.slice(0, 6).map(cap => html`
+                                                                        <span class="capability-badge ${cap}">${this._formatCapabilityName(cap)}</span>
+                                                                    `)}
+                                                                    ${model.capabilities.length > 6 ? html`
+                                                                        <span class="capability-badge">+${model.capabilities.length - 6}</span>
+                                                                    ` : ''}
+                                                                </div>
+                                                            ` : ''}
                                                         </div>
                                                     </div>
                                                     <div class="model-actions">
