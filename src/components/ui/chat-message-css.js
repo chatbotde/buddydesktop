@@ -192,6 +192,79 @@ export const chatMessageStyles = css`
             box-sizing: border-box;
             color: var(--text-color);
         }
+
+        /* Screenshot/Image styling in chat messages */
+        .message-content img {
+            width: 2px;
+            height: 3px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .message-content img:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        /* Screenshots container styling */
+        .screenshots-container {
+            margin: 8px 0;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .screenshots-grid {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+
+        .screenshot-item {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .screenshot-image {
+            width: 2px !important;
+            height: 3px !important;
+            object-fit: cover;
+            border-radius: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .screenshot-image:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.2);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .screenshot-number {
+            font-size: 8px;
+            opacity: 0.6;
+            margin-top: 2px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .screenshots-caption {
+            font-size: 11px;
+            opacity: 0.5;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.6);
+        }
         
         .message-content h1, .message-content h2, .message-content h3 {
             margin: 12px 0 6px;

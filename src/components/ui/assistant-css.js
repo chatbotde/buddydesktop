@@ -225,8 +225,8 @@ export const assistantStyles = css`
     }
 
     .screenshot-item img {
-        width: 60px;
-        height: 45px;
+        width: 2px;
+        height: 3px;
         object-fit: cover;
         border-radius: var(--spacing-sm);
         border: 1px solid var(--white-alpha-20);
