@@ -14,6 +14,7 @@
         "release-protected": "node scripts/protected-release.js",
         "create-release": "node scripts/create-release.js",
         "manual-release": "node scripts/manual-release.js",
+        "check-distribution": "node scripts/check-distribution.js",
         "build-windows": "npm run make",
         "lint": "echo \"No linting configured\""
     },
