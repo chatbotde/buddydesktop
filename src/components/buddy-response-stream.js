@@ -64,7 +64,7 @@ class BuddyResponseStream extends LitElement {
         super();
         this.textStream = '';
         this.mode = 'typewriter';
-        this.speed = 20;
+        this.speed = 800;
         this.fadeDuration = null;
         this.segmentDelay = null;
         this.chunkSize = null;

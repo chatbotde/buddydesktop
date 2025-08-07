@@ -59,7 +59,7 @@ class BuddyTextStream extends LitElement {
         super();
         this.text = '';
         this.mode = 'typewriter';
-        this.speed = 20;
+        this.speed = 800;
         this.fadeDuration = null;
         this.segmentDelay = null;
         this.chunkSize = null;
@@ -86,10 +86,13 @@ class BuddyTextStream extends LitElement {
             return Math.max(1, this.chunkSize);
         }
         
-        const normalizedSpeed = Math.min(100, Math.max(1, this.speed));
+        const normalizedSpeed = Math.min(1000, Math.max(1, this.speed));
         if (this.mode === 'typewriter') {
-            if (normalizedSpeed < 25) return 1;
-            return Math.max(1, Math.round((normalizedSpeed - 25) / 10));
+            // Much more aggressive chunk sizing for maximum speed
+            if (normalizedSpeed < 100) return 3;
+            if (normalizedSpeed < 300) return 8;
+            if (normalizedSpeed < 600) return 15;
+            return Math.max(20, Math.round(normalizedSpeed / 40));
         }
         return 1;
     }
@@ -99,8 +102,8 @@ class BuddyTextStream extends LitElement {
             return Math.max(0, this.segmentDelay);
         }
         
-        const normalizedSpeed = Math.min(100, Math.max(1, this.speed));
-        return Math.max(1, Math.round(100 / Math.sqrt(normalizedSpeed)));
+        // No delay calculation - render as fast as possible
+        return 0;
     }
 
     getFadeDuration() {
@@ -187,20 +190,10 @@ class BuddyTextStream extends LitElement {
     }
 
     _processTypewriterPlain(text) {
-        let lastFrameTime = 0;
-        
-        const streamContent = (timestamp) => {
+        const streamContent = () => {
             if (this.isPaused) {
                 return;
             }
-
-            const delay = this.getProcessingDelay();
-            if (delay > 0 && timestamp - lastFrameTime < delay) {
-                this.animationId = requestAnimationFrame(streamContent);
-                return;
-            }
-
-            lastFrameTime = timestamp;
 
             if (this.currentIndex >= text.length) {
                 this.markComplete();
@@ -229,22 +222,13 @@ class BuddyTextStream extends LitElement {
         // Parse HTML and separate into blocks and inline content
         const blocks = this._parseHTMLBlocks(text);
         
-        let lastFrameTime = 0;
         let currentBlockIndex = 0;
         let currentCharInBlock = 0;
         
-        const streamContent = (timestamp) => {
+        const streamContent = () => {
             if (this.isPaused) {
                 return;
             }
-
-            const delay = this.getProcessingDelay();
-            if (delay > 0 && timestamp - lastFrameTime < delay) {
-                this.animationId = requestAnimationFrame(streamContent);
-                return;
-            }
-
-            lastFrameTime = timestamp;
 
             if (currentBlockIndex >= blocks.length) {
                 this.displayedText = text;

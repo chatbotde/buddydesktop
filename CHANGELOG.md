@@ -52,3 +52,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial Buddy Desktop application
 - Basic Electron setup
 - Core application structure
+
+
+

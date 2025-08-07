@@ -6,14 +6,14 @@
 export class ChunkedProgressiveRenderer {
     constructor(options = {}) {
         this.options = {
-            chunkSize: 50,              // Characters per chunk
-            chunkDelay: 16,             // Delay between chunks (60fps = 16ms)
-            maxChunksPerFrame: 3,       // Max chunks to render per frame
-            enableVirtualization: true,  // Virtual rendering for large content
-            enableLazyRendering: true,   // Lazy render off-screen content
-            adaptiveChunking: true,      // Adjust chunk size based on performance
-            performanceThreshold: 16,    // Target frame time in ms
-            ...options
+            chunkSize: 500, // Characters per chunk (massively increased)
+            chunkDelay: 0, // No delay between chunks
+            maxChunksPerFrame: 20, // Max chunks to render per frame (massively increased)
+            enableVirtualization: true, // Virtual rendering for large content
+            enableLazyRendering: true, // Lazy render off-screen content
+            adaptiveChunking: true, // Adjust chunk size based on performance
+            performanceThreshold: 16, // Target frame time in ms
+            ...options,
         };
 
         this.renderQueue = [];
@@ -34,11 +34,11 @@ export class ChunkedProgressiveRenderer {
      */
     async renderProgressively(content, container, options = {}) {
         const renderOptions = { ...this.options, ...options };
-        
+
         console.log('🔄 Starting chunked progressive rendering:', {
             contentLength: content.length,
             chunkSize: renderOptions.chunkSize,
-            enableVirtualization: renderOptions.enableVirtualization
+            enableVirtualization: renderOptions.enableVirtualization,
         });
 
         // Prepare content chunks
@@ -61,12 +61,12 @@ export class ChunkedProgressiveRenderer {
         await this.optimizeRenderedContent(renderContainer, renderOptions);
 
         this.performanceMonitor.stop();
-        
+
         return {
             totalChunks: this.totalChunks,
             renderTime: this.performanceMonitor.getTotalTime(),
             averageChunkTime: this.performanceMonitor.getAverageChunkTime(),
-            performanceScore: this.performanceMonitor.getScore()
+            performanceScore: this.performanceMonitor.getScore(),
         };
     }
 
@@ -76,11 +76,11 @@ export class ChunkedProgressiveRenderer {
     prepareContentChunks(content, options) {
         const chunks = [];
         let currentPos = 0;
-        
+
         while (currentPos < content.length) {
             const chunkSize = this.calculateOptimalChunkSize(content, currentPos, options);
             const chunk = this.extractChunk(content, currentPos, chunkSize, options);
-            
+
             chunks.push({
                 id: chunks.length,
                 content: chunk.content,
@@ -89,9 +89,9 @@ export class ChunkedProgressiveRenderer {
                 type: chunk.type,
                 priority: chunk.priority,
                 isVisible: chunk.isVisible,
-                complexity: chunk.complexity
+                complexity: chunk.complexity,
             });
-            
+
             currentPos = chunk.end;
         }
 
@@ -104,25 +104,25 @@ export class ChunkedProgressiveRenderer {
      */
     calculateOptimalChunkSize(content, position, options) {
         let baseSize = options.chunkSize;
-        
+
         if (options.adaptiveChunking) {
-            // Adjust based on performance
+            // Much more aggressive performance-based adjustments
             const avgFrameTime = this.performanceMonitor.getAverageFrameTime();
             if (avgFrameTime > options.performanceThreshold) {
-                baseSize = Math.max(10, baseSize * 0.8); // Reduce chunk size
+                baseSize = Math.max(100, baseSize * 0.9); // Less reduction, keep chunks large
             } else if (avgFrameTime < options.performanceThreshold * 0.5) {
-                baseSize = Math.min(200, baseSize * 1.2); // Increase chunk size
+                baseSize = Math.min(2000, baseSize * 2.0); // Much more aggressive increase
             }
         }
 
-        // Adjust based on content complexity
+        // Less conservative complexity adjustments
         const segment = content.slice(position, position + baseSize * 2);
         const complexity = this.calculateContentComplexity(segment);
-        
-        if (complexity > 0.7) {
-            baseSize *= 0.6; // Smaller chunks for complex content
-        } else if (complexity < 0.3) {
-            baseSize *= 1.4; // Larger chunks for simple content
+
+        if (complexity > 0.8) {
+            baseSize *= 0.8; // Less reduction for complex content
+        } else if (complexity < 0.4) {
+            baseSize *= 2.0; // Much larger chunks for simple content
         }
 
         return Math.round(baseSize);
@@ -134,13 +134,13 @@ export class ChunkedProgressiveRenderer {
     extractChunk(content, start, maxSize, options) {
         const segment = content.slice(start, start + maxSize);
         let endPos = start + maxSize;
-        
+
         // Find good break points
         const breakPoints = [
-            /\.\s+/g,           // Sentence end
-            /\n\s*\n/g,         // Paragraph break
-            /[,;:]\s+/g,        // Punctuation
-            /\s+/g              // Word boundary
+            /\.\s+/g, // Sentence end
+            /\n\s*\n/g, // Paragraph break
+            /[,;:]\s+/g, // Punctuation
+            /\s+/g, // Word boundary
         ];
 
         for (const pattern of breakPoints) {
@@ -148,7 +148,8 @@ export class ChunkedProgressiveRenderer {
             if (matches.length > 0) {
                 const lastMatch = matches[matches.length - 1];
                 const potentialEnd = start + lastMatch.index + lastMatch[0].length;
-                if (potentialEnd > start + maxSize * 0.5) { // At least 50% of target size
+                if (potentialEnd > start + maxSize * 0.5) {
+                    // At least 50% of target size
                     endPos = potentialEnd;
                     break;
                 }
@@ -156,14 +157,14 @@ export class ChunkedProgressiveRenderer {
         }
 
         const chunkContent = content.slice(start, endPos);
-        
+
         return {
             content: chunkContent,
             end: endPos,
             type: this.detectChunkType(chunkContent),
             priority: this.calculateChunkPriority(chunkContent, start),
             isVisible: this.isChunkVisible(start, endPos),
-            complexity: this.calculateContentComplexity(chunkContent)
+            complexity: this.calculateContentComplexity(chunkContent),
         };
     }
 
@@ -176,14 +177,12 @@ export class ChunkedProgressiveRenderer {
 
         for (let i = 0; i < chunks.length; i++) {
             const chunk = chunks[i];
-            
+
             // Check if we should yield to browser
             const currentTime = performance.now();
             const frameTime = currentTime - frameStartTime;
-            
-            if (frameTime > options.performanceThreshold || 
-                chunksInCurrentFrame >= options.maxChunksPerFrame) {
-                
+
+            if (frameTime > options.performanceThreshold || chunksInCurrentFrame >= options.maxChunksPerFrame) {
                 // Yield to browser
                 await this.yieldToBrowser();
                 frameStartTime = performance.now();
@@ -200,7 +199,7 @@ export class ChunkedProgressiveRenderer {
                 current: i + 1,
                 total: chunks.length,
                 progress: (i + 1) / chunks.length,
-                chunk: chunk
+                chunk: chunk,
             });
         }
     }
@@ -210,16 +209,16 @@ export class ChunkedProgressiveRenderer {
      */
     async renderChunk(chunk, container, options) {
         const chunkStartTime = performance.now();
-        
+
         try {
             // Check if chunk is in cache
             const cacheKey = this.generateCacheKey(chunk);
             let renderedElement = this.chunkCache.get(cacheKey);
-            
+
             if (!renderedElement) {
                 // Create new element
                 renderedElement = await this.createChunkElement(chunk, options);
-                
+
                 // Cache if beneficial
                 if (chunk.complexity < 0.5) {
                     this.chunkCache.set(cacheKey, renderedElement.cloneNode(true));
@@ -228,11 +227,10 @@ export class ChunkedProgressiveRenderer {
 
             // Apply chunk to container
             await this.applyChunkToContainer(renderedElement, container, chunk, options);
-            
+
             // Monitor performance
             const renderTime = performance.now() - chunkStartTime;
             this.performanceMonitor.recordChunkRender(chunk.id, renderTime, chunk.complexity);
-            
         } catch (error) {
             console.warn('Chunk render error:', error, chunk);
             // Create fallback element
@@ -301,11 +299,15 @@ export class ChunkedProgressiveRenderer {
             requestAnimationFrame(() => {
                 element.style.opacity = '1';
                 element.style.transform = 'translateY(0)';
-                
-                element.addEventListener('transitionend', () => {
-                    element.classList.add('chunk-rendered');
-                    resolve();
-                }, { once: true });
+
+                element.addEventListener(
+                    'transitionend',
+                    () => {
+                        element.classList.add('chunk-rendered');
+                        resolve();
+                    },
+                    { once: true }
+                );
             });
         });
     }
@@ -316,7 +318,7 @@ export class ChunkedProgressiveRenderer {
     createRenderContainer(container, options) {
         const renderContainer = document.createElement('div');
         renderContainer.className = 'progressive-render-container';
-        
+
         if (options.enableVirtualization) {
             renderContainer.style.position = 'relative';
             renderContainer.style.overflow = 'hidden';
@@ -342,18 +344,18 @@ export class ChunkedProgressiveRenderer {
      */
     calculateContentComplexity(content) {
         let complexity = 0;
-        
+
         // HTML tags add complexity
         const htmlTags = (content.match(/<[^>]+>/g) || []).length;
         complexity += htmlTags * 0.1;
-        
+
         // Special characters add complexity
         const specialChars = (content.match(/[<>&"']/g) || []).length;
         complexity += specialChars * 0.02;
-        
+
         // Length affects complexity
         complexity += content.length / 1000;
-        
+
         return Math.min(complexity, 1);
     }
 
@@ -365,17 +367,17 @@ export class ChunkedProgressiveRenderer {
 
     calculateChunkPriority(content, position) {
         let priority = 1;
-        
+
         // Visible content gets higher priority
         if (this.isChunkVisible(position, position + content.length)) {
             priority += 2;
         }
-        
+
         // Headers get higher priority
         if (/^#+\s/.test(content.trim())) {
             priority += 1;
         }
-        
+
         return priority;
     }
 
@@ -423,7 +425,7 @@ export class ChunkedProgressiveRenderer {
 
         // Optimize DOM structure
         this.optimizeDOMStructure(container);
-        
+
         // Setup intersection observer for lazy chunks
         if (options.enableLazyRendering) {
             this.setupLazyRendering(container);
@@ -436,7 +438,7 @@ export class ChunkedProgressiveRenderer {
         for (let i = 0; i < textChunks.length - 1; i++) {
             const current = textChunks[i];
             const next = textChunks[i + 1];
-            
+
             if (current.nextElementSibling === next) {
                 current.textContent += next.textContent;
                 next.remove();
@@ -455,10 +457,12 @@ export class ChunkedProgressiveRenderer {
     }
 
     dispatchProgressEvent(container, progress) {
-        container.dispatchEvent(new CustomEvent('chunk-progress', {
-            detail: progress,
-            bubbles: true
-        }));
+        container.dispatchEvent(
+            new CustomEvent('chunk-progress', {
+                detail: progress,
+                bubbles: true,
+            })
+        );
     }
 
     // Control methods
@@ -481,7 +485,7 @@ export class ChunkedProgressiveRenderer {
             current: this.currentChunkIndex,
             total: this.totalChunks,
             progress: this.totalChunks > 0 ? this.currentChunkIndex / this.totalChunks : 0,
-            isRendering: this.isRendering
+            isRendering: this.isRendering,
         };
     }
 }
@@ -512,7 +516,7 @@ class PerformanceMonitor {
             id: chunkId,
             time: renderTime,
             complexity: complexity,
-            timestamp: performance.now()
+            timestamp: performance.now(),
         });
     }
 
@@ -539,11 +543,11 @@ class PerformanceMonitor {
     getScore() {
         const avgChunkTime = this.getAverageChunkTime();
         const avgFrameTime = this.getAverageFrameTime();
-        
+
         // Score based on 60fps target (16.67ms per frame)
         const frameScore = Math.max(0, 100 - (avgFrameTime / 16.67) * 50);
         const chunkScore = Math.max(0, 100 - (avgChunkTime / 5) * 50);
-        
+
         return Math.round((frameScore + chunkScore) / 2);
     }
 }
@@ -554,7 +558,7 @@ class PerformanceMonitor {
 class ViewportObserver {
     constructor() {
         this.observer = new IntersectionObserver(this.handleIntersection.bind(this), {
-            rootMargin: '50px'
+            rootMargin: '50px',
         });
         this.callbacks = new Map();
     }

@@ -19,3 +19,6 @@ fs.writeFileSync(iconPath, icnsHeader);
 
 console.log('✅ Created icon.icns for macOS builds');
 console.log('Note: This is a minimal placeholder .icns file. For production, convert your icon to proper .icns format.');
+
+
+

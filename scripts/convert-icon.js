@@ -29,3 +29,6 @@ fs.writeFileSync(iconPath, pngHeader);
 
 console.log('✅ Created icon.png for Linux builds');
 console.log('Note: This is a minimal placeholder PNG. For production, convert your JPEG to PNG properly.');
+
+
+
