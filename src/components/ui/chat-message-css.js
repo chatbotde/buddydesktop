@@ -235,8 +235,8 @@ export const chatMessageStyles = css`
         }
 
         .screenshot-image {
-            width: 2px !important;
-            height: 3px !important;
+            width: 50px !important;
+            height: 50px !important;
             object-fit: cover;
             border-radius: 3px;
             border: 1px solid rgba(255, 255, 255, 0.2);
