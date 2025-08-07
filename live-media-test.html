@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Media Input Test</title>
+    <style>
+        :root {
+            --surface-color: #ffffff;
+            --border-color: #e5e7eb;
+            --button-bg: #f3f4f6;
+            --button-hover-bg: #e5e7eb;
+            --text-color: #111827;
+            --text-secondary: #6b7280;
+            --accent-color: #3b82f6;
+            --code-bg: #f9fafb;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --error-bg: #fef2f2;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f9fafb;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--text-color);
+            margin-bottom: 20px;
+        }
+
+        .test-info {
+            background: var(--code-bg);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .model-selector {
+            margin-bottom: 20px;
+        }
+
+        select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Live Media Input Component Test</h1>
+        
+        <div class="test-info">
+            <strong>Test Instructions:</strong>
+            <ul>
+                <li>Select a model with audio/video capabilities</li>
+                <li>Click "Start Audio" to access your microphone</li>
+                <li>Click "Start Video" to access your camera</li>
+                <li>Record audio/video and see the processing in action</li>
+                <li>Toggle between standard and real-time modes</li>
+            </ul>
+        </div>
+
+        <div class="model-selector">
+            <label for="modelSelect">Select Model:</label>
+            <select id="modelSelect">
+                <option value="gemini-2.0-flash-live-001">Gemini 2.0 Flash Live (Full Capabilities)</option>
+                <option value="gpt-4o">GPT-4o (Vision Only)</option>
+                <option value="claude-3-sonnet">Claude 3 Sonnet (Text Only)</option>
+            </select>
+        </div>
+
+        <buddy-live-media-input id="liveMediaInput"></buddy-live-media-input>
+    </div>
+
+    <!-- Import the component -->
+    <script type="module">
+        // Mock the services for testing
+        window.mockModels = {
+            'gemini-2.0-flash-live-001': {
+                id: 'gemini-2.0-flash-live-001',
+                name: 'Gemini 2.0 Flash Live',
+                capabilities: ['vision', 'audio-input', 'video-input', 'realtime-audio']
+            },
+            'gpt-4o': {
+                id: 'gpt-4o',
+                name: 'GPT-4o',
+                capabilities: ['vision']
+            },
+            'claude-3-sonnet': {
+                id: 'claude-3-sonnet',
+                name: 'Claude 3 Sonnet',
+                capabilities: ['text']
+            }
+        };
+
+        // Mock the services
+        const mockCapabilityService = {
+            CAPABILITY_TYPES: {
+                VISION: 'vision',
+                AUDIO_INPUT: 'audio-input',
+                VIDEO_INPUT: 'video-input',
+                REALTIME_AUDIO: 'realtime-audio'
+            },
+            getModelById: (id) => window.mockModels[id],
+            getModelCapabilities: (id) => window.mockModels[id]?.capabilities || [],
+            hasCapability: (id, capability) => {
+                const caps = window.mockModels[id]?.capabilities || [];
+                return caps.includes(capability);
+            },
+            isUIFeatureEnabled: (id, feature) => {
+                const caps = window.mockModels[id]?.capabilities || [];
+                const featureMap = {
+                    'live-audio-input': 'audio-input',
+                    'live-video-input': 'video-input',
+                    'realtime-audio-processing': 'realtime-audio'
+                };
+                return caps.includes(featureMap[feature]);
+            }
+        };
+
+        // Import and set up the component
+        import('./src/lit-core-2.7.4.min.js').then(() => {
+            // Mock the services in the global scope
+            window.mockServices = mockCapabilityService;
+            
+            // Import the component
+            import('./src/components/buddy-live-media-input.js').then(() => {
+                const liveMediaInput = document.getElementById('liveMediaInput');
+                const modelSelect = document.getElementById('modelSelect');
+                
+                // Set initial model
+                liveMediaInput.selectedModel = modelSelect.value;
+                
+                // Handle model changes
+                modelSelect.addEventListener('change', (e) => {
+                    liveMediaInput.selectedModel = e.target.value;
+                });
+
+                // Handle media events
+                liveMediaInput.addEventListener('media-processed', (e) => {
+                    console.log('Media processed:', e.detail);
+                    alert(`Media processed: ${e.detail.type}`);
+                });
+
+                liveMediaInput.addEventListener('media-error', (e) => {
+                    console.error('Media error:', e.detail);
+                    alert(`Media error: ${e.detail.error}`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

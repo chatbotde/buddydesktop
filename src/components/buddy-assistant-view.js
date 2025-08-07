@@ -1,5 +1,6 @@
 import { html, LitElement } from '../lit-core-2.7.4.min.js';
 import './buddy-chat-message.js';
+import './buddy-live-media-input.js';
 import { assistantStyles } from './ui/assistant-css.js';
 import { tooltipContainer } from './css-componets/tooltip-css.js';
 import { CapabilityAwareMixin, capabilityAwareStyles } from '../mixins/capability-aware-mixin.js';
@@ -9,11 +10,14 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
     static properties = {
         chatMessages: { type: Array },
         isStreamingActive: { type: Boolean },
+        selectedModel: { type: String },
         attachedScreenshots: { type: Array }, // Array of base64 screenshot data
         autoScreenshotEnabled: { type: Boolean }, // New property for auto screenshot
         isActionsMenuOpen: { type: Boolean },
         isWaitingForResponse: { type: Boolean }, // New property for loading state
         isStopping: { type: Boolean }, // New property for stopping animation
+        showLiveMediaInput: { type: Boolean }, // Toggle for live media input
+        isLiveStreamingActive: { type: Boolean }, // Toggle for live streaming mode
     };
 
     constructor() {
@@ -24,6 +28,8 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
         this.isActionsMenuOpen = false;
         this.isWaitingForResponse = false; // Initialize loading state
         this.isStopping = false; // Initialize stopping state
+        this.showLiveMediaInput = false; // Initialize live media input toggle
+        this.isLiveStreamingActive = false; // Initialize live streaming state
         this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
         this.boundGlobalKeydownHandler = this._handleGlobalKeydown.bind(this);
         // Simple auto-scroll for input/output visibility
@@ -304,6 +310,23 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
             this._scrollToShowLatestMessage(true);
         }
     }
+    
+    // Method to update streaming state - called from parent component
+    updateStreamingState(isStreaming) {
+        this.isStreamingActive = isStreaming;
+        // Clear waiting state when streaming starts to avoid showing both loading and streaming
+        if (isStreaming) {
+            this.isWaitingForResponse = false;
+        }
+        this.requestUpdate();
+    }
+    
+    // Method to clear loading state - called from parent component
+    clearLoadingState() {
+        this.isWaitingForResponse = false;
+        this.isStopping = false;
+        this.requestUpdate();
+    }
 
     _onStop() {
         // Immediately clear all loading/streaming states for instant feedback
@@ -360,10 +383,13 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
         }
     }
 
-    // Method to clear loading state when response starts
-    clearLoadingState() {
+    // Method to reset all states (called when clearing chat)
+    resetStates() {
         this.isWaitingForResponse = false;
+        this.isStreamingActive = false;
         this.isStopping = false;
+        this.attachedScreenshots = [];
+        this.hasTypedInCurrentSession = false;
         this.requestUpdate();
     }
 
@@ -381,6 +407,15 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
             const lastMessage = this.chatMessages[this.chatMessages.length - 1];
             if (lastMessage && lastMessage.sender === 'assistant' && this.isWaitingForResponse) {
                 this.isWaitingForResponse = false;
+            }
+        }
+
+        // Clear loading state when chat is cleared (no messages)
+        if (changedProperties.has('chatMessages')) {
+            if (!this.chatMessages || this.chatMessages.length === 0) {
+                this.isWaitingForResponse = false;
+                this.isStreamingActive = false;
+                this.isStopping = false;
             }
         }
 
@@ -408,6 +443,57 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
         this.requestUpdate();
         console.log('Auto screenshot:', this.autoScreenshotEnabled ? 'enabled' : 'disabled');
         this._closeActionsMenu();
+    }
+
+    _toggleLiveMediaInput() {
+        this.showLiveMediaInput = !this.showLiveMediaInput;
+        this.requestUpdate();
+        this._closeActionsMenu();
+    }
+
+    async _toggleLiveStreaming() {
+        this.isLiveStreamingActive = !this.isLiveStreamingActive;
+        this.requestUpdate();
+        this._closeActionsMenu();
+        
+        try {
+            if (this.isLiveStreamingActive) {
+                // Start live streaming
+                await window.buddy.startLiveStreaming();
+                this._showNotification('Live streaming started', 'success');
+                console.log('Live streaming started');
+            } else {
+                // Stop live streaming
+                await window.buddy.stopLiveStreaming();
+                this._showNotification('Live streaming stopped', 'info');
+                console.log('Live streaming stopped');
+            }
+        } catch (error) {
+            console.error('Live streaming error:', error);
+            // Revert the state on error
+            this.isLiveStreamingActive = !this.isLiveStreamingActive;
+            this.requestUpdate();
+            this._showNotification(`Live streaming error: ${error.message}`, 'error');
+        }
+    }
+
+    _handleMediaProcessed(e) {
+        const { type, data, blob } = e.detail;
+        
+        // Dispatch event to parent for processing
+        this.dispatchEvent(new CustomEvent('media-processed', {
+            detail: { type, data, blob },
+            bubbles: true,
+            composed: true
+        }));
+        
+        this._showNotification(`${type} processed successfully!`, 'success');
+    }
+
+    _handleMediaError(e) {
+        const { type, error } = e.detail;
+        console.error(`Media error (${type}):`, error);
+        this._showNotification(`Media error: ${error}`, 'error');
     }
 
     _onUploadImageClick() {
@@ -662,6 +748,14 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                           `
                         : ''}
                 </div>
+                
+                ${this.showLiveMediaInput ? html`
+                    <buddy-live-media-input
+                        .selectedModel=${this.selectedModel}
+                        @media-processed=${this._handleMediaProcessed}
+                        @media-error=${this._handleMediaError}
+                    ></buddy-live-media-input>
+                ` : ''}
                 <div
                     class="text-input-container ${this.isFeatureEnabled('image-drag-drop') ? 'drag-enabled' : 'drag-disabled'}"
                     @dragover=${this.autoScreenshotEnabled ? null : this._handleDragOver}
@@ -762,6 +856,60 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                                                       <div class="dropdown-divider"></div>
                                                   ` : ''}
                                                   
+                                                  <!-- Live Streaming Toggle -->
+                                                  ${this.renderIfCapable(
+                                                      'live-streaming',
+                                                      CAPABILITY_TYPES.REALTIME,
+                                                      html`
+                                                          <button class="dropdown-item ${this.isLiveStreamingActive ? 'active' : ''}" @click=${this._toggleLiveStreaming}>
+                                                              <svg
+                                                                  xmlns="http://www.w3.org/2000/svg"
+                                                                  width="18"
+                                                                  height="18"
+                                                                  viewBox="0 0 24 24"
+                                                                  fill="none"
+                                                                  stroke="currentColor"
+                                                                  stroke-width="2"
+                                                                  stroke-linecap="round"
+                                                                  stroke-linejoin="round"
+                                                              >
+                                                                  <circle cx="12" cy="12" r="3"/>
+                                                                  <path d="M21 12c-1.2-4.1-5.2-7-9-7s-7.8 2.9-9 7c1.2 4.1 5.2 7 9 7s7.8-2.9 9-7z"/>
+                                                              </svg>
+                                                              <span class="dropdown-item-label">Live Streaming</span>
+                                                              <span class="dropdown-item-value">${this.isLiveStreamingActive ? 'LIVE' : 'OFF'}</span>
+                                                          </button>
+                                                      `
+                                                  )}
+
+                                                  <!-- Live Media Input Toggle -->
+                                                  ${this.renderIfCapable(
+                                                      'live-audio-input',
+                                                      CAPABILITY_TYPES.AUDIO_INPUT,
+                                                      html`
+                                                          <button class="dropdown-item" @click=${this._toggleLiveMediaInput}>
+                                                              <svg
+                                                                  xmlns="http://www.w3.org/2000/svg"
+                                                                  width="18"
+                                                                  height="18"
+                                                                  viewBox="0 0 24 24"
+                                                                  fill="none"
+                                                                  stroke="currentColor"
+                                                                  stroke-width="2"
+                                                                  stroke-linecap="round"
+                                                                  stroke-linejoin="round"
+                                                              >
+                                                                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                                                                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                                                  <line x1="12" x2="12" y1="19" y2="22"/>
+                                                                  <line x1="8" x2="16" y1="22" y2="22"/>
+                                                              </svg>
+                                                              <span class="dropdown-item-label">Live Media</span>
+                                                              <span class="dropdown-item-value">${this.showLiveMediaInput ? 'ON' : 'OFF'}</span>
+                                                          </button>
+                                                      `
+                                                  )}
+
                                                   <!-- Auto Screenshot Toggle (Vision-dependent) -->
                                                   ${this.renderIfCapable(
                                                       'screenshot-capture',
@@ -854,7 +1002,7 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                                         : ''}
                                 </div>
 
-                                ${this.isStreamingActive
+                                ${(this.isStreamingActive || this.isWaitingForResponse)
                                     ? html`
                                           <div class="tooltip-container">
                                               <button class="stop-btn" @click=${this._onStop}>
@@ -872,12 +1020,12 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                                                   <rect x="6" y="6" width="12" height="12" rx="2" />
                                               </svg>
                                           </button>
-                                          <span class="tooltip">Stop streaming</span>
+                                          <span class="tooltip">${this.isStreamingActive ? 'Stop streaming' : 'Stop response'}</span>
                                       </div>
                                       `
                                     : html`
                                           <div class="tooltip-container">
-                                              <button class="send-btn" @click=${this._onSend} ?disabled=${this.isWaitingForResponse}>
+                                              <button class="send-btn" @click=${this._onSend}>
                                               <svg
                                                   xmlns="http://www.w3.org/2000/svg"
                                                   width="24"
@@ -894,7 +1042,7 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                                                   <path d="M12 19V5" />
                                               </svg>
                                           </button>
-                                          <span class="tooltip"> </span>
+                                          <span class="tooltip">Send message</span>
                                       </div>
                                       `}
                             </div>

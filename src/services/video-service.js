@@ -80,11 +80,10 @@ class VideoService {
             // Use lower quality for real-time streaming to reduce bandwidth
             const base64Data = this.offscreenCanvas.toDataURL('image/jpeg', 0.6).split(',')[1];
             
-            // Send video frame to AI provider
-            const result = await ipcRenderer.invoke('send-video-content', {
+            // Send video frame to AI provider using the live streaming IPC
+            const result = await ipcRenderer.invoke('send-video-frame', {
                 data: base64Data,
-                mimeType: 'image/jpeg',
-                isRealtime: true
+                timestamp: Date.now()
             });
 
             if (!result.success && process.env.DEBUG_VIDEO === 'true') {
@@ -261,6 +260,7 @@ class VideoService {
         
         console.log('Real-time video streaming disabled, returning to regular screenshots');
     }
+
 
     pauseScreen() {
         if (this.isScreenPaused) return;

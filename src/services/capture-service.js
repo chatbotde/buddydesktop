@@ -135,6 +135,46 @@ class CaptureService {
         this.videoService.disableRealtimeVideoStreaming();
     }
 
+    // Real-time live model streaming
+    async startLiveStreaming(options = {}) {
+        try {
+            console.log('🎥 Starting live streaming for real-time model...');
+            
+            // First start capture if not already started
+            await this.startCapture();
+            
+            // Enable real-time video streaming
+            this.enableRealtimeVideoStreaming();
+            
+            // Enable continuous audio streaming (already handled by startCapture)
+            console.log('✅ Live streaming started successfully');
+            
+            return { success: true };
+        } catch (error) {
+            console.error('❌ Failed to start live streaming:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async stopLiveStreaming() {
+        try {
+            console.log('⏹️ Stopping live streaming...');
+            
+            // Disable real-time video streaming
+            this.disableRealtimeVideoStreaming();
+            
+            // Stop all capture
+            this.stopCapture();
+            
+            console.log('✅ Live streaming stopped successfully');
+            
+            return { success: true };
+        } catch (error) {
+            console.error('❌ Failed to stop live streaming:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
     // Screenshot methods
     async captureScreenshot() {
         return await this.videoService.captureManualScreenshot();

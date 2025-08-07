@@ -222,4 +222,40 @@ export const loginStyles = css`
     opacity: 1;
     background: var(--button-background);
 }
+
+.user-config-section {
+    margin-top: 20px;
+}
+
+.user-config-input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: var(--glass-border);
+    background: var(--button-background);
+    color: var(--text-color);
+    font-size: 14px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.user-config-input::placeholder {
+    color: var(--text-color);
+    opacity: 0.4;
+    font-style: italic;
+}
+
+.user-config-input:focus {
+    outline: none;
+    border-color: var(--button-border);
+    background: var(--glass-background);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.user-config-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 `;

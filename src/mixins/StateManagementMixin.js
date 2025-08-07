@@ -71,7 +71,7 @@ export const StateManagementMixin = (superClass) => class extends superClass {
         // Load enabled models from localStorage or use defaults
         this.enabledModels = this.loadEnabledModels();
         this.customProfiles = this.loadCustomProfiles();
-        this.customMenuButtons = this.loadUserPreference('customMenuButtons') || ['chat', 'history', 'models', 'customize', 'help'];
+        this.customMenuButtons = this._loadCustomMenuButtonsFromLocalStorage();
         this.windowOpacity = 1.0;
         this.isOpacityControlActive = false;
         this.currentWindowTheme = 'transparent';
@@ -81,7 +81,7 @@ export const StateManagementMixin = (superClass) => class extends superClass {
     getDefaultModelForProvider(provider) {
         switch (provider) {
             case 'google':
-                return 'gemini-2.0-flash-exp';
+                return 'gemini-2.5-flash'; // Use available model
             case 'openai':
                 return 'gpt-4o';
             case 'anthropic':
@@ -161,7 +161,40 @@ export const StateManagementMixin = (superClass) => class extends superClass {
     get isSelectedModelRealTime() {
         const models = getModelsByProvider(this.selectedProvider) || [];
         const selectedModelObj = models.find(m => m.id === this.selectedModel);
-        return selectedModelObj ? selectedModelObj.live : false;
+        if (!selectedModelObj) return false;
+        
+        // Check both the live property and capabilities array for realtime support
+        const hasLiveProp = selectedModelObj.live === true;
+        const hasRealtimeCap = selectedModelObj.capabilities && selectedModelObj.capabilities.includes('realtime');
+        
+        return hasLiveProp || hasRealtimeCap;
+    }
+
+    // Update all components that depend on model selection
+    updateModelDependentComponents() {
+        // Update assistant view to refresh capability-aware UI
+        const assistantView = this.shadowRoot?.querySelector('buddy-assistant-view');
+        if (assistantView) {
+            assistantView.selectedModel = this.selectedModel;
+            assistantView.requestUpdate();
+            console.log('🔄 Updated assistant view with selected model:', this.selectedModel);
+        }
+        
+        // Update header to show new model
+        const header = this.shadowRoot?.querySelector('buddy-header');
+        if (header) {
+            header.selectedModel = this.selectedModel;
+            header.selectedProvider = this.selectedProvider;
+            header.requestUpdate();
+            console.log('🔄 Updated header with selected model:', this.selectedModel);
+        }
+        
+        // Log capability information for debugging
+        console.log('🔧 Model capabilities updated:', {
+            selectedModel: this.selectedModel,
+            isRealTime: this.isSelectedModelRealTime,
+            provider: this.selectedProvider
+        });
     }
 
     get mainViewApiKey() {
@@ -195,6 +228,22 @@ export const StateManagementMixin = (superClass) => class extends superClass {
     }
 
     // Add method to check if selected model supports screenshot (image capability)
+    _loadCustomMenuButtonsFromLocalStorage() {
+        try {
+            const saved = localStorage.getItem('buddy-custom-menu-buttons');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                console.log('StateManagement: Loaded custom menu buttons from localStorage:', parsed);
+                return parsed;
+            }
+        } catch (error) {
+            console.error('StateManagement: Error loading custom menu buttons from localStorage:', error);
+        }
+        
+        // Return default buttons if nothing saved or error
+        return ['chat', 'history', 'models', 'customize', 'help'];
+    }
+
     get isSelectedModelScreenshotCapable() {
         const models = getModelsByProvider(this.selectedProvider) || [];
         const selectedModelObj = models.find(m => m.id === this.selectedModel);

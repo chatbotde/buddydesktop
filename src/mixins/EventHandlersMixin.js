@@ -50,6 +50,7 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
         });
         
         this.addEventListener('model-select', async (e) => {
+            console.log('🔄 Model selected:', e.detail.model);
             this.selectedModel = e.detail.model;
             
             // Update the provider to match the selected model's provider
@@ -58,12 +59,23 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
                 this.selectedProvider = modelData.provider;
             }
             
+            // Log model capabilities for debugging
+            console.log('📊 Model capabilities:', {
+                model: this.selectedModel,
+                provider: this.selectedProvider,
+                isRealTime: this.isSelectedModelRealTime,
+                modelData: modelData
+            });
+            
             if (this.isGuest) {
                 localStorage.setItem('selectedModel', this.selectedModel);
                 localStorage.setItem('selectedProvider', this.selectedProvider);
             } else {
                 await this.saveUserPreferences();
             }
+            
+            // Update all components that depend on model selection
+            this.updateModelDependentComponents();
             
             // Auto-restart session with new model if session is active
             if (this.sessionActive) {
@@ -80,6 +92,34 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
         
         this.addEventListener('new-chat', async () => {
             await this.handleNewChat();
+        });
+        
+        this.addEventListener('user-config-access-granted', async (e) => {
+            console.log('🔑 User configuration access granted');
+            // Start guest session
+            const result = await window.buddy.startGuestSession();
+            if (result.success) {
+                this.user = null;
+                this.isAuthenticated = false;
+                this.isGuest = true;
+                
+                // Load user preferences and history for guest mode
+                await this.loadChatHistory();
+                await this.loadAvailableThemes();
+                await this.loadSavedTheme();
+                await this.loadSavedOpacity();
+                
+                // Set default model if none selected
+                if (!this.selectedModel) {
+                    this.selectedModel = this.getDefaultModelForProvider(this.selectedProvider);
+                }
+                
+                // Navigate directly to assistant (chat) view
+                this.currentView = 'assistant';
+                this.requestUpdate();
+            } else {
+                console.error('Failed to start guest session for user config mode:', result.error);
+            }
         });
         
         // Settings view now works exactly like main view, no separate save needed

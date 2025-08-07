@@ -69,8 +69,18 @@ export function registerMarketplaceIntegration(buddyElement) {
         // Update the custom menu buttons
         this.customMenuButtons = selectedButtons;
         
-        // Save the configuration
+        // Save the configuration immediately to localStorage
         this.saveUserPreference('customMenuButtons', selectedButtons);
+        
+        // Also save to localStorage with the key used by marketplace
+        this.saveUserPreference('buddy-custom-menu-buttons', selectedButtons);
+        
+        // Force update the header component if it exists
+        const headerComponent = this.shadowRoot?.querySelector('buddy-header');
+        if (headerComponent) {
+            headerComponent.customMenuButtons = selectedButtons;
+            headerComponent.requestUpdate();
+        }
         
         // Notify components that need to update
         this.dispatchEvent(new CustomEvent('marketplace-buttons-updated', { 
@@ -78,6 +88,9 @@ export function registerMarketplaceIntegration(buddyElement) {
             bubbles: true, 
             composed: true 
         }));
+        
+        // Request update on the main component
+        this.requestUpdate();
     };
     
     // Add event listener for marketplace window open request
@@ -89,6 +102,11 @@ export function registerMarketplaceIntegration(buddyElement) {
     if (window.require) {
         const { ipcRenderer } = window.require('electron');
         ipcRenderer.on('marketplace-buttons-updated', (event, data) => {
+            buddyElement._handleMarketplaceButtonsUpdated(data.selectedButtons);
+        });
+        
+        // Listen for instant marketplace updates (when items are added/removed in real-time)
+        ipcRenderer.on('marketplace-instant-update', (event, data) => {
             buddyElement._handleMarketplaceButtonsUpdated(data.selectedButtons);
         });
     }

@@ -13,6 +13,9 @@ import './components/buddy-assistant-view.js';
 import './components/buddy-settings-view.js';
 import './components/buddy-models-view.js';
 import './components/buddy-system-prompt-manager.js';
+import './components/debug-live-streaming.js';
+import './components/buddy-dev-config-view.js';
+import './components/buddy-master-key-view.js';
 import { getAllModels, getModelsByProvider, getEnabledModels } from './services/models-service.js';
 import { buddyAppStyles } from './components/ui/buddy-app-style.js';
 import { initializeUnifiedMathSystem } from './math/index.js';
@@ -130,6 +133,12 @@ class BuddyApp extends AuthInitializationMixin(
                 .currentProfile=${this.selectedProfile}
                 .customPrompt=${this.customizeViewCustomPrompt}
             ></buddy-system-prompt-manager>`,
+            
+            debug: html`<debug-live-streaming></debug-live-streaming>`,
+            
+            'user-config': html`<buddy-dev-config-view></buddy-dev-config-view>`,
+            
+            'master-key': html`<buddy-master-key-view></buddy-master-key-view>`,
         };
 
         return html`

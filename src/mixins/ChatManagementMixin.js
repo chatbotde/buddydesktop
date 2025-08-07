@@ -57,6 +57,13 @@ export const ChatManagementMixin = (superClass) => class extends superClass {
                     lastMessage.isStreaming = false;
                     this.isStreamingActive = false;
                     this.streamingResponseText = '';
+                    
+                    // Sync streaming state with assistant view
+                    const assistantView = this.shadowRoot?.querySelector('buddy-assistant-view');
+                    if (assistantView && assistantView.updateStreamingState) {
+                        assistantView.updateStreamingState(false);
+                    }
+                    
                     this.requestUpdate();
                     this.scrollToBottom(false);
                     return;
@@ -99,6 +106,12 @@ export const ChatManagementMixin = (superClass) => class extends superClass {
         if (isStreaming) {
             this.isStreamingActive = true;
             this.streamingResponseText = text;
+            
+            // Sync streaming state with assistant view
+            const assistantView = this.shadowRoot?.querySelector('buddy-assistant-view');
+            if (assistantView && assistantView.updateStreamingState) {
+                assistantView.updateStreamingState(true);
+            }
         }
         this.requestUpdate();
         this.scrollToBottom(sender === 'user');

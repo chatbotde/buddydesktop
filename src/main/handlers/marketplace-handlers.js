@@ -24,6 +24,14 @@ function registerMarketplaceHandlers() {
         }
     });
 
+    // Handle marketplace instant update event (for real-time dropdown updates)
+    ipcMain.on('marketplace-instant-update', (event, selectedButtons) => {
+        console.log('Marketplace instant update:', selectedButtons);
+        
+        // Notify main window about the instant changes
+        sendToRenderer('marketplace-instant-update', { selectedButtons });
+    });
+
     // Handle marketplace window close request
     ipcMain.on('marketplace-close-window', (event) => {
         const senderWindow = event.sender.getOwnerBrowserWindow();

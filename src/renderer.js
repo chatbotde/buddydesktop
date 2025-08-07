@@ -55,6 +55,40 @@ window.buddy = {
     enableRealtimeVideoStreaming: () => captureService.enableRealtimeVideoStreaming(),
     disableRealtimeVideoStreaming: () => captureService.disableRealtimeVideoStreaming(),
 
+    // Live model streaming
+    startLiveStreaming: async (options) => {
+        try {
+            // Start capture service streaming
+            const captureResult = await captureService.startLiveStreaming(options);
+            if (!captureResult.success) {
+                return captureResult;
+            }
+            
+            // Start AI communication streaming
+            const aiResult = await aiCommunicationService.startLiveStreaming();
+            return aiResult;
+        } catch (error) {
+            console.error('Error starting live streaming:', error);
+            return { success: false, error: error.message };
+        }
+    },
+    stopLiveStreaming: async () => {
+        try {
+            // Stop AI communication streaming
+            const aiResult = await aiCommunicationService.stopLiveStreaming();
+            
+            // Stop capture service streaming
+            const captureResult = await captureService.stopLiveStreaming();
+            
+            return aiResult.success && captureResult.success ? 
+                { success: true } : 
+                { success: false, error: 'Failed to stop some components' };
+        } catch (error) {
+            console.error('Error stopping live streaming:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
     // Window management
     createImageWindow: (...args) => windowService.createImageWindow(...args),
     createConsistentWindow: (...args) => windowService.createConsistentWindow(...args),

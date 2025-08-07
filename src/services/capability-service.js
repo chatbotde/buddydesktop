@@ -11,7 +11,10 @@ export const CAPABILITY_TYPES = {
     VIDEO: 'video',
     REALTIME: 'realtime',
     TEXT: 'text',
-    CODE: 'code'
+    CODE: 'code',
+    AUDIO_INPUT: 'audio-input',
+    VIDEO_INPUT: 'video-input',
+    REALTIME_AUDIO: 'realtime-audio'
 };
 
 // Map capabilities to UI features
@@ -34,7 +37,23 @@ export const CAPABILITY_UI_MAP = {
     ],
     [CAPABILITY_TYPES.REALTIME]: [
         'realtime-video-streaming',
-        'realtime-audio-streaming'
+        'realtime-audio-streaming',
+        'live-streaming'
+    ],
+    [CAPABILITY_TYPES.AUDIO_INPUT]: [
+        'live-audio-input',
+        'audio-recording',
+        'audio-transcription'
+    ],
+    [CAPABILITY_TYPES.VIDEO_INPUT]: [
+        'live-video-input',
+        'video-recording',
+        'camera-preview'
+    ],
+    [CAPABILITY_TYPES.REALTIME_AUDIO]: [
+        'realtime-audio-processing',
+        'live-transcription',
+        'voice-conversation'
     ]
 };
 
@@ -112,6 +131,9 @@ export function getCapabilityStatus(modelId) {
         hasRealtime: capabilities.includes(CAPABILITY_TYPES.REALTIME),
         hasText: capabilities.includes(CAPABILITY_TYPES.TEXT),
         hasCode: capabilities.includes(CAPABILITY_TYPES.CODE),
+        hasAudioInput: capabilities.includes(CAPABILITY_TYPES.AUDIO_INPUT),
+        hasVideoInput: capabilities.includes(CAPABILITY_TYPES.VIDEO_INPUT),
+        hasRealtimeAudio: capabilities.includes(CAPABILITY_TYPES.REALTIME_AUDIO),
         capabilities,
         enabledFeatures: getEnabledUIFeatures(modelId),
         disabledFeatures: getDisabledUIFeatures(modelId)
@@ -134,7 +156,17 @@ export function getDisabledFeatureMessage(uiFeature, modelName) {
         'video-upload': `${modelName} doesn't support video processing. Switch to a video-capable model to upload videos.`,
         'camera-capture': `${modelName} doesn't support video processing. Switch to a video-capable model to use camera.`,
         'realtime-video-streaming': `${modelName} doesn't support real-time streaming. Switch to a real-time capable model for live video.`,
-        'realtime-audio-streaming': `${modelName} doesn't support real-time streaming. Switch to a real-time capable model for live audio.`
+        'realtime-audio-streaming': `${modelName} doesn't support real-time streaming. Switch to a real-time capable model for live audio.`,
+        'live-streaming': `${modelName} doesn't support live streaming. Switch to a real-time capable model like Gemini 2.0 Flash Live for live video and audio analysis.`,
+        'live-audio-input': `${modelName} doesn't support live audio input. Switch to an audio-input capable model to use microphone.`,
+        'audio-recording': `${modelName} doesn't support audio recording. Switch to an audio-input capable model to record audio.`,
+        'audio-transcription': `${modelName} doesn't support audio transcription. Switch to an audio-input capable model for transcription.`,
+        'live-video-input': `${modelName} doesn't support live video input. Switch to a video-input capable model to use camera.`,
+        'video-recording': `${modelName} doesn't support video recording. Switch to a video-input capable model to record video.`,
+        'camera-preview': `${modelName} doesn't support camera preview. Switch to a video-input capable model for camera access.`,
+        'realtime-audio-processing': `${modelName} doesn't support real-time audio processing. Switch to a real-time audio model.`,
+        'live-transcription': `${modelName} doesn't support live transcription. Switch to a real-time audio model for live transcription.`,
+        'voice-conversation': `${modelName} doesn't support voice conversations. Switch to a real-time audio model for voice chat.`
     };
     
     return messages[uiFeature] || `This feature is not supported by ${modelName}.`;
@@ -149,7 +181,10 @@ export function getSuggestedModelsForCapability(capability) {
         [CAPABILITY_TYPES.VISION]: ['gemini-2.5-pro', 'gemini-2.5-flash', 'claude-4-sonnet', 'gpt-4o'],
         [CAPABILITY_TYPES.AUDIO]: ['gemini-2.0-flash-live-001'],
         [CAPABILITY_TYPES.VIDEO]: ['gemini-2.0-flash-live-001'],
-        [CAPABILITY_TYPES.REALTIME]: ['gemini-2.0-flash-live-001']
+        [CAPABILITY_TYPES.REALTIME]: ['gemini-2.0-flash-live-001'],
+        [CAPABILITY_TYPES.AUDIO_INPUT]: ['gemini-2.0-flash-live-001', 'whisper-1'],
+        [CAPABILITY_TYPES.VIDEO_INPUT]: ['gemini-2.0-flash-live-001'],
+        [CAPABILITY_TYPES.REALTIME_AUDIO]: ['gemini-2.0-flash-live-001']
     };
     
     return suggestions[capability] || [];

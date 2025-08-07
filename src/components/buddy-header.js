@@ -46,10 +46,13 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
         this.isVisibleOnAllWorkspaces = true;
         this.windowOpacity = 1.0;
         this.isOpacityControlActive = false;
-        this.customMenuButtons = ['chat', 'history', 'models', 'customize', 'help'];
+        this.customMenuButtons = ['chat', 'history', 'models', 'customize', 'help', 'master-key', 'debug'];
         this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
         this.isEventListenerActive = false;
         this.eventListenerTimeout = null;
+        
+        // Load custom menu buttons from localStorage on initialization
+        this._loadCustomMenuButtonsFromLocalStorage();
     }
 
     static styles = [headerStyles, capabilityAwareStyles, tooltipContainer];
@@ -457,6 +460,18 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
         return getEnabledModels(this.enabledModels);
     }
 
+    _loadCustomMenuButtonsFromLocalStorage() {
+        try {
+            const saved = localStorage.getItem('buddy-custom-menu-buttons');
+            if (saved) {
+                this.customMenuButtons = JSON.parse(saved);
+                console.log('Header: Loaded custom menu buttons from localStorage:', this.customMenuButtons);
+            }
+        } catch (error) {
+            console.error('Header: Error loading custom menu buttons from localStorage:', error);
+        }
+    }
+
     _getMenuButtonsData() {
         const allButtons = {
             chat: {
@@ -554,8 +569,21 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
                 showStatus: true,
                 statusKey: 'isVisibleOnAllWorkspaces',
             },
+            debug: {
+                id: 'debug',
+                name: 'Debug Live Streaming',
+                icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
+            },
+            'master-key': {
+                id: 'master-key',
+                name: 'Master Key Settings',
+                icon: 'M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0',
+            },
         };
 
+        // Always ensure we have the latest customMenuButtons from localStorage
+        this._loadCustomMenuButtonsFromLocalStorage();
+        
         return this.customMenuButtons.map(buttonId => allButtons[buttonId]).filter(Boolean);
     }
 
@@ -566,6 +594,8 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
             assistant: 'Buddy',
             settings: 'AI Settings',
             models: 'Models',
+            debug: 'Debug Live Streaming',
+            'master-key': 'Master Key Settings',
         };
         const statusIndicator = this.sessionActive ? 'status-live' : 'status-idle';
 
@@ -874,11 +904,11 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
                           `
                         : ''}
 
-                    <!-- Clear Chat Button (only for assistant view) -->
+                    <!-- Clear Chat Button (only for assistant view) Clear Chat (Ctrl+K / Cmd+K)-->
                     ${this.currentView === 'assistant'
                         ? html`
                               <div class="tooltip-container">
-                                  <button class="clear-chat-btn" @click=${this._handleNewChat} title="Clear Chat (Ctrl+K / Cmd+K)">
+                                  <button class="clear-chat-btn" @click=${this._handleNewChat} title=" ">
                                       <svg
                                           width="18"
                                           height="18"
@@ -895,7 +925,7 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
                                           <line x1="14" y1="11" x2="14" y2="17" />
                                       </svg>
                                   </button>
-                                  <span class="tooltip">Clear Chat</span>
+                                  <span class="tooltip">  </span>
                               </div>
                           `
                         : ''}

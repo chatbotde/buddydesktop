@@ -258,6 +258,24 @@
                     <li>Type-safe capability management</li>
                 </ul>
             </div>
+
+            <div class="feature-card">
+                <div class="feature-header">
+                    <span class="feature-icon">🎤</span>
+                    <span class="feature-title">Live Media Input</span>
+                </div>
+                <div class="feature-description">
+                    Advanced live media input component with audio/video recording and real-time processing capabilities.
+                </div>
+                <ul class="feature-list">
+                    <li>Live audio recording with visualization</li>
+                    <li>Video capture with camera preview</li>
+                    <li>Real-time audio processing mode</li>
+                    <li>Capability-aware UI elements</li>
+                    <li>Media processing and transcription</li>
+                    <li>Seamless integration with chat</li>
+                </ul>
+            </div>
         </div>
 
         <div class="code-example">
@@ -291,9 +309,65 @@ const suggestions = suggestCapabilities('GPT-4 Vision', 'Multimodal AI model', '
         <div class="showcase-section">
             <buddy-capability-showcase></buddy-capability-showcase>
         </div>
+
+        <div class="showcase-section">
+            <div class="feature-card">
+                <div class="feature-header">
+                    <span class="feature-icon">🎥</span>
+                    <span class="feature-title">Live Media Input Demo</span>
+                </div>
+                <div class="feature-description">
+                    Interactive demonstration of the live media input component with audio/video capabilities.
+                </div>
+                <div style="margin-top: 20px;">
+                    <buddy-live-media-input 
+                        selectedModel="gemini-2.0-flash-live-001"
+                        id="liveMediaDemo">
+                    </buddy-live-media-input>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="src/lit-core-2.7.4.min.js"></script>
     <script type="module" src="src/components/buddy-capability-showcase.js"></script>
+    <script type="module" src="src/components/buddy-live-media-input.js"></script>
+    
+    <script type="module">
+        // Set up event listeners for the live media demo
+        document.addEventListener('DOMContentLoaded', () => {
+            const liveMediaDemo = document.getElementById('liveMediaDemo');
+            
+            if (liveMediaDemo) {
+                liveMediaDemo.addEventListener('media-processed', (e) => {
+                    console.log('Demo: Media processed', e.detail);
+                    // Show a notification or update UI
+                    const notification = document.createElement('div');
+                    notification.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: rgba(34, 197, 94, 0.9);
+                        color: white;
+                        padding: 12px 16px;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        z-index: 10000;
+                        backdrop-filter: blur(10px);
+                    `;
+                    notification.textContent = `Media processed: ${e.detail.type}`;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 3000);
+                });
+
+                liveMediaDemo.addEventListener('media-error', (e) => {
+                    console.error('Demo: Media error', e.detail);
+                });
+            }
+        });
+    </script>
 </body>
 </html>

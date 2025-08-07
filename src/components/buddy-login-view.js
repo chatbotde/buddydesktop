@@ -5,18 +5,18 @@ class BuddyLoginView extends LitElement {
     static properties = {
         isLoading: { type: Boolean },
         error: { type: String },
-        user: { type: Object }
+        user: { type: Object },
+        devAccessCode: { type: String }
     };
 
     static styles = [loginStyles];
-
-    
 
     constructor() {
         super();
         this.isLoading = false;
         this.error = '';
         this.user = null;
+        this.devAccessCode = '';
     }
 
     async _onGoogleLogin() {
@@ -85,6 +85,49 @@ class BuddyLoginView extends LitElement {
     _onLogout() {
         this.user = null;
         this.error = '';
+        this.requestUpdate();
+    }
+
+    _onDevAccessInput(e) {
+        this.devAccessCode = e.target.value;
+    }
+
+    _onDevAccessKeyDown(e) {
+        if (e.key === 'Enter') {
+            this._checkDevAccess();
+        }
+    }
+
+    _checkDevAccess() {
+        // Get the current master key (custom or default)
+        const masterKey = localStorage.getItem('buddy-master-access-key') || 'Anupchand-Yadav';
+        const savedCustomKey = localStorage.getItem('buddy-dev-access-key');
+        
+        // Check if entered code matches master key or saved custom key
+        if (this.devAccessCode === masterKey || 
+            (savedCustomKey && this.devAccessCode === savedCustomKey)) {
+            
+            // Start guest session and navigate to dev config
+            this.dispatchEvent(new CustomEvent('user-config-access-granted', {
+                detail: { accessGranted: true },
+                bubbles: true,
+                composed: true
+            }));
+        } else {
+            // If not empty and doesn't match, show subtle feedback
+            if (this.devAccessCode.trim()) {
+                const input = this.shadowRoot.querySelector('.user-config-input');
+                if (input) {
+                    input.style.borderColor = '#ef4444';
+                    setTimeout(() => {
+                        input.style.borderColor = '';
+                    }, 1000);
+                }
+            }
+        }
+        
+        // Clear the input
+        this.devAccessCode = '';
         this.requestUpdate();
     }
 
@@ -165,6 +208,18 @@ class BuddyLoginView extends LitElement {
                     >
                         ${this.isLoading ? html`<div class="loading-spinner"></div>` : 'Continue as Guest'}
                     </button>
+                    
+                    <div class="user-config-section">
+                        <input 
+                            type="text"
+                            class="user-config-input"
+                            placeholder="User configuration access..."
+                            .value=${this.devAccessCode}
+                            @input=${this._onDevAccessInput}
+                            @keydown=${this._onDevAccessKeyDown}
+                            ?disabled=${this.isLoading}
+                        >
+                    </div>
                     
                     ${this.error ? html`
                         <div class="error-message">${this.error}</div>

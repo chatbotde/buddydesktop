@@ -24,6 +24,23 @@ class AICommunicationService {
                 buddy.setResponse(response);
             }
         });
+
+        // Listen for live streaming events
+        ipcRenderer.on('live-streaming-started', (event, data) => {
+            console.log('Live streaming started:', data);
+            const buddy = this.getBuddyElement();
+            if (buddy && buddy.onLiveStreamingStarted) {
+                buddy.onLiveStreamingStarted(data);
+            }
+        });
+
+        ipcRenderer.on('live-streaming-stopped', (event, data) => {
+            console.log('Live streaming stopped:', data);
+            const buddy = this.getBuddyElement();
+            if (buddy && buddy.onLiveStreamingStopped) {
+                buddy.onLiveStreamingStopped(data);
+            }
+        });
     }
 
     getBuddyElement() {
@@ -150,6 +167,48 @@ class AICommunicationService {
             return result;
         } catch (error) {
             console.error('Error stopping streaming:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async startLiveStreaming() {
+        try {
+            console.log('🎥 Starting live streaming with real-time AI analysis...');
+            const result = await ipcRenderer.invoke('start-live-streaming');
+            if (result.success) {
+                console.log('✅ Live streaming started successfully');
+                // Start UI status indication
+                const buddy = this.getBuddyElement();
+                if (buddy && buddy.setStatus) {
+                    buddy.setStatus('Live Streaming');
+                }
+            } else {
+                console.error('❌ Failed to start live streaming:', result.error);
+            }
+            return result;
+        } catch (error) {
+            console.error('Error starting live streaming:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async stopLiveStreaming() {
+        try {
+            console.log('⏹️ Stopping live streaming...');
+            const result = await ipcRenderer.invoke('stop-live-streaming');
+            if (result.success) {
+                console.log('✅ Live streaming stopped successfully');
+                // Reset UI status
+                const buddy = this.getBuddyElement();
+                if (buddy && buddy.setStatus) {
+                    buddy.setStatus('Live');
+                }
+            } else {
+                console.error('❌ Failed to stop live streaming:', result.error);
+            }
+            return result;
+        } catch (error) {
+            console.error('Error stopping live streaming:', error);
             return { success: false, error: error.message };
         }
     }

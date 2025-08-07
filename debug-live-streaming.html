@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Streaming Debug Panel</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        
+        .debug-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+        
+        .instructions {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: #FFA726;
+        }
+        
+        .instructions ol {
+            margin: 0;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .console-commands {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .console-commands h3 {
+            margin-top: 0;
+            color: #42A5F5;
+        }
+        
+        .command {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+            border-left: 3px solid #42A5F5;
+        }
+        
+        .component-container {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .error {
+            background: #d32f2f;
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <div class="header">
+            <h1>🎥 Live Streaming Debug Panel</h1>
+            <p>Debug and test your live streaming functionality</p>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 Instructions</h3>
+            <ol>
+                <li><strong>Open your main Buddy app</strong> in another tab/window</li>
+                <li><strong>Keep this debug page open</strong> for monitoring and testing</li>
+                <li><strong>Use the console commands below</strong> to debug issues</li>
+                <li><strong>Check the debug component</strong> that should load below</li>
+            </ol>
+        </div>
+
+        <div class="console-commands">
+            <h3>🖥️ Console Commands</h3>
+            <p>Open your browser's Developer Console (F12) and run these commands:</p>
+            
+            <div class="command">
+                <strong>checkLiveStreaming()</strong><br>
+                <small>Complete diagnostic of your live streaming setup</small>
+            </div>
+            
+            <div class="command">
+                <strong>showModels()</strong><br>
+                <small>List all available models and their real-time capabilities</small>
+            </div>
+            
+            <div class="command">
+                <strong>switchToLiveModel()</strong><br>
+                <small>Automatically switch to a real-time capable model</small>
+            </div>
+            
+            <div class="command">
+                <strong>testLiveStreamingButton()</strong><br>
+                <small>Test if the live streaming button appears in the UI</small>
+            </div>
+        </div>
+
+        <div class="component-container">
+            <h3>🔧 Debug Component</h3>
+            <div id="debug-component">
+                <div class="loading">Loading debug component...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load the debug component -->
+    <script type="module">
+        import './src/lit-core-2.7.4.min.js';
+        import './src/components/debug-live-streaming.js';
+        
+        // Wait for the component to be defined
+        if (customElements.get('debug-live-streaming')) {
+            loadDebugComponent();
+        } else {
+            customElements.whenDefined('debug-live-streaming').then(() => {
+                loadDebugComponent();
+            });
+        }
+        
+        function loadDebugComponent() {
+            const container = document.getElementById('debug-component');
+            try {
+                container.innerHTML = '<debug-live-streaming></debug-live-streaming>';
+                console.log('✅ Debug component loaded successfully!');
+            } catch (error) {
+                console.error('❌ Error loading debug component:', error);
+                container.innerHTML = `
+                    <div class="error">
+                        <strong>Error loading debug component:</strong><br>
+                        ${error.message}
+                        <br><br>
+                        <strong>Alternative:</strong> Use the console commands above instead.
+                    </div>
+                `;
+            }
+        }
+        
+        // Load the console debug helpers
+        function loadConsoleHelpers() {
+            const script = document.createElement('script');
+            script.src = './src/console-debug.js';
+            script.onload = () => {
+                console.log('✅ Console debug helpers loaded!');
+            };
+            script.onerror = () => {
+                console.warn('⚠️ Could not load console debug helpers');
+            };
+            document.head.appendChild(script);
+        }
+        
+        loadConsoleHelpers();
+    </script>
+
+    <!-- Also load console debug helpers directly -->
+    <script src="./src/console-debug.js"></script>
+</body>
+</html>

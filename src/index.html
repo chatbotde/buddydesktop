@@ -102,6 +102,23 @@
         </script>
         <script type="module" src="buddy-element.js"></script>
         <script type="module" src="components/buddy-update-notification.js"></script>
+        
+        <!-- Debug Helper for Live Streaming -->
+        <script src="console-debug.js"></script>
+        
+        <!-- Force menu update to include master-key button -->
+        <script>
+            // Clear the localStorage to force menu regeneration with master-key
+            try {
+                localStorage.removeItem('buddy-custom-menu-buttons');
+                // Set the new default menu that includes master-key
+                const newDefaultMenu = ['chat', 'history', 'models', 'customize', 'help', 'master-key', 'debug'];
+                localStorage.setItem('buddy-custom-menu-buttons', JSON.stringify(newDefaultMenu));
+                console.log('🔄 Menu cache updated - master-key button should appear');
+            } catch(e) {
+                console.warn('Could not update menu cache:', e);
+            }
+        </script>
 
         <buddy-app id="buddy"></buddy-app>
         <buddy-update-notification></buddy-update-notification>

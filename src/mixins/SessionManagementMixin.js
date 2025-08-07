@@ -51,6 +51,12 @@ export const SessionManagementMixin = (superClass) => class extends superClass {
         this.isStreamingActive = false;
         this.streamingResponseText = '';
         
+        // Reset assistant view states (loading animations, stop button, etc.)
+        const assistantView = this.shadowRoot?.querySelector('buddy-assistant-view');
+        if (assistantView && assistantView.resetStates) {
+            assistantView.resetStates();
+        }
+        
         // Navigate to assistant view
         this.currentView = 'assistant';
         this.requestUpdate();
@@ -190,6 +196,12 @@ export const SessionManagementMixin = (superClass) => class extends superClass {
         this.sessionActive = false; // Will be set to true by start logic below
         this.disableAllFeatures();
         this.statusText = 'Restarting...';
+        
+        // Reset assistant view states (loading animations, stop button, etc.)
+        const assistantView = this.shadowRoot?.querySelector('buddy-assistant-view');
+        if (assistantView && assistantView.resetStates) {
+            assistantView.resetStates();
+        }
 
         await buddy.initializeAI(this.selectedProvider, this.selectedProfile, this.selectedLanguage, this.selectedModel);
         

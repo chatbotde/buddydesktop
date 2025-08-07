@@ -469,6 +469,10 @@
             }
             // Save to localStorage immediately
             saveSelectedButtons(selectedButtons);
+            
+            // Instantly notify the main window about the change
+            notifyMainWindowInstantly(selectedButtons);
+            
             renderButtons();
         }
 
@@ -483,6 +487,29 @@
         function resetSelection() {
             selectedButtons = [];
             renderButtons();
+        }
+
+        // Notify main window instantly (for real-time updates)
+        function notifyMainWindowInstantly(buttons) {
+            if (isElectron) {
+                try {
+                    const { ipcRenderer } = window.require('electron');
+                    // Send instant update without closing window
+                    ipcRenderer.send('marketplace-instant-update', buttons);
+                } catch (error) {
+                    console.error('Error sending instant update:', error);
+                }
+            } else if (window.opener && !window.opener.closed) {
+                // Use window messaging for browser (instant update)
+                try {
+                    window.opener.postMessage({
+                        type: 'marketplace-instant-update',
+                        selectedButtons: buttons
+                    }, '*');
+                } catch (error) {
+                    console.error('Error sending instant update to opener:', error);
+                }
+            }
         }
 
         // Apply changes and close window

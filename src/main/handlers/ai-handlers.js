@@ -193,11 +193,94 @@ function registerAIHandlers() {
         }
     });
 
+    // Start live streaming
+    ipcMain.handle('start-live-streaming', async (event) => {
+        try {
+            console.log('🎥 Starting live streaming...');
+            
+            const currentAIProvider = AppState.get('currentAIProvider');
+            if (!currentAIProvider) {
+                return { success: false, error: 'No active AI session' };
+            }
+
+            // Set live streaming mode
+            AppState.set('liveStreamingActive', true);
+            
+            // Notify renderer that live streaming started
+            sendToRenderer('live-streaming-started', { success: true });
+            
+            console.log('✅ Live streaming started');
+            return { success: true };
+        } catch (error) {
+            console.error('❌ Error starting live streaming:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Stop live streaming
+    ipcMain.handle('stop-live-streaming', async (event) => {
+        try {
+            console.log('⏹️ Stopping live streaming...');
+            
+            // Clear live streaming mode
+            AppState.set('liveStreamingActive', false);
+            
+            // Notify renderer that live streaming stopped
+            sendToRenderer('live-streaming-stopped', { success: true });
+            
+            console.log('✅ Live streaming stopped');
+            return { success: true };
+        } catch (error) {
+            console.error('❌ Error stopping live streaming:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Send video frame for live streaming
+    ipcMain.handle('send-video-frame', async (event, { data, timestamp }) => {
+        const currentAIProvider = AppState.get('currentAIProvider');
+        const isLiveStreaming = AppState.get('liveStreamingActive');
+        
+        if (!currentAIProvider || !isLiveStreaming) {
+            return { success: false, error: 'Live streaming not active' };
+        }
+
+        try {
+            if (!data || typeof data !== 'string') {
+                return { success: false, error: 'Invalid video frame data' };
+            }
+
+            const buffer = Buffer.from(data, 'base64');
+            if (buffer.length < 500) {
+                return { success: false, error: 'Video frame too small' };
+            }
+
+            // Send video frame with timestamp for real-time processing
+            process.stdout.write('📹');
+            await currentAIProvider.sendRealtimeInput({
+                media: { data: data, mimeType: 'image/jpeg' },
+                timestamp: timestamp,
+                isLiveFrame: true
+            });
+
+            return { success: true };
+        } catch (error) {
+            // Don't log every frame error to avoid spam
+            if (process.env.DEBUG_LIVE_STREAMING === 'true') {
+                console.error('Error sending video frame:', error);
+            }
+            return { success: false, error: error.message };
+        }
+    });
+
     // Close AI session
     ipcMain.handle('close-session', async (event) => {
         try {
             const { stopMacOSAudioCapture } = require('../audio-manager');
             stopMacOSAudioCapture();
+
+            // Stop live streaming if active
+            AppState.set('liveStreamingActive', false);
 
             // Cleanup any pending resources and stop audio/video capture
             const currentAIProvider = AppState.get('currentAIProvider');
