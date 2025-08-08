@@ -1044,7 +1044,7 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                                                   <path d="M12 19V5" />
                                               </svg>
                                           </button>
-                                          <span class="tooltip">Send message</span>
+                                          <span class="tooltip"></span>
                                       </div>
                                       `}
                             </div>

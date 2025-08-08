@@ -8,7 +8,7 @@ const { MongoClient } = require('mongodb');
 const router = express.Router();
 
 // MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/buddy';
+const MONGODB_URI = process.env.MONGODB_URL || process.env.MONGODB_URI || 'mongodb://localhost:27017/buddy';
 const ACCESS_CODE = 'Anupchand-Yadav';
 
 let db = null;

@@ -175,11 +175,12 @@ class BuddyLoginView extends LitElement {
             <div class="login-container">
                 <div class="login-header">
                     <h1 class="login-title">Welcome to Buddy</h1>
-                    <p class="login-subtitle">Sign in to sync your conversations and preferences across devices.</p>
+                   
                 </div>
                 
                 <div class="login-form">
-                    <button 
+                   <!-- Google sign-in temporarily disabled
+                   <button 
                         class="google-login-btn"
                         @click=${this._onGoogleLogin}
                         ?disabled=${this.isLoading}
@@ -200,6 +201,7 @@ class BuddyLoginView extends LitElement {
                         <span class="divider-text">or</span>
                         <div class="divider-line"></div>
                     </div>
+                   -->
                     
                     <button 
                         class="guest-login-btn"
@@ -208,7 +210,7 @@ class BuddyLoginView extends LitElement {
                     >
                         ${this.isLoading ? html`<div class="loading-spinner"></div>` : 'Continue as Guest'}
                     </button>
-                    
+                   <!-- only for dev 
                     <div class="user-config-section">
                         <input 
                             type="text"
@@ -220,7 +222,7 @@ class BuddyLoginView extends LitElement {
                             ?disabled=${this.isLoading}
                         >
                     </div>
-                    
+                    -->
                     ${this.error ? html`
                         <div class="error-message">${this.error}</div>
                     ` : ''}

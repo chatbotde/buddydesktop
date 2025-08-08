@@ -34,7 +34,7 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 GOOGLE_REDIRECT_URI=http://localhost:3000/auth/google/callback
 
 # MongoDB Configuration
-MONGODB_URI=mongodb://localhost:27017/buddy
+MONGODB_URL=mongodb://localhost:27017/buddy
 
 # JWT Secret (change this in production)
 JWT_SECRET=your_jwt_secret_key_here

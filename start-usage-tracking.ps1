@@ -55,7 +55,7 @@ if (!(Test-Path ".env")) {
     
     $envContent = @"
 # MongoDB Configuration for Usage Tracking
-MONGODB_URI=$mongoUri
+MONGODB_URL=$mongoUri
 
 # Server Configuration
 PORT=3000
