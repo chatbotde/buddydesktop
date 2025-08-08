@@ -8,21 +8,18 @@ module.exports = {
         asar: true,
         extraResource: ['./src/SystemAudioDump'],
         icon: './icons/icon', // Base icon path (Electron Forge will auto-detect extensions)
-        // Protect source code by ensuring everything is bundled
+        // Ignore only dev and doc folders/files. Do not exclude node_modules or src.
         ignore: [
-            /^\/(?!src|icons|package\.json|forge\.config\.js)/,
-            /\.git/,
-            /\.github/,
-            /docs/,
-            /scripts/,
-            /\.md$/,
-            /\.txt$/,
-            /\.example$/,
-            /env\.example/,
-            /CHANGELOG\.md/,
-            /RELEASE_CHECKLIST\.md/,
-            /SYSTEM-DESIGN\.md/,
-            /README\.md/
+            /^\/(?:out|server|scripts|docs|test|tests|coverage)(?:\/.+)?$/,
+            /^\/\.(?:git|github)(?:\/.+)?$/,
+            /env\.example$/i,
+            /CHANGELOG\.md$/i,
+            /RELEASE_CHECKLIST\.md$/i,
+            /SYSTEM-DESIGN\.md$/i,
+            /README\.md$/i,
+            /\.md$/i,
+            /\.markdown$/i,
+            /\.txt$/i
         ],
         // Additional protection
         overwrite: true,
