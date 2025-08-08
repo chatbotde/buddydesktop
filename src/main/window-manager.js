@@ -8,6 +8,7 @@ const path = require('node:path');
 const { getShortcutsConfig, AppState } = require('./app-config');
 const AuthService = require('../auth-service');
 const AutoUpdateService = require('../auto-updater');
+const { initializeStealthOverlayHandlers } = require('./handlers/stealth-overlay-handlers');
 
 // Import the new window system
 const { createWindow: createManagedWindow, windowManager } = require('../window');
@@ -260,6 +261,14 @@ function createMainWindow() {
 
     // Set up global shortcuts
     setupGlobalShortcuts(mainWindow);
+
+    // Initialize stealth overlay handlers
+    try {
+        initializeStealthOverlayHandlers();
+        console.log('Stealth overlay system initialized');
+    } catch (error) {
+        console.error('Failed to initialize stealth overlay system:', error);
+    }
 
     // Make sendToRenderer globally accessible
     global.sendToRenderer = sendToRenderer;
