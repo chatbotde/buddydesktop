@@ -88,21 +88,72 @@ Advanced filtering and visualization:
 | Creative | 🎨 | Creative writing, storytelling, and content generation |
 | Summarization | 📋 | Text summarization and content condensation |
 
+## Enhanced Features
+
+### 🧠 Intelligent Text Analysis
+
+The system now includes advanced text analysis with pattern matching and confidence scoring:
+
+- **Pattern Recognition**: Over 50 sophisticated regex patterns to identify capability indicators
+- **Confidence Scoring**: Each detected capability gets a confidence score from 0-1
+- **Context Awareness**: Analyzes model names, descriptions, and provider context together
+- **Logical Dependencies**: Automatically includes related capabilities (e.g., video requires vision)
+
+### 📊 Real-time Detection
+
+- **Live Analysis**: Capabilities are detected as you type in the model description
+- **Smart Suggestions**: Lower-confidence capabilities are shown as suggestions
+- **Debug Mode**: Enable detailed analysis logging with `localStorage.setItem('debug_capabilities', 'true')`
+- **Minimal Interference**: Only auto-suggests when user hasn't customized capabilities much
+
 ## Usage Examples
 
-### Creating a Custom Model with Capabilities
+### Creating a Custom Model with Auto-Detection
 
 ```javascript
-// Using the custom model form
+// The system will automatically detect capabilities from this description
+const modelDescription = "Advanced multimodal AI with vision analysis, real-time audio processing, and mathematical reasoning capabilities";
+
+// Detected capabilities: ['text', 'vision', 'audio', 'realtime', 'math', 'reasoning', 'analysis']
+const detectedCaps = suggestCapabilities('GPT-4 Omni', modelDescription, 'openai');
+
 const customModel = {
     id: 'my-custom-gpt4',
-    name: 'My Custom GPT-4',
+    name: 'GPT-4 Omni',
     provider: 'openai',
     modelId: 'gpt-4',
     apiKey: 'your-api-key',
-    capabilities: ['text', 'code', 'vision', 'reasoning', 'analysis'],
-    description: 'Custom GPT-4 model with vision capabilities'
+    capabilities: detectedCaps, // Auto-detected capabilities
+    description: modelDescription
 };
+```
+
+### Advanced Detection Examples
+
+```javascript
+// Vision model detection
+const visionAnalysis = analyzeCapabilities(
+    'Claude Vision Pro',
+    'Multimodal AI that can analyze images, read documents, and understand charts',
+    'anthropic'
+);
+// Result: text, code, vision, reasoning, analysis, creative
+
+// Audio model detection  
+const audioAnalysis = analyzeCapabilities(
+    'Whisper Advanced',
+    'Speech recognition with real-time transcription and multi-language support',
+    'openai'
+);
+// Result: text, audio, realtime, translation
+
+// Mathematical model detection
+const mathAnalysis = analyzeCapabilities(
+    'DeepSeek Math',
+    'Specialized for complex mathematical calculations, equation solving, and scientific computing',
+    'deepseek'
+);
+// Result: text, code, math, reasoning, analysis
 ```
 
 ### Using Capability Presets

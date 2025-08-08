@@ -1,13 +1,6 @@
 import { html, css, LitElement } from '../lit-core-2.7.4.min.js';
 import { getAllProviders } from '../services/models-service.js';
-import { 
-    getAllCapabilities, 
-    getCapabilitiesByCategory, 
-    getCapabilityPresets, 
-    getProviderCapabilityPreset,
-    validateCapabilities,
-    suggestCapabilities
-} from '../services/capabilities-service.js';
+
 
 class BuddyCustomModelForm extends LitElement {
     static properties = {
@@ -35,7 +28,6 @@ class BuddyCustomModelForm extends LitElement {
         };
         this.errors = {};
         this.isLoading = false;
-        this.capabilityValidation = { errors: [], warnings: [], isValid: true };
     }
 
     static styles = css`
@@ -230,114 +222,6 @@ class BuddyCustomModelForm extends LitElement {
             margin-top: 4px;
         }
 
-        .capabilities-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 8px;
-        }
-
-        .capability-checkbox {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            padding: 10px 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 12px;
-            min-width: 140px;
-            flex: 1;
-        }
-
-        .capability-checkbox:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .capability-checkbox.selected {
-            background: rgba(34, 197, 94, 0.15);
-            border-color: #22c55e;
-            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
-        }
-
-        .capability-checkbox.required {
-            background: rgba(59, 130, 246, 0.1);
-            border-color: rgba(59, 130, 246, 0.3);
-            cursor: default;
-        }
-
-        .capability-checkbox.required input {
-            cursor: default;
-        }
-
-        .capability-checkbox.required.selected {
-            background: rgba(59, 130, 246, 0.15);
-            border-color: #3b82f6;
-        }
-
-        .capability-checkbox input {
-            margin: 0;
-            margin-top: 2px;
-        }
-
-        .capabilities-group {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-top: 8px;
-        }
-
-        .capability-presets {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 16px;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .preset-button {
-            padding: 6px 12px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 6px;
-            color: var(--text-color);
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-
-        .preset-button:hover {
-            background: rgba(255, 255, 255, 0.12);
-            transform: translateY(-1px);
-        }
-
-        .capability-category {
-            margin-bottom: 12px;
-        }
-
-        .category-header {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-color);
-            opacity: 0.8;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .category-capabilities {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 8px;
-        }
-
         .form-actions {
             display: flex;
             gap: 12px;
@@ -425,71 +309,22 @@ class BuddyCustomModelForm extends LitElement {
             text-decoration: none;
         }
 
-        .provider-info-item a:hover {
-            text-decoration: underline;
-        }
+                 .provider-info-item a:hover {
+             text-decoration: underline;
+         }
 
-        .capability-item {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 2px;
-        }
+         .form-row {
+             display: grid;
+             grid-template-columns: 1fr 1fr;
+             gap: 16px;
+         }
 
-        .capability-description {
-            font-size: 10px;
-            opacity: 0.7;
-            line-height: 1.2;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        .capability-validation {
-            margin-top: 8px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-        }
-
-        .capability-validation.errors {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-        }
-
-        .capability-validation.warnings {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            color: #f59e0b;
-        }
-
-        .capability-validation.success {
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            color: #22c55e;
-        }
-
-        .validation-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 4px;
-        }
-
-        .validation-item:last-child {
-            margin-bottom: 0;
-        }
-
-        @media (max-width: 600px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-        }
-    `;
+         @media (max-width: 600px) {
+             .form-row {
+                 grid-template-columns: 1fr;
+             }
+         }
+     `;
 
     open(editingModel = null) {
         this.editingModel = editingModel;
@@ -542,17 +377,7 @@ class BuddyCustomModelForm extends LitElement {
             }
         }
         
-        // Auto-populate common capabilities when provider changes (if none selected)
-        if (field === 'provider' && value && this.formData.capabilities.length <= 1) {
-            const presetCapabilities = this._getProviderCapabilityPreset(value);
-            this.formData = { ...this.formData, capabilities: presetCapabilities };
-        }
 
-        // Suggest capabilities based on model name
-        if (field === 'name' && value && this.formData.capabilities.length <= 1) {
-            const suggestedCapabilities = suggestCapabilities(value, this.formData.description, this.formData.provider);
-            this.formData = { ...this.formData, capabilities: suggestedCapabilities };
-        }
         
         if (this.errors[field]) {
             this.errors = { ...this.errors, [field]: null };
@@ -560,37 +385,7 @@ class BuddyCustomModelForm extends LitElement {
         this.requestUpdate();
     }
 
-    _onCapabilityToggle(capability) {
-        // Don't allow toggling required capabilities
-        const capabilityInfo = this._getAvailableCapabilities().find(c => c.id === capability);
-        if (capabilityInfo && capabilityInfo.required) {
-            return;
-        }
 
-        const capabilities = [...this.formData.capabilities];
-        const index = capabilities.indexOf(capability);
-        if (index >= 0) {
-            capabilities.splice(index, 1);
-        } else {
-            capabilities.push(capability);
-        }
-        
-        // Ensure required capabilities are always included
-        const requiredCapabilities = this._getAvailableCapabilities()
-            .filter(c => c.required)
-            .map(c => c.id);
-        
-        requiredCapabilities.forEach(reqCap => {
-            if (!capabilities.includes(reqCap)) {
-                capabilities.push(reqCap);
-            }
-        });
-        
-        this._onInputChange('capabilities', capabilities);
-        
-        // Validate capabilities and show feedback
-        this._validateCapabilities();
-    }
 
     _validateForm() {
         const errors = {};
@@ -685,15 +480,7 @@ class BuddyCustomModelForm extends LitElement {
         return getAllProviders();
     }
 
-    _getAvailableCapabilities() {
-        return getAllCapabilities().map(cap => ({
-            id: cap.id,
-            label: `${cap.icon} ${cap.name}`,
-            description: cap.description,
-            category: cap.category,
-            required: cap.required
-        }));
-    }
+
 
     _getProviderInfo(providerId) {
         const providerInfoMap = {
@@ -741,45 +528,12 @@ class BuddyCustomModelForm extends LitElement {
         return providerInfoMap[providerId] || providerInfoMap.custom;
     }
 
-    _getProviderCapabilityPreset(providerId) {
-        return getProviderCapabilityPreset(providerId);
-    }
 
-    _getCapabilityPresets() {
-        return getCapabilityPresets();
-    }
-
-    _applyCapabilityPreset(preset) {
-        this._onInputChange('capabilities', preset.capabilities);
-        this._validateCapabilities();
-    }
-
-    _validateCapabilities() {
-        const validation = validateCapabilities(this.formData.capabilities);
-        this.capabilityValidation = validation;
-        this.requestUpdate();
-    }
-
-    _groupCapabilitiesByCategory(capabilities) {
-        const categoryMap = {
-            'Core Capabilities': 'core',
-            'Media Processing': 'media', 
-            'Advanced Features': 'advanced',
-            'Real-time Features': 'realtime',
-            'Specialized Tasks': 'specialized'
-        };
-
-        return getCapabilitiesByCategory().map(category => ({
-            name: category.name,
-            capabilities: capabilities.filter(cap => cap.category === categoryMap[category.name])
-        })).filter(cat => cat.capabilities.length > 0);
-    }
 
     render() {
         if (!this.isOpen) return html``;
 
         const providers = this._getProviders();
-        const capabilities = this._getAvailableCapabilities();
 
         return html`
             <div class="modal" @click=${e => e.stopPropagation()}>
@@ -890,114 +644,44 @@ class BuddyCustomModelForm extends LitElement {
                         ${this.errors.baseUrl ? html`<div class="form-error">${this.errors.baseUrl}</div>` : ''}
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Description</label>
-                        <textarea
-                            class="form-textarea"
-                            .value=${this.formData.description}
-                            @input=${e => this._onInputChange('description', e.target.value)}
-                            placeholder="Brief description of this model"
-                        ></textarea>
-                    </div>
+                                         <div class="form-group">
+                         <label class="form-label">Description</label>
+                         <textarea
+                             class="form-textarea"
+                             .value=${this.formData.description}
+                             @input=${e => this._onInputChange('description', e.target.value)}
+                             placeholder="Brief description of this model"
+                         ></textarea>
+                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Capabilities</label>
-                        <div class="help-text">Select the capabilities your model supports. Use presets for quick setup.</div>
-                        
-                        <div class="capability-presets">
-                            ${this._getCapabilityPresets().map(preset => html`
-                                <button
-                                    type="button"
-                                    class="preset-button"
-                                    @click=${() => this._applyCapabilityPreset(preset)}
-                                    title="${preset.description}"
-                                >
-                                    ${preset.name}
-                                </button>
-                            `)}
-                        </div>
+                     <div class="form-row">
+                         <div class="form-group">
+                             <label class="form-label">Context Window</label>
+                             <input
+                                 type="number"
+                                 class="form-input"
+                                 .value=${this.formData.contextWindow}
+                                 @input=${e => this._onInputChange('contextWindow', e.target.value)}
+                                 min="1"
+                                 placeholder="4096"
+                             />
+                             <div class="help-text">Max tokens the model can process</div>
+                         </div>
 
-                        <div class="capabilities-group">
-                            ${this._groupCapabilitiesByCategory(capabilities).map(category => html`
-                                <div class="capability-category">
-                                    <div class="category-header">${category.name}</div>
-                                    <div class="category-capabilities">
-                                        ${category.capabilities.map(cap => html`
-                                            <label
-                                                class="capability-checkbox ${this.formData.capabilities.includes(cap.id) ? 'selected' : ''} ${cap.required ? 'required' : ''}"
-                                                @click=${() => cap.required ? null : this._onCapabilityToggle(cap.id)}
-                                                title="${cap.description}"
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    .checked=${this.formData.capabilities.includes(cap.id)}
-                                                    .disabled=${cap.required}
-                                                    @change=${() => cap.required ? null : this._onCapabilityToggle(cap.id)}
-                                                />
-                                                <div class="capability-item">
-                                                    <span>${cap.label} ${cap.required ? '*' : ''}</span>
-                                                    <span class="capability-description">${cap.description}</span>
-                                                </div>
-                                            </label>
-                                        `)}
-                                    </div>
-                                </div>
-                            `)}
-                        </div>
-
-                        ${this.capabilityValidation && (this.capabilityValidation.errors.length > 0 || this.capabilityValidation.warnings.length > 0) ? html`
-                            <div class="capability-validation ${this.capabilityValidation.errors.length > 0 ? 'errors' : 'warnings'}">
-                                ${this.capabilityValidation.errors.map(error => html`
-                                    <div class="validation-item">
-                                        <span>❌</span>
-                                        <span>${error}</span>
-                                    </div>
-                                `)}
-                                ${this.capabilityValidation.warnings.map(warning => html`
-                                    <div class="validation-item">
-                                        <span>⚠️</span>
-                                        <span>${warning}</span>
-                                    </div>
-                                `)}
-                            </div>
-                        ` : this.formData.capabilities.length > 1 ? html`
-                            <div class="capability-validation success">
-                                <div class="validation-item">
-                                    <span>✅</span>
-                                    <span>Capability configuration looks good!</span>
-                                </div>
-                            </div>
-                        ` : ''}
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Context Window</label>
-                            <input
-                                type="number"
-                                class="form-input"
-                                .value=${this.formData.contextWindow}
-                                @input=${e => this._onInputChange('contextWindow', e.target.value)}
-                                min="1"
-                                placeholder="4096"
-                            />
-                            <div class="help-text">Max tokens the model can process</div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Max Output Tokens</label>
-                            <input
-                                type="number"
-                                class="form-input"
-                                .value=${this.formData.maxTokens}
-                                @input=${e => this._onInputChange('maxTokens', e.target.value)}
-                                min="1"
-                                placeholder="1024"
-                            />
-                            <div class="help-text">Max tokens the model can generate</div>
-                        </div>
-                    </div>
-                </form>
+                         <div class="form-group">
+                             <label class="form-label">Max Output Tokens</label>
+                             <input
+                                 type="number"
+                                 class="form-input"
+                                 .value=${this.formData.maxTokens}
+                                 @input=${e => this._onInputChange('maxTokens', e.target.value)}
+                                 min="1"
+                                 placeholder="1024"
+                             />
+                             <div class="help-text">Max tokens the model can generate</div>
+                         </div>
+                     </div>
+                 </form>
 
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" @click=${this.close}>Cancel</button>
