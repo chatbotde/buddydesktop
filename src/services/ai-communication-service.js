@@ -295,8 +295,8 @@ class AICommunicationService {
                 return { success: false, error: 'Failed to capture screenshot' };
             }
             
-            // Send the screenshot to AI with a concise screen analysis prompt
-            const result = await this.sendTextMessage('🔍 **SCREEN ANALYZER**: Analyze this screenshot and provide concise, actionable insights.\n\n📋 **Format**:\n- 🎯 **What I see**: Brief summary\n- 💡 **Key Issue/Opportunity**: Main point\n- 🚀 **Solution**: Specific action to take\n- ⚡ **Next Step**: Immediate action\n\n💡 **Be concise, practical, and immediately actionable.**', [screenshotData]);
+            // Send the screenshot to AI for direct problem solving
+            const result = await this.sendTextMessage('You are a problem-solving assistant. Look at this screenshot and solve the problem directly. NEVER ask questions or request clarification. If you see code, provide the complete solution. If you see a math problem, solve it step by step. If you see an error, explain how to fix it. Give me the answer immediately without asking what I need.', [screenshotData]);
             
             if (result.success) {
                 console.log('Screenshot analyzed and sent to AI');
