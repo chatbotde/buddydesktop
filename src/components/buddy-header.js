@@ -46,7 +46,7 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
         this.isVisibleOnAllWorkspaces = true;
         this.windowOpacity = 1.0;
         this.isOpacityControlActive = false;
-        this.customMenuButtons = ['chat', 'history', 'models', 'customize', 'help', 'master-key'];
+        this.customMenuButtons = ['chat', 'history', 'models', 'customize', 'help']; // 'master-key' commented out
         this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
         this.isEventListenerActive = false;
         this.eventListenerTimeout = null;
@@ -451,6 +451,81 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
         );
     }
 
+    _handleDebugLiveStreaming() {
+        this._closeMainMenu();
+        console.log('Debug Live Streaming activated');
+        
+        // Dispatch event to open debug streaming window or view
+        this.dispatchEvent(
+            new CustomEvent('debug-live-streaming', {
+                bubbles: true,
+                composed: true,
+            })
+        );
+        
+        // You can also open the streaming demo directly
+        try {
+            // Import and create the streaming demo component
+            import('../enhanced-streaming-demo.js').then(() => {
+                const demoElement = document.createElement('enhanced-streaming-demo');
+                
+                // Create a modal or window to display the demo
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100vw;
+                    height: 100vh;
+                    background: rgba(0, 0, 0, 0.8);
+                    z-index: 10000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                `;
+                
+                const container = document.createElement('div');
+                container.style.cssText = `
+                    background: white;
+                    border-radius: 8px;
+                    padding: 20px;
+                    max-width: 90vw;
+                    max-height: 90vh;
+                    overflow: auto;
+                    position: relative;
+                `;
+                
+                const closeButton = document.createElement('button');
+                closeButton.textContent = '×';
+                closeButton.style.cssText = `
+                    position: absolute;
+                    top: 10px;
+                    right: 15px;
+                    border: none;
+                    background: none;
+                    font-size: 24px;
+                    cursor: pointer;
+                    z-index: 1;
+                `;
+                closeButton.onclick = () => document.body.removeChild(modal);
+                
+                container.appendChild(closeButton);
+                container.appendChild(demoElement);
+                modal.appendChild(container);
+                document.body.appendChild(modal);
+                
+                // Close modal when clicking outside
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        document.body.removeChild(modal);
+                    }
+                });
+            });
+        } catch (error) {
+            console.error('Failed to load streaming demo:', error);
+        }
+    }
+
     _getEnabledModelsData() {
         if (!this.enabledModels || this.enabledModels.length === 0) {
             return [];
@@ -491,7 +566,7 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
             },
             customize: {
                 id: 'customize',
-                name: 'Customize',
+                name: 'Profile',
                 icon: 'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
             },
             help: {
@@ -569,16 +644,19 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
                 showStatus: true,
                 statusKey: 'isVisibleOnAllWorkspaces',
             },
+            /*
             debug: {
                 id: 'debug',
                 name: 'Debug Live Streaming',
                 icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
+                handler: '_handleDebugLiveStreaming',
             },
             'master-key': {
                 id: 'master-key',
                 name: 'Master Key Settings',
                 icon: 'M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0',
             },
+            */
         };
 
         // Always ensure we have the latest customMenuButtons from localStorage
@@ -589,13 +667,13 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
 
     render() {
         const titles = {
-            customize: 'Customize',
+            customize: 'Profile',
             help: 'Help & Shortcuts',
             assistant: 'Buddy',
             settings: 'AI Settings',
             models: 'Models',
-            history: 'History', // Add this line
-            'master-key': 'Master Key Settings',
+            history: 'History',
+            // 'master-key': 'Master Key Settings', // Commented out
         };
         const statusIndicator = this.sessionActive ? 'status-live' : 'status-idle';
 

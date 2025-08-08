@@ -60,14 +60,14 @@ import './marketplace-window.js';
 
                                 <div class="menu-divider"></div>
 
-                                <!-- Audio Window -->
-                                <button class="menu-item" @click=${this._handleOpenAudioWindow}>
+                                <!-- Audio Window - Commented Out -->
+                                <!-- <button class="menu-item" @click=${this._handleOpenAudioWindow}>
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
                                         <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
                                     </svg>
                                     <span class="menu-item-label">Audio Window</span>
-                                </button>
+                                </button> -->
 
                                 <div class="menu-divider"></div>
 
@@ -81,7 +81,8 @@ import './marketplace-window.js';
                                         <span class="menu-item-label">New Chat</span>
                                     </button>
                                     
-                                    <button class="menu-item ${this.isAudioActive ? 'active' : 'inactive'}" @click=${this._handleMenuToggleAudio}>
+                                    <!-- Audio Toggle - Commented Out -->
+                                    <!-- <button class="menu-item ${this.isAudioActive ? 'active' : 'inactive'}" @click=${this._handleMenuToggleAudio}>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M2 10v3"/>
                                             <path d="M6 6v11"/>
@@ -92,16 +93,17 @@ import './marketplace-window.js';
                                         </svg>
                                         <span class="menu-item-label">Audio</span>
                                         <span class="menu-item-status">${this.isAudioActive ? 'ON' : 'OFF'}</span>
-                                    </button>
+                                    </button> -->
                                     
-                                    <button class="menu-item ${this.isScreenActive ? 'active' : 'inactive'}" @click=${this._handleMenuToggleScreen}>
+                                    <!-- Video Toggle - Commented Out -->
+                                    <!-- <button class="menu-item ${this.isScreenActive ? 'active' : 'inactive'}" @click=${this._handleMenuToggleScreen}>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/>
                                             <rect x="2" y="6" width="14" height="12" rx="2"/>
                                         </svg>
                                         <span class="menu-item-label">Video</span>
                                         <span class="menu-item-status">${this.isScreenActive ? 'ON' : 'OFF'}</span>
-                                    </button>
+                                    </button> -->
                                     
                                     <div class="menu-divider"></div>
                                     

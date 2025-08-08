@@ -752,19 +752,6 @@ class BuddyModelsView extends LitElement {
                     />
                 </div>
 
-                <div class="filters-container">
-                    <span class="filter-label">Filter by capability:</span>
-                    <select
-                        class="capability-filter"
-                        .value=${this.selectedCapabilityFilter}
-                        @change=${this._onCapabilityFilterChange}
-                    >
-                        <option value="">All Capabilities</option>
-                        ${this._getAvailableCapabilities().map(capability => html`
-                            <option value="${capability}">${this._formatCapabilityName(capability)}</option>
-                        `)}
-                    </select>
-                </div>
 
                 <div class="controls-container">
                     <button class="add-model-button" @click=${this._onAddCustomModel}>
@@ -815,9 +802,6 @@ class BuddyModelsView extends LitElement {
                                                         <div class="model-details">
                                                             <div class="model-name">
                                                                 ${model.name}
-                                                                ${this._isDefaultEnabled(model.id)
-                                                                    ? html` <span class="default-indicator" title="Recommended by default">⭐</span> `
-                                                                    : ''}
                                                                 <span class="live-indicator">
                                                                     <span class="live-pulse"></span>
                                                                     LIVE
@@ -880,9 +864,6 @@ class BuddyModelsView extends LitElement {
                                                         <div class="model-details">
                                                             <div class="model-name">
                                                                 ${model.name}
-                                                                ${this._isDefaultEnabled(model.id)
-                                                                    ? html` <span class="default-indicator" title="Recommended by default">⭐</span> `
-                                                                    : ''}
                                                             </div>
                                                             <div class="model-provider">${model.provider}</div>
                                                             ${model.badge ? html` <div class="model-badge">${model.badge}</div> ` : ''}

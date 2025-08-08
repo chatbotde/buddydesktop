@@ -129,6 +129,20 @@ function setupGlobalShortcuts(mainWindow) {
             console.error('Error triggering clear chat:', error);
         }
     });
+
+    // Theme opacity reset shortcut (Ctrl+Alt+T)
+    globalShortcut.register('CommandOrControl+Alt+T', async () => {
+        console.log('Theme opacity reset shortcut triggered');
+        try {
+            // Send command to renderer to reset theme opacity to 100%
+            const windows = BrowserWindow.getAllWindows();
+            if (windows.length > 0) {
+                windows[0].webContents.send('reset-theme-opacity');
+            }
+        } catch (error) {
+            console.error('Error triggering theme opacity reset:', error);
+        }
+    });
 }
 
 /**

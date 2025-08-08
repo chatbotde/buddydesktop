@@ -357,7 +357,7 @@ class BuddyCustomizeView extends LitElement {
                           </div>
                       `
                     : ''}
-
+                <!--
                 <div class="option-group">
                     <label class="option-label">Select Language</label>
                     <select .value=${this.selectedLanguage} @change=${this._onLanguageSelect}>
@@ -369,6 +369,7 @@ class BuddyCustomizeView extends LitElement {
                     </select>
                     <div class="description">Choose the language for speech recognition and AI responses.</div>
                 </div>
+                -->
             </div>
         `;
     }

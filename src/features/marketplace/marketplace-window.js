@@ -53,13 +53,13 @@ class MarketplaceWindow extends LitElement {
                 category: 'Support',
                 description: 'Get help and shortcuts'
             },
-            {
-                id: 'audio-window',
-                name: 'Audio Window',
-                icon: 'M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z',
-                category: 'Audio',
+            /* {
+            //     id: 'audio-window',
+            //     name: 'Audio Window',
+            //     icon: 'M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z',
+            //     category: 'Audio',
                 description: 'Open audio controls window'
-            },
+            },*/
             {
                 id: 'new-chat',
                 name: 'New Chat',
@@ -67,20 +67,20 @@ class MarketplaceWindow extends LitElement {
                 category: 'Communication',
                 description: 'Start a new conversation'
             },
-            {
-                id: 'toggle-audio',
-                name: 'Toggle Audio',
-                icon: 'M2 10v3 M6 6v11 M10 3v18 M14 8v7 M18 5v13 M22 10v3',
-                category: 'Audio',
-                description: 'Toggle audio recording'
-            },
-            {
-                id: 'toggle-video',
-                name: 'Toggle Video',
-                icon: 'm16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5 M2 6h14v12H2z',
-                category: 'Video',
-                description: 'Toggle video recording'
-            },
+            // {
+            //     id: 'toggle-audio',
+            //     name: 'Toggle Audio',
+            //     icon: 'M2 10v3 M6 6v11 M10 3v18 M14 8v7 M18 5v13 M22 10v3',
+            //     category: 'Audio',
+            //     description: 'Toggle audio recording'
+            // },
+            // {
+            //     id: 'toggle-video',
+            //     name: 'Toggle Video',
+            //     icon: 'm16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5 M2 6h14v12H2z',
+            //     category: 'Video',
+            //     description: 'Toggle video recording'
+            // },
             {
                 id: 'content-protection',
                 name: 'Content Protection',
@@ -95,20 +95,20 @@ class MarketplaceWindow extends LitElement {
                 category: 'Workspace',
                 description: 'Toggle visibility on all workspaces'
             },
-            {
-                id: 'search-window',
-                name: 'Search Window',
-                icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
-                category: 'Tools',
-                description: 'Open dedicated search window for files and content'
-            },
-            {
-                id: 'toggle-search',
-                name: 'Search Toggle',
-                icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
-                category: 'Tools', 
-                description: 'Toggle search functionality on/off'
-            }
+            // {
+            //     id: 'search-window',
+            //     name: 'Search Window',
+            //     icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
+            //     category: 'Tools',
+            //     description: 'Open dedicated search window for files and content'
+            // },
+            // {
+            //     id: 'toggle-search',
+            //     name: 'Search Toggle',
+            //     icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
+            //     category: 'Tools', 
+            //     description: 'Toggle search functionality on/off'
+            // }
         ];
     }
 
@@ -759,7 +759,7 @@ class MarketplaceWindow extends LitElement {
                 name: 'Customize',
                 icon: 'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
                 category: 'Settings',
-                description: 'Customize appearance and settings'
+                description: 'profile settings'
             },
             {
                 id: 'help',
@@ -768,13 +768,13 @@ class MarketplaceWindow extends LitElement {
                 category: 'Support',
                 description: 'Get help and shortcuts'
             },
-            {
+            /* {
                 id: 'audio-window',
                 name: 'Audio Window',
-                icon: 'M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z',
-                category: 'Audio',
-                description: 'Open audio controls window'
-            },
+                 icon: 'M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z',
+                 category: 'Audio',
+                 description: 'Open audio controls window'
+             },*/
             {
                 id: 'new-chat',
                 name: 'New Chat',
@@ -782,20 +782,20 @@ class MarketplaceWindow extends LitElement {
                 category: 'Communication',
                 description: 'Start a new conversation'
             },
-            {
-                id: 'toggle-audio',
-                name: 'Toggle Audio',
-                icon: 'M2 10v3 M6 6v11 M10 3v18 M14 8v7 M18 5v13 M22 10v3',
-                category: 'Audio',
-                description: 'Toggle audio recording'
-            },
-            {
-                id: 'toggle-video',
-                name: 'Toggle Video',
-                icon: 'm16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5 M2 6h14v12H2z',
-                category: 'Video',
-                description: 'Toggle video recording'
-            },
+            // {
+            //     id: 'toggle-audio',
+            //     name: 'Toggle Audio',
+            //     icon: 'M2 10v3 M6 6v11 M10 3v18 M14 8v7 M18 5v13 M22 10v3',
+            //     category: 'Audio',
+            //     description: 'Toggle audio recording'
+            // },
+            // {
+            //     id: 'toggle-video',
+            //     name: 'Toggle Video',
+            //     icon: 'm16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5 M2 6h14v12H2z',
+            //     category: 'Video',
+            //     description: 'Toggle video recording'
+            // },
             {
                 id: 'content-protection',
                 name: 'Content Protection',
@@ -810,20 +810,20 @@ class MarketplaceWindow extends LitElement {
                 category: 'Workspace',
                 description: 'Toggle visibility on all workspaces'
             },
-            {
-                id: 'search-window',
-                name: 'Search Window',
-                icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
-                category: 'Tools',
-                description: 'Open dedicated search window for files and content'
-            },
-            {
-                id: 'toggle-search',
-                name: 'Search Toggle',
-                icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
-                category: 'Tools', 
-                description: 'Toggle search functionality on/off'
-            }
+            // {
+            //     id: 'search-window',
+            //     name: 'Search Window',
+            //     icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
+            //     category: 'Tools',
+            //     description: 'Open dedicated search window for files and content'
+            // },
+            // {
+            //     id: 'toggle-search',
+            //     name: 'Search Toggle',
+            //     icon: 'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
+            //     category: 'Tools', 
+            //     description: 'Toggle search functionality on/off'
+            // }
         ];
 
         let selectedButtons = ${JSON.stringify(selectedButtons)};

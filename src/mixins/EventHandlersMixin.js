@@ -387,6 +387,12 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
                 console.log('🧹 Clear chat shortcut triggered');
                 await this.handleNewChat();
             });
+
+            // Listen for theme opacity reset shortcut
+            ipcRenderer.on('reset-theme-opacity', async () => {
+                console.log('🎨 Theme opacity reset shortcut triggered');
+                await this.setWindowOpacity(1.0); // Reset to 100%
+            });
         }
     }
 
@@ -417,6 +423,7 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
             ipcRenderer.removeAllListeners('update-status');
             ipcRenderer.removeAllListeners('marketplace-buttons-updated');
             ipcRenderer.removeAllListeners('clear-chat-shortcut');
+            ipcRenderer.removeAllListeners('reset-theme-opacity');
         }
     }
 
