@@ -7,20 +7,20 @@ class AICommunicationService {
     }
 
     setupEventListeners() {
-        // Listen for status updates
+        // Listen for status updates - only process if assistant view is active
         ipcRenderer.on('update-status', (event, status) => {
-            console.log('Status update:', status);
             const buddy = this.getBuddyElement();
-            if (buddy) {
+            if (buddy && buddy.currentView === 'assistant') {
+                console.log('Status update:', status);
                 buddy.setStatus(status);
             }
         });
 
-        // Listen for responses
+        // Listen for responses - only process if assistant view is active
         ipcRenderer.on('update-response', (event, response) => {
-            console.log('AI response:', response);
             const buddy = this.getBuddyElement();
-            if (buddy) {
+            if (buddy && buddy.currentView === 'assistant') {
+                console.log('AI response:', response);
                 buddy.setResponse(response);
             }
         });

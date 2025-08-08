@@ -15,6 +15,7 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         isStreaming: { type: Boolean },
         screenshots: { type: Array }, // Array of base64 screenshot data
         autoScreenshotEnabled: { type: Boolean }, // New property for auto screenshot
+        isViewingHistory: { type: Boolean }, // Flag to indicate viewing historical messages
         isEditing: { type: Boolean },
         editableContent: { type: String },
         // Text stream animation properties
@@ -997,7 +998,7 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
                         : this.text
                         ? html`
                               <div class="message-content">
-                                  ${this.sender === 'assistant' && this.enableTextAnimation
+                                  ${this.sender === 'assistant' && this.enableTextAnimation && !this.isViewingHistory
                                       ? this._renderStreamingContent()
                                       : this.sender === 'assistant'
                                       ? html`<div .innerHTML=${this._processMessageContent(this.text)}></div>`

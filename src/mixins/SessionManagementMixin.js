@@ -50,6 +50,7 @@ export const SessionManagementMixin = (superClass) => class extends superClass {
         this.statusText = '';
         this.isStreamingActive = false;
         this.streamingResponseText = '';
+        this.isViewingHistory = false; // Clear history viewing mode
         
         // Reset assistant view states (loading animations, stop button, etc.)
         const assistantView = this.shadowRoot?.querySelector('buddy-assistant-view');
@@ -98,6 +99,7 @@ export const SessionManagementMixin = (superClass) => class extends superClass {
             this.responses = [];
             this.currentResponseIndex = -1;
             this.chatMessages = []; // Clear chat messages
+            this.isViewingHistory = false; // Clear history viewing mode
             this.currentView = 'assistant';
             
             // Add welcome message to chat
@@ -261,18 +263,21 @@ export const SessionManagementMixin = (superClass) => class extends superClass {
     loadSessionFromHistory(index) {
         const session = this.history[index];
         if (session) {
-            // Ensure every message has a unique id
+            // Ensure every message has a unique id and clear any streaming state
             this.chatMessages = session.messages.map(msg => ({
                 ...msg,
-                id: msg.id || (Date.now().toString(36) + Math.random().toString(36).slice(2))
+                id: msg.id || (Date.now().toString(36) + Math.random().toString(36).slice(2)),
+                isStreaming: false // Ensure historical messages don't have streaming state
             }));
             this.selectedProvider = session.provider;
             this.selectedModel = session.model;
             this.sessionActive = false;
             this.isAudioActive = false;
             this.isScreenActive = false;
+            this.isStreamingActive = false; // Clear streaming state
             this.startTime = null;
             this.statusText = 'Viewing history';
+            this.isViewingHistory = true; // Set flag to indicate we're viewing history
             this.currentView = 'assistant';
         }
     }

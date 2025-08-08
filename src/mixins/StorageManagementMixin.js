@@ -122,6 +122,14 @@ export const StorageManagementMixin = (superClass) => class extends superClass {
     }
 
     async loadChatHistory() {
+        // Add debug logging to track when history loading is called
+        console.log('📚 Loading chat history...', {
+            currentView: this.currentView,
+            isAuthenticated: this.isAuthenticated,
+            isGuest: this.isGuest,
+            stackTrace: new Error().stack.split('\n').slice(1, 4).map(line => line.trim())
+        });
+        
         if (this.isAuthenticated && !this.isGuest) {
             // Load from database for authenticated users
             try {
@@ -129,6 +137,7 @@ export const StorageManagementMixin = (superClass) => class extends superClass {
                 const result = await ipcRenderer.invoke('load-chat-history', { userId: this.user?.id });
                 if (result.success) {
                     this.history = result.history || [];
+                    console.log('✅ Chat history loaded from database:', this.history.length, 'sessions');
                 }
             } catch (error) {
                 console.error('Failed to load chat history from database:', error);

@@ -11,9 +11,6 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
             this.isAuthenticated = true;
             this.isGuest = e.detail.isGuest || false;
             
-            // Load user preferences and history
-            await this.loadChatHistory();
-            
             // Initialize auth service
             await this.initializeAuth();
             
@@ -27,7 +24,7 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
                 this.selectedModel = this.getDefaultModelForProvider(this.selectedProvider);
             }
             
-            // Navigate to assistant view
+            // Navigate to assistant view (history will load lazily when needed)
             this.currentView = 'assistant';
             this.requestUpdate();
         });
@@ -103,8 +100,7 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
                 this.isAuthenticated = false;
                 this.isGuest = true;
                 
-                // Load user preferences and history for guest mode
-                await this.loadChatHistory();
+                // Load user preferences (history loads lazily when needed)
                 await this.loadAvailableThemes();
                 await this.loadSavedTheme();
                 await this.loadSavedOpacity();
@@ -225,9 +221,16 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
         this.addEventListener('close', async () => {
             await this.handleClose();
         });
-        this.addEventListener('navigate', (e) => {
-            // Redirect main view to assistant since we removed home routes
-            this.currentView = e.detail.view === 'main' ? 'assistant' : e.detail.view;
+        this.addEventListener('navigate', async (e) => {
+            const targetView = e.detail.view === 'main' ? 'assistant' : e.detail.view;
+            
+            // Only load history when actually navigating to history view
+            if (targetView === 'history' && this.currentView !== 'history') {
+                console.log('📚 Navigating to history view - lazy loading history data...');
+                await this.loadChatHistory();
+            }
+            
+            this.currentView = targetView;
         });
 
         this.addEventListener('toggle-audio', async () => {

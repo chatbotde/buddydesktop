@@ -112,6 +112,7 @@ class BuddyApp extends AuthInitializationMixin(
                 .chatMessages=${this.chatMessages}
                 .isStreamingActive=${this.isStreamingActive}
                 .selectedModel=${this.selectedModel}
+                .isViewingHistory=${this.isViewingHistory}
             ></buddy-assistant-view>`,
             
             settings: html`<buddy-settings-view

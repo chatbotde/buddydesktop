@@ -6,6 +6,12 @@ export const ChatManagementMixin = (superClass) => class extends superClass {
     
     // Replace existing setResponse method
     setResponse(data) {
+        // Prevent streaming when viewing history - treat all as complete messages
+        if (this.isViewingHistory) {
+            console.log('🚫 Ignoring setResponse while viewing history');
+            return;
+        }
+        
         let responseText;
         let isStreamingChunk = false;
         let isFinalChunkOfStream = false;

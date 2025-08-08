@@ -26,6 +26,7 @@ export const StateManagementMixin = (superClass) => class extends superClass {
         history: { type: Array },
         providers: { type: Array },
         historyLimit: { type: Number },
+        isViewingHistory: { type: Boolean },
         user: { type: Object },
         isAuthenticated: { type: Boolean },
         isGuest: { type: Boolean },
@@ -65,6 +66,7 @@ export const StateManagementMixin = (superClass) => class extends superClass {
             { value: 'openrouter', name: 'OpenRouter', keyLabel: 'OpenRouter API Key' },
         ];
         this.historyLimit = 5;
+        this.isViewingHistory = false;
         this.user = null;
         this.isAuthenticated = false;
         this.isGuest = false;

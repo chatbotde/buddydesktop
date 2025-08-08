@@ -46,7 +46,7 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
         this.isVisibleOnAllWorkspaces = true;
         this.windowOpacity = 1.0;
         this.isOpacityControlActive = false;
-        this.customMenuButtons = ['chat', 'history', 'models', 'customize', 'help', 'master-key', 'debug'];
+        this.customMenuButtons = ['chat', 'history', 'models', 'customize', 'help', 'master-key'];
         this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
         this.isEventListenerActive = false;
         this.eventListenerTimeout = null;
@@ -594,7 +594,7 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
             assistant: 'Buddy',
             settings: 'AI Settings',
             models: 'Models',
-            debug: 'Debug Live Streaming',
+            history: 'History', // Add this line
             'master-key': 'Master Key Settings',
         };
         const statusIndicator = this.sessionActive ? 'status-live' : 'status-idle';

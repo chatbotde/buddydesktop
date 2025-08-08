@@ -18,6 +18,7 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
         isStopping: { type: Boolean }, // New property for stopping animation
         showLiveMediaInput: { type: Boolean }, // Toggle for live media input
         isLiveStreamingActive: { type: Boolean }, // Toggle for live streaming mode
+        isViewingHistory: { type: Boolean }, // Flag to indicate viewing historical messages
     };
 
     constructor() {
@@ -730,6 +731,7 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                                       .isStreaming=${message.isStreaming}
                                       .screenshots=${message.screenshots}
                                       .autoScreenshotEnabled=${this.autoScreenshotEnabled}
+                                      .isViewingHistory=${this.isViewingHistory}
                                       @delete-message=${e => this._onDelete(e)}
                                       @copy-message=${() => this._onCopy(message)}
                                       @message-content-updated=${this._onMessageContentUpdated}
