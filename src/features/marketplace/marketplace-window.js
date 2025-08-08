@@ -83,14 +83,14 @@ class MarketplaceWindow extends LitElement {
             // },
             {
                 id: 'content-protection',
-                name: 'Content Protection',
+                name: 'Invisible/Visible',
                 icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
                 category: 'Privacy',
                 description: 'Toggle content protection and visibility'
             },
             {
                 id: 'workspace-visibility',
-                name: 'All Workspaces',
+                name: 'All Workspaces Invisible/Visible',
                 icon: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
                 category: 'Workspace',
                 description: 'Toggle visibility on all workspaces'
@@ -798,14 +798,14 @@ class MarketplaceWindow extends LitElement {
             // },
             {
                 id: 'content-protection',
-                name: 'Content Protection',
+                name: 'Invisible/Visible',
                 icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
                 category: 'Privacy',
                 description: 'Toggle content protection and visibility'
             },
             {
                 id: 'workspace-visibility',
-                name: 'All Workspaces',
+                name: 'All Workspaces Invisible/Visible',
                 icon: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
                 category: 'Workspace',
                 description: 'Toggle visibility on all workspaces'

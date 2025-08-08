@@ -288,6 +288,91 @@ export const helpStyles = css`
         margin-top: 8px;
     }
 
+    .section-subtitle {
+        font-size: 12px;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.6);
+        margin-left: 8px;
+    }
+
+    .shortcut-group {
+        margin-bottom: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.03);
+        overflow: hidden;
+    }
+
+    .group-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .group-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #ffffff;
+        letter-spacing: 0.3px;
+    }
+
+    .toggle-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 50px;
+        text-align: center;
+    }
+
+    .toggle-btn.enabled {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border-color: #10b981;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .toggle-btn.enabled:hover {
+        background: linear-gradient(135deg, #059669, #10b981);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .toggle-btn.disabled {
+        background: rgba(239, 68, 68, 0.8);
+        color: white;
+        border-color: #ef4444;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+
+    .toggle-btn.disabled:hover {
+        background: rgba(239, 68, 68, 0.9);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+
+    .shortcuts-list {
+        padding: 16px 20px;
+        display: grid;
+        gap: 12px;
+        transition: opacity 0.3s ease;
+    }
+
+    .shortcuts-list.disabled {
+        opacity: 0.4;
+    }
+
+    .shortcuts-list.enabled {
+        opacity: 1;
+    }
+
     @media (max-width: 640px) {
         .help-container {
             padding: 16px;

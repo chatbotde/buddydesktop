@@ -10,7 +10,8 @@ const {
     createSearchWindow, 
     createMarketplaceWindow,
     createConsistentWindow,
-    windowManager 
+    windowManager,
+    updateShortcutState
 } = require('../window-manager');
 const { AppState } = require('../app-config');
 
@@ -191,6 +192,32 @@ function registerWindowHandlers() {
         } catch (error) {
             console.error('Failed to get simple themes:', error);
             return { success: false, error: error.message };
+        }
+    });
+
+    // Shortcut state update handler
+    ipcMain.on('update-shortcut-state', (event, data) => {
+        const { shortcutId, enabled } = data;
+        console.log(`Updating shortcut state: ${shortcutId} = ${enabled}`);
+        
+        try {
+            // Get the main window
+            const windows = BrowserWindow.getAllWindows();
+            const mainWindow = windows.length > 0 ? windows[0] : null;
+            
+            if (mainWindow) {
+                // Call the updateShortcutState function
+                updateShortcutState(shortcutId, enabled, mainWindow);
+                
+                // Send confirmation back to renderer
+                event.reply('shortcut-state-updated', { shortcutId, enabled, success: true });
+            } else {
+                console.error('No main window found for shortcut state update');
+                event.reply('shortcut-state-updated', { shortcutId, enabled, success: false, error: 'No main window found' });
+            }
+        } catch (error) {
+            console.error('Error updating shortcut state:', error);
+            event.reply('shortcut-state-updated', { shortcutId, enabled, success: false, error: error.message });
         }
     });
 

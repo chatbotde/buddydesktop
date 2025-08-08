@@ -393,6 +393,12 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
                 console.log('🎨 Theme opacity reset shortcut triggered');
                 await this.setWindowOpacity(1.0); // Reset to 100%
             });
+
+            // Listen for close application shortcut
+            ipcRenderer.on('close-application-shortcut', async () => {
+                console.log('🚪 Close application shortcut triggered');
+                await this.handleWindowClose();
+            });
         }
     }
 
@@ -424,6 +430,7 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
             ipcRenderer.removeAllListeners('marketplace-buttons-updated');
             ipcRenderer.removeAllListeners('clear-chat-shortcut');
             ipcRenderer.removeAllListeners('reset-theme-opacity');
+            ipcRenderer.removeAllListeners('close-application-shortcut');
         }
     }
 

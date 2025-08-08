@@ -12,6 +12,60 @@ const AutoUpdateService = require('../auto-updater');
 // Import the new window system
 const { createWindow: createManagedWindow, windowManager } = require('../window');
 
+// Shortcut state management
+let shortcutsEnabled = {
+    'window-movement': true,
+    'mouse-events': true,
+    'window-visibility': true,
+    'screen-analysis': true,
+    'clear-chat': true,
+    'theme-opacity-reset': true,
+    'close-application': true
+};
+
+let registeredShortcuts = [];
+
+/**
+ * Load shortcut settings from local storage or config
+ */
+function loadShortcutSettings() {
+    // For now, start with all enabled. In a real implementation,
+    // this would load from a config file or database
+    return shortcutsEnabled;
+}
+
+/**
+ * Register a shortcut if it's enabled
+ */
+function registerShortcutIfEnabled(shortcutId, accelerator, callback) {
+    if (shortcutsEnabled[shortcutId]) {
+        globalShortcut.register(accelerator, callback);
+        registeredShortcuts.push({ id: shortcutId, accelerator });
+        console.log(`Registered shortcut: ${shortcutId} (${accelerator})`);
+    } else {
+        console.log(`Shortcut disabled: ${shortcutId} (${accelerator})`);
+    }
+}
+
+/**
+ * Update shortcut state and re-register shortcuts
+ */
+function updateShortcutState(shortcutId, enabled, mainWindow) {
+    shortcutsEnabled[shortcutId] = enabled;
+    
+    // Unregister all current shortcuts
+    registeredShortcuts.forEach(shortcut => {
+        globalShortcut.unregister(shortcut.accelerator);
+        console.log(`Unregistered shortcut: ${shortcut.id} (${shortcut.accelerator})`);
+    });
+    registeredShortcuts = [];
+    
+    // Re-register all shortcuts based on current state
+    setupGlobalShortcuts(mainWindow);
+    
+    console.log(`Updated shortcut state: ${shortcutId} = ${enabled}`);
+}
+
 /**
  * Utility function to create windows with consistent properties
  */
@@ -39,7 +93,7 @@ function setupGlobalShortcuts(mainWindow) {
 
     // Movement shortcuts
     shortcuts.movement.forEach(accelerator => {
-        globalShortcut.register(accelerator, () => {
+        registerShortcutIfEnabled('window-movement', accelerator, () => {
             const [currentX, currentY] = mainWindow.getPosition();
             let newX = currentX;
             let newY = currentY;
@@ -64,7 +118,7 @@ function setupGlobalShortcuts(mainWindow) {
     });
 
     // Toggle visibility shortcut
-    globalShortcut.register(shortcuts.toggleVisibility, () => {
+    registerShortcutIfEnabled('window-visibility', shortcuts.toggleVisibility, () => {
         if (mainWindow.isVisible()) {
             mainWindow.hide();
         } else {
@@ -73,7 +127,7 @@ function setupGlobalShortcuts(mainWindow) {
     });
 
     // Toggle mouse events shortcut
-    globalShortcut.register(shortcuts.toggleMouseEvents, () => {
+    registerShortcutIfEnabled('mouse-events', shortcuts.toggleMouseEvents, () => {
         let mouseEventsIgnored = AppState.get('mouseEventsIgnored');
         mouseEventsIgnored = !mouseEventsIgnored;
         AppState.set('mouseEventsIgnored', mouseEventsIgnored);
@@ -87,23 +141,8 @@ function setupGlobalShortcuts(mainWindow) {
         }
     });
 
-    // Next step shortcut
-    globalShortcut.register(shortcuts.nextStep, async () => {
-        console.log('Next step shortcut triggered');
-        try {
-            const geminiSession = AppState.get('geminiSession');
-            if (geminiSession) {
-                await geminiSession.sendMessage('continue');
-            } else {
-                console.log('No active session to send message to');
-            }
-        } catch (error) {
-            console.error('Error sending next step message:', error);
-        }
-    });
-
     // Screenshot analysis shortcut
-    globalShortcut.register(shortcuts.screenshot, async () => {
+    registerShortcutIfEnabled('screen-analysis', shortcuts.screenshot, async () => {
         console.log('Screen analysis shortcut triggered');
         try {
             // Send command to renderer to capture screenshot and analyze it
@@ -117,7 +156,7 @@ function setupGlobalShortcuts(mainWindow) {
     });
 
     // Clear chat shortcut
-    globalShortcut.register(shortcuts.clearChat, async () => {
+    registerShortcutIfEnabled('clear-chat', shortcuts.clearChat, async () => {
         console.log('Clear chat shortcut triggered');
         try {
             // Send command to renderer to clear chat
@@ -131,7 +170,7 @@ function setupGlobalShortcuts(mainWindow) {
     });
 
     // Theme opacity reset shortcut (Ctrl+Alt+T)
-    globalShortcut.register('CommandOrControl+Alt+T', async () => {
+    registerShortcutIfEnabled('theme-opacity-reset', 'CommandOrControl+Alt+T', async () => {
         console.log('Theme opacity reset shortcut triggered');
         try {
             // Send command to renderer to reset theme opacity to 100%
@@ -141,6 +180,20 @@ function setupGlobalShortcuts(mainWindow) {
             }
         } catch (error) {
             console.error('Error triggering theme opacity reset:', error);
+        }
+    });
+
+    // Close application shortcut (Ctrl+Alt+Q)
+    registerShortcutIfEnabled('close-application', 'CommandOrControl+Alt+Q', async () => {
+        console.log('Close application shortcut triggered');
+        try {
+            // Send command to renderer to close application
+            const windows = BrowserWindow.getAllWindows();
+            if (windows.length > 0) {
+                windows[0].webContents.send('close-application-shortcut');
+            }
+        } catch (error) {
+            console.error('Error triggering close application:', error);
         }
     });
 }
@@ -395,5 +448,6 @@ module.exports = {
     createMarketplaceWindow,
     sendToRenderer,
     setupGlobalShortcuts,
+    updateShortcutState,
     windowManager
 };

@@ -8,6 +8,7 @@ class BuddyHelpView extends LitElement {
         currentVersion: { type: String },
         updateStatus: { type: String },
         updateInfo: { type: Object },
+        shortcutsEnabled: { type: Object },
     };
 
     static styles = [helpStyles];
@@ -17,8 +18,52 @@ class BuddyHelpView extends LitElement {
         this.currentVersion = '';
         this.updateStatus = '';
         this.updateInfo = null;
+        this.shortcutsEnabled = this._loadShortcutSettings();
         this.getCurrentVersion();
         this.setupIpcListeners();
+    }
+
+    _loadShortcutSettings() {
+        try {
+            const saved = localStorage.getItem('shortcuts-enabled');
+            if (saved) {
+                return JSON.parse(saved);
+            }
+        } catch (error) {
+            console.error('Error loading shortcut settings:', error);
+        }
+        // Default all shortcuts enabled
+        return {
+            'window-movement': true,
+            'mouse-events': true,
+            'window-visibility': true,
+            'screen-analysis': true,
+            'clear-chat': true,
+            'theme-opacity-reset': true,
+            'close-application': true
+        };
+    }
+
+    _saveShortcutSettings() {
+        try {
+            localStorage.setItem('shortcuts-enabled', JSON.stringify(this.shortcutsEnabled));
+        } catch (error) {
+            console.error('Error saving shortcut settings:', error);
+        }
+    }
+
+    _toggleShortcut(shortcutId) {
+        this.shortcutsEnabled[shortcutId] = !this.shortcutsEnabled[shortcutId];
+        this._saveShortcutSettings();
+        
+        // Send IPC message to update shortcuts in main process
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.send('update-shortcut-state', {
+            shortcutId,
+            enabled: this.shortcutsEnabled[shortcutId]
+        });
+        
+        this.requestUpdate();
     }
 
     setupIpcListeners() {
@@ -44,6 +89,20 @@ class BuddyHelpView extends LitElement {
             this.updateStatus = 'error';
             this.updateInfo = data;
             this.requestUpdate();
+        });
+
+        // Listen for shortcut state update confirmations
+        ipcRenderer.on('shortcut-state-updated', (event, data) => {
+            const { shortcutId, enabled, success, error } = data;
+            if (success) {
+                console.log(`Shortcut ${shortcutId} ${enabled ? 'enabled' : 'disabled'} successfully`);
+            } else {
+                console.error(`Failed to update shortcut ${shortcutId}:`, error);
+                // Revert the UI state if backend update failed
+                this.shortcutsEnabled[shortcutId] = !enabled;
+                this._saveShortcutSettings();
+                this.requestUpdate();
+            }
         });
     }
 
@@ -86,56 +145,150 @@ class BuddyHelpView extends LitElement {
         const isMacOS = this.isMacOS ?? navigator.platform.toLowerCase().includes('mac');
         const isLinux = this.isLinux ?? navigator.platform.toLowerCase().includes('linux');
 
-        const shortcuts = [
+        const shortcutGroups = [
             {
-                label: 'Move window up',
-                keys: [isMacOS ? 'Option' : 'Ctrl', '↑'],
+                title: 'Window Movement',
+                id: 'window-movement',
+                shortcuts: [
+                    {
+                        label: 'Move window up',
+                        keys: [isMacOS ? 'Option' : 'Ctrl', '↑'],
+                    },
+                    {
+                        label: 'Move window down',
+                        keys: [isMacOS ? 'Option' : 'Ctrl', '↓'],
+                    },
+                    {
+                        label: 'Move window left',
+                        keys: [isMacOS ? 'Option' : 'Ctrl', '←'],
+                    },
+                    {
+                        label: 'Move window right',
+                        keys: [isMacOS ? 'Option' : 'Ctrl', '→'],
+                    },
+                ]
             },
             {
-                label: 'Move window down',
-                keys: [isMacOS ? 'Option' : 'Ctrl', '↓'],
+                title: 'Window Controls',
+                id: 'window-visibility',
+                shortcuts: [
+                    {
+                        label: 'Hide/Show window',
+                        keys: [isMacOS ? 'Cmd' : 'Ctrl', '\\'],
+                    },
+                ]
             },
             {
-                label: 'Move window left',
-                keys: [isMacOS ? 'Option' : 'Ctrl', '←'],
+                title: 'Mouse Controls',
+                id: 'mouse-events',
+                shortcuts: [
+                    {
+                        label: 'Toggle mouse events',
+                        keys: [isMacOS ? 'Cmd' : 'Ctrl', 'M'],
+                    },
+                ]
             },
             {
-                label: 'Move window right',
-                keys: [isMacOS ? 'Option' : 'Ctrl', '→'],
+                title: 'Screen Analysis',
+                id: 'screen-analysis',
+                shortcuts: [
+                    {
+                        label: 'Capture & analyze screen',
+                        keys: ['Alt', 'A'],
+                    },
+                ]
             },
             {
-                label: 'Toggle mouse events',
-                keys: [isMacOS ? 'Cmd' : 'Ctrl', 'M'],
+                title: 'Chat Controls',
+                id: 'clear-chat',
+                shortcuts: [
+                    {
+                        label: 'Clear chat / New chat',
+                        keys: [isMacOS ? 'Cmd' : 'Ctrl', 'K'],
+                    },
+                ]
             },
             {
-                label: 'Close window',
-                keys: [isMacOS ? 'Cmd' : 'Ctrl', '\\'],
+                title: 'Theme Controls',
+                id: 'theme-opacity-reset',
+                shortcuts: [
+                    {
+                        label: 'Reset theme opacity to 100%',
+                        keys: [isMacOS ? 'Cmd' : 'Ctrl', 'Alt', 'T'],
+                    },
+                ]
             },
+            {
+                title: 'Application Controls',
+                id: 'close-application',
+                shortcuts: [
+                    {
+                        label: 'Close application',
+                        keys: [isMacOS ? 'Cmd' : 'Ctrl', 'Alt', 'Q'],
+                    },
+                ]
+            },
+        ];
+
+        const inputShortcuts = [
             {
                 label: 'Send message',
                 keys: ['Enter'],
             },
             {
-                label: 'New line',
+                label: 'New line in message',
                 keys: ['Shift', 'Enter'],
-            },
-            {
-                label: 'Screen analysis',
-                keys: ['Alt', 'A'],
             },
         ];
 
         return html`
             <div class="help-container">
                 <div class="help-header">
-                    <h1 class="help-title">Keyboard shortcuts</h1>
+                    <h1 class="help-title">Keyboard Shortcuts & Settings</h1>
                     <button class="close-btn" @click=${this.closeWindow}>×</button>
                 </div>
 
                 <div class="section">
-                    <div class="section-title">Keyboard Shortcuts</div>
-                    <div class="shortcuts-grid">
-                        ${shortcuts.map(
+                    <div class="section-title">Global Shortcuts <span class="section-subtitle">(Toggle to enable/disable)</span></div>
+                    ${shortcutGroups.map(
+                        group => html`
+                            <div class="shortcut-group">
+                                <div class="group-header">
+                                    <span class="group-title">${group.title}</span>
+                                    <button 
+                                        class="toggle-btn ${this.shortcutsEnabled[group.id] ? 'enabled' : 'disabled'}" 
+                                        @click=${() => this._toggleShortcut(group.id)}
+                                        title="${this.shortcutsEnabled[group.id] ? 'Click to disable' : 'Click to enable'}"
+                                    >
+                                        ${this.shortcutsEnabled[group.id] ? 'ON' : 'OFF'}
+                                    </button>
+                                </div>
+                                <div class="shortcuts-list ${this.shortcutsEnabled[group.id] ? 'enabled' : 'disabled'}">
+                                    ${group.shortcuts.map(
+                                        shortcut => html`
+                                            <div class="shortcut-item">
+                                                <span class="shortcut-label">${shortcut.label}</span>
+                                                <div class="shortcut-keys">
+                                                    ${shortcut.keys.map(
+                                                        (key, index) => html`
+                                                            ${index > 0 ? html`<span class="key-separator">+</span>` : ''}
+                                                            <span class="key">${key}</span>
+                                                        `
+                                                    )}
+                                                </div>
+                                            </div>
+                                        `
+                                    )}
+                                </div>
+                            </div>
+                        `
+                    )}
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Input Shortcuts <span class="section-subtitle">(Always active)</span></div>
+                    <div class="shortcuts-list enabled">
+                        ${inputShortcuts.map(
                             shortcut => html`
                                 <div class="shortcut-item">
                                     <span class="shortcut-label">${shortcut.label}</span>
