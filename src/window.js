@@ -10,7 +10,9 @@ class WindowManager {
         this.defaultOptions = {
             width: 800,
             height: 600,
-            frame: false,
+            icon: path.join(__dirname, '../icons/icon.png'), // Custom app icon for all windows
+            title: '', // Empty title to avoid showing anything
+            frame: false, // Completely frameless
             transparent: true,
             hasShadow: false,
             alwaysOnTop: true,
@@ -22,6 +24,7 @@ class WindowManager {
             minimizable: true,
             maximizable: true,
             closable: true,
+            titleBarStyle: process.platform === 'darwin' ? 'hidden' : undefined, // Hide title bar completely
             webPreferences: {
                 nodeIntegration: true,
                 contextIsolation: false,
@@ -31,7 +34,6 @@ class WindowManager {
                 spellcheck: true,
             },
             backgroundColor: '#00000000',
-            titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : undefined,
         };
 
         // Load theme configuration
@@ -412,11 +414,32 @@ class WindowManager {
      * @param {BrowserWindow} window - The window to apply properties to
      */
     applyConsistentProperties(window) {
+        // Enable content protection to prevent screen capture
         window.setContentProtection(true);
         window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
 
         if (process.platform === 'win32') {
             window.setAlwaysOnTop(true, 'screen-saver', 1);
+            
+            // Additional Windows-specific privacy settings
+            try {
+                const { exec } = require('child_process');
+                const windowId = window.getNativeWindowHandle();
+                if (windowId) {
+                    // Set WDA_EXCLUDEFROMCAPTURE flag to prevent screen capture
+                    // This requires Windows 10 version 2004 or later
+                    const command = `powershell -Command "Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public class Win32 { [DllImport(\"user32.dll\")] public static extern bool SetWindowDisplayAffinity(IntPtr hwnd, uint dwAffinity); }'; try { [Win32]::SetWindowDisplayAffinity([IntPtr]${windowId.readBigUInt64LE(0)}, 0x11) } catch { Write-Host 'Display affinity not supported on this system' }"`;
+                    exec(command, (error) => {
+                        if (error) {
+                            console.log('Windows display affinity setting not available on this system');
+                        } else {
+                            console.log('Window content protection enhanced for Windows');
+                        }
+                    });
+                }
+            } catch (error) {
+                console.log('Could not apply Windows-specific privacy settings:', error.message);
+            }
         }
     }
 

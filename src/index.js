@@ -26,6 +26,13 @@ console.log('🔧 Environment variables loaded:', {
 });
 
 const { app } = require('electron');
+const path = require('path');
+
+// Set app icon globally
+if (process.platform !== 'darwin') {
+    // For Windows and Linux
+    app.setAppUserModelId('com.buddy.desktop');
+}
 
 // Import configuration and managers
 const { getAppConfig } = require('./main/app-config');

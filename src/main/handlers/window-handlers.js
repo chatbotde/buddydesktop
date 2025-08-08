@@ -91,7 +91,7 @@ function registerWindowHandlers() {
         return await createMarketplaceWindow(options);
     });
 
-    // Visibility control handlers
+    // Enhanced privacy protection handlers
     ipcMain.handle('toggle-content-protection', async (event, enabled) => {
         try {
             const windows = BrowserWindow.getAllWindows();
@@ -102,6 +102,86 @@ function registerWindowHandlers() {
             return { success: true };
         } catch (error) {
             console.error('Failed to toggle content protection:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Complete window hiding (makes window completely invisible)
+    ipcMain.handle('toggle-complete-window-hiding', async (event, enabled) => {
+        try {
+            const windows = BrowserWindow.getAllWindows();
+            if (windows.length > 0) {
+                const window = windows[0];
+                if (enabled) {
+                    // Hide window completely
+                    window.hide();
+                    // Also set skip taskbar to remove from taskbar
+                    window.setSkipTaskbar(true);
+                } else {
+                    // Show window and restore to taskbar
+                    window.setSkipTaskbar(false);
+                    window.show();
+                }
+                console.log(`Complete window hiding ${enabled ? 'enabled' : 'disabled'}`);
+            }
+            return { success: true };
+        } catch (error) {
+            console.error('Failed to toggle complete window hiding:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Window opacity based hiding (makes window nearly transparent)
+    ipcMain.handle('toggle-opacity-hiding', async (event, enabled) => {
+        try {
+            const windows = BrowserWindow.getAllWindows();
+            if (windows.length > 0) {
+                const window = windows[0];
+                if (enabled) {
+                    // Make window nearly invisible (but still functional)
+                    window.setOpacity(0.05);
+                    // Also enable click-through
+                    window.setIgnoreMouseEvents(true, { forward: true });
+                } else {
+                    // Restore normal opacity and mouse events
+                    window.setOpacity(1.0);
+                    window.setIgnoreMouseEvents(false);
+                }
+                console.log(`Opacity hiding ${enabled ? 'enabled' : 'disabled'}`);
+            }
+            return { success: true };
+        } catch (error) {
+            console.error('Failed to toggle opacity hiding:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Advanced privacy mode (combines multiple protection methods)
+    ipcMain.handle('toggle-advanced-privacy', async (event, enabled) => {
+        try {
+            const windows = BrowserWindow.getAllWindows();
+            if (windows.length > 0) {
+                const window = windows[0];
+                if (enabled) {
+                    // Enable all protection methods
+                    window.setContentProtection(true);
+                    window.setSkipTaskbar(true);
+                    window.setOpacity(0.1);
+                    window.setAlwaysOnTop(false); // Remove from top to be less noticeable
+                    // Make window non-focusable in privacy mode
+                    window.setFocusable(false);
+                } else {
+                    // Disable all protection methods
+                    window.setContentProtection(false);
+                    window.setSkipTaskbar(false);
+                    window.setOpacity(1.0);
+                    window.setFocusable(true);
+                }
+                console.log(`Advanced privacy mode ${enabled ? 'enabled' : 'disabled'}`);
+            }
+            return { success: true };
+        } catch (error) {
+            console.error('Failed to toggle advanced privacy:', error);
             return { success: false, error: error.message };
         }
     });

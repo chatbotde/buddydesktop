@@ -208,6 +208,10 @@ function createMainWindow() {
     const mainWindow = createManagedWindow({
         width: 600,
         height: 700,
+        icon: path.join(__dirname, '../../icons/icon.png'), // Custom app icon
+        title: '', // Empty title to avoid showing anything
+        frame: false, // Completely remove window frame
+        titleBarStyle: 'hidden', // Hide title bar on macOS
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
@@ -217,6 +221,26 @@ function createMainWindow() {
             allowRunningInsecureContent: false,
         },
     }, 'main');
+
+    // Additional privacy settings to ensure window is hidden from screen capture
+    if (mainWindow.setContentProtection) {
+        mainWindow.setContentProtection(true);
+    }
+    
+    // For Windows, set additional privacy flags
+    if (process.platform === 'win32') {
+        try {
+            // Hide from screen capture on Windows
+            const { exec } = require('child_process');
+            const windowId = mainWindow.getNativeWindowHandle();
+            if (windowId) {
+                // This helps prevent the window from being captured
+                exec(`powershell -Command "Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public class Win32 { [DllImport(\"user32.dll\")] public static extern bool SetWindowDisplayAffinity(IntPtr hwnd, uint dwAffinity); }'; [Win32]::SetWindowDisplayAffinity(${windowId.readBigUInt64LE(0)}, 0x11)"`); 
+            }
+        } catch (error) {
+            console.log('Could not apply Windows-specific privacy settings:', error.message);
+        }
+    }
 
     // Set up display media request handler
     session.defaultSession.setDisplayMediaRequestHandler(

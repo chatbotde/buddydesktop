@@ -29,6 +29,10 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
         availableThemes: { type: Object },
         isAudioWindowOpen: { type: Boolean },
         isSearchWindowOpen: { type: Boolean },
+        isPrivacyControlsOpen: { type: Boolean },
+        isCompletelyHidden: { type: Boolean },
+        isOpacityHidden: { type: Boolean },
+        isAdvancedPrivacyActive: { type: Boolean },
 
         customMenuButtons: { type: Array },
     };
@@ -46,6 +50,10 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
         this.isVisibleOnAllWorkspaces = true;
         this.windowOpacity = 1.0;
         this.isOpacityControlActive = false;
+        this.isPrivacyControlsOpen = false;
+        this.isCompletelyHidden = false;
+        this.isOpacityHidden = false;
+        this.isAdvancedPrivacyActive = false;
         this.customMenuButtons = ['chat', 'history', 'models', 'customize', 'help']; // 'master-key' commented out
         this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
         this.isEventListenerActive = false;
@@ -399,6 +407,52 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
         );
     }
 
+    _handleCompleteWindowHiding() {
+        this._closeMainMenu();
+        this.isCompletelyHidden = !this.isCompletelyHidden;
+        this.dispatchEvent(
+            new CustomEvent('complete-window-hiding', {
+                detail: { enabled: this.isCompletelyHidden },
+                bubbles: true,
+                composed: true,
+            })
+        );
+    }
+
+    _handleOpacityHiding() {
+        this._closeMainMenu();
+        this.isOpacityHidden = !this.isOpacityHidden;
+        this.dispatchEvent(
+            new CustomEvent('opacity-hiding', {
+                detail: { enabled: this.isOpacityHidden },
+                bubbles: true,
+                composed: true,
+            })
+        );
+    }
+
+    _handleAdvancedPrivacyMode() {
+        this._closeMainMenu();
+        this.isAdvancedPrivacyActive = !this.isAdvancedPrivacyActive;
+        this.dispatchEvent(
+            new CustomEvent('advanced-privacy-mode', {
+                detail: { enabled: this.isAdvancedPrivacyActive },
+                bubbles: true,
+                composed: true,
+            })
+        );
+    }
+
+    _handlePrivacyControlPanel() {
+        this._closeMainMenu();
+        this.dispatchEvent(
+            new CustomEvent('privacy-control-panel', {
+                bubbles: true,
+                composed: true,
+            })
+        );
+    }
+
     _handleOpacityChange(opacity) {
         this.windowOpacity = opacity;
         this.dispatchEvent(
@@ -643,6 +697,38 @@ class BuddyHeader extends CapabilityAwareMixin(LitElement) {
                 handler: '_handleToggleVisibilityOnWorkspaces',
                 showStatus: true,
                 statusKey: 'isVisibleOnAllWorkspaces',
+            },
+            'complete-window-hiding': {
+                id: 'complete-window-hiding',
+                name: 'Complete Window Hiding',
+                icon: 'M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24',
+                handler: '_handleCompleteWindowHiding',
+                showStatus: true,
+                statusKey: 'isCompletelyHidden',
+            },
+            'opacity-hiding': {
+                id: 'opacity-hiding',
+                name: 'Transparency Hiding',
+                icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z',
+                handler: '_handleOpacityHiding',
+                showStatus: true,
+                statusKey: 'isOpacityHidden',
+            },
+            'advanced-privacy': {
+                id: 'advanced-privacy',
+                name: 'Advanced Privacy Mode',
+                icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z M12 15a3 3 0 100-6 3 3 0 000 6z',
+                handler: '_handleAdvancedPrivacyMode',
+                showStatus: true,
+                statusKey: 'isAdvancedPrivacyActive',
+            },
+            'privacy-controls': {
+                id: 'privacy-controls',
+                name: 'Privacy Control Panel',
+                icon: 'M12 1l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z M12 6v6l4 2',
+                handler: '_handlePrivacyControlPanel',
+                showStatus: false,
+                statusKey: null,
             },
             /*
             debug: {
