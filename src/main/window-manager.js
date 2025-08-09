@@ -124,6 +124,7 @@ function setupGlobalShortcuts(mainWindow) {
             mainWindow.hide();
         } else {
             mainWindow.showInactive();
+            mainWindow.setAlwaysOnTop(true, 'screen-saver'); // Ensure always on top when shown
         }
     });
 
