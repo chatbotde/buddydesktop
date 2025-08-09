@@ -801,6 +801,106 @@ export const buddyAppStyles = css`
            ANIMATIONS & KEYFRAMES
            ========================================================================== */
 
+        /* Floating/breathing animation for window container */
+        @keyframes windowFloat {
+            0%, 100% {
+                transform: translateY(0px) scale(1);
+            }
+            25% {
+                transform: translateY(-2px) scale(1.001);
+            }
+            50% {
+                transform: translateY(-1px) scale(1.002);
+            }
+            75% {
+                transform: translateY(-3px) scale(1.001);
+            }
+        }
+
+        /* Gentle pulsing animation for header */
+        @keyframes headerPulse {
+            0%, 100% {
+                background-color: var(--header-background);
+                box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+            }
+            50% {
+                background-color: rgba(0, 0, 0, 0.25);
+                box-shadow: 0 0 20px rgba(255, 255, 255, 0.03);
+            }
+        }
+
+        /* Subtle content breathing */
+        @keyframes contentBreathe {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.003);
+            }
+        }
+
+        /* Gentle drift animation for buttons */
+        @keyframes buttonDrift {
+            0%, 100% {
+                transform: translateX(0px) translateY(0px);
+            }
+            25% {
+                transform: translateX(0.5px) translateY(-0.5px);
+            }
+            50% {
+                transform: translateX(-0.3px) translateY(0.8px);
+            }
+            75% {
+                transform: translateX(0.8px) translateY(0.3px);
+            }
+        }
+
+        /* Shimmer effect for text input */
+        @keyframes inputShimmer {
+            0% {
+                background-position: -200px 0;
+            }
+            100% {
+                background-position: 200px 0;
+            }
+        }
+
+        /* Enhanced message appearance with spring */
+        @keyframes messageSpringIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.8) rotateX(10deg);
+            }
+            50% {
+                opacity: 0.8;
+                transform: translateY(-5px) scale(1.05) rotateX(0deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotateX(0deg);
+            }
+        }
+
+        /* Particle-like background movement */
+        @keyframes particleFloat {
+            0%, 100% {
+                transform: translateX(0px) translateY(0px);
+                opacity: 0.1;
+            }
+            25% {
+                transform: translateX(10px) translateY(-15px);
+                opacity: 0.2;
+            }
+            50% {
+                transform: translateX(-5px) translateY(-25px);
+                opacity: 0.15;
+            }
+            75% {
+                transform: translateX(-10px) translateY(-10px);
+                opacity: 0.25;
+            }
+        }
+
         @keyframes typingBounce {
             0%, 80%, 100% { 
                 transform: scale(0.8);

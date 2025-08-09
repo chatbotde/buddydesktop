@@ -65,20 +65,21 @@
             width: 100%;
             background: #2a2a2a;
             border: 1px solid #444;
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 12px 16px;
             color: #fff;
             font-size: 14px;
             outline: none;
-            transition: border-color 0.2s ease;
+            transition: all 0.2s ease;
         }
 
         .search-input:focus {
             border-color: #007AFF;
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
         }
 
         .search-input::placeholder {
-            color: #666;
+            color: #888;
         }
 
         .marketplace-content {
@@ -101,19 +102,19 @@
             padding: 16px;
             cursor: pointer;
             transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
         }
 
         .button-card:hover {
             background: #333;
             border-color: #555;
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .button-card.selected {
             background: #1a3a5c;
             border-color: #007AFF;
+            position: relative;
         }
 
         .button-card.selected::after {
@@ -234,6 +235,386 @@
             margin: 0 auto 16px;
             opacity: 0.5;
         }
+
+        /* Privacy Modal Styles */
+        .privacy-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .privacy-modal.show {
+            opacity: 1;
+        }
+
+        .privacy-modal-content {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+            transform: scale(0.9);
+            transition: all 0.3s ease;
+        }
+
+        .privacy-modal.show .privacy-modal-content {
+            transform: scale(1);
+        }
+
+        .privacy-modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .privacy-modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .privacy-close-btn {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .privacy-close-btn:hover {
+            background: #333;
+            color: #fff;
+        }
+
+        .privacy-modal-body {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .privacy-tabs {
+            display: flex;
+            border-bottom: 1px solid #333;
+            background: #1a1a1a;
+        }
+
+        .privacy-tab {
+            flex: 1;
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .privacy-tab:hover {
+            color: #fff;
+            background: #2a2a2a;
+        }
+
+        .privacy-tab.active {
+            color: #007AFF;
+            background: #1a3a5c;
+            border-bottom: 2px solid #007AFF;
+        }
+
+        .privacy-content {
+            padding: 24px;
+        }
+
+        .privacy-tab-content {
+            display: none;
+        }
+
+        .privacy-tab-content.active {
+            display: block;
+        }
+
+        .privacy-level-selector h4,
+        .privacy-control-group h4 {
+            margin: 0 0 16px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .privacy-levels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .privacy-level-btn {
+            background: #2a2a2a;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .privacy-level-btn:hover {
+            background: #333;
+            border-color: #555;
+        }
+
+        .privacy-level-btn.active {
+            background: #1a3a5c;
+            border-color: #007AFF;
+        }
+
+        .privacy-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .privacy-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            margin: 0;
+        }
+
+        .privacy-desc {
+            font-size: 12px;
+            color: #888;
+            margin: 0;
+        }
+
+        .privacy-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .privacy-action-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .privacy-action-btn {
+            background: #FF3B30;
+            color: white;
+        }
+
+        .privacy-action-btn:hover {
+            background: #d70015;
+        }
+
+        .privacy-action-btn.secondary {
+            background: #333;
+            color: #fff;
+        }
+
+        .privacy-action-btn.secondary:hover {
+            background: #444;
+        }
+
+        .privacy-control-group {
+            margin-bottom: 24px;
+        }
+
+        .opacity-control {
+            margin-bottom: 16px;
+        }
+
+        .opacity-control label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .opacity-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #2a2a2a;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+        }
+
+        .opacity-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #007AFF;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 122, 255, 0.3);
+        }
+
+        .privacy-toggles {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .toggle-slider {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #333;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch input[type="checkbox"] {
+            display: none;
+        }
+
+        .toggle-switch input[type="checkbox"]:checked + .toggle-slider {
+            background: #007AFF;
+        }
+
+        .toggle-switch input[type="checkbox"]:checked + .toggle-slider::before {
+            transform: translateX(20px);
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 12px;
+        }
+
+        .theme-btn {
+            flex: 1;
+            padding: 16px;
+            background: #2a2a2a;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .theme-btn:hover {
+            background: #333;
+            border-color: #555;
+        }
+
+        .theme-btn.active {
+            background: #1a3a5c;
+            border-color: #007AFF;
+        }
+
+        .theme-preview {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: 2px solid #555;
+        }
+
+        .theme-preview.transparent {
+            background: linear-gradient(45deg, transparent 25%, #333 25%, #333 50%, transparent 50%, transparent 75%, #333 75%);
+            background-size: 8px 8px;
+        }
+
+        .theme-preview.black {
+            background: #000;
+        }
+
+        .privacy-presets {
+            display: grid;
+            gap: 16px;
+        }
+
+        .preset-card {
+            background: #2a2a2a;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-card:hover {
+            background: #333;
+            border-color: #555;
+        }
+
+        .preset-card.active {
+            background: #1a3a5c;
+            border-color: #007AFF;
+        }
+
+        .preset-card h5 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .preset-card p {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #ccc;
+            line-height: 1.4;
+        }
+
+        .preset-settings {
+            font-size: 12px;
+            color: #007AFF;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -280,6 +661,130 @@
             <button class="btn btn-primary" id="applyBtn">
                 Apply Changes
             </button>
+        </div>
+    </div>
+
+    <!-- Privacy Control Modal -->
+    <div id="privacyModal" class="privacy-modal" style="display: none;">
+        <div class="privacy-modal-content">
+            <div class="privacy-modal-header">
+                <h3>🛡️ Advanced Privacy Controls</h3>
+                <button class="privacy-close-btn" id="privacyCloseBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="privacy-modal-body">
+                <div class="privacy-tabs">
+                    <button class="privacy-tab active" data-tab="quick">⚡ Quick Actions</button>
+                    <button class="privacy-tab" data-tab="advanced">🔧 Advanced</button>
+                    <button class="privacy-tab" data-tab="presets">🎭 Presets</button>
+                </div>
+                
+                <div class="privacy-content">
+                    <!-- Quick Actions Tab -->
+                    <div id="quick-tab" class="privacy-tab-content active">
+                        <div class="privacy-level-selector">
+                            <h4>Privacy Level</h4>
+                            <div class="privacy-levels">
+                                <button class="privacy-level-btn active" data-level="0">
+                                    <span class="privacy-icon">🔓</span>
+                                    <span class="privacy-name">Normal</span>
+                                    <span class="privacy-desc">Standard visibility</span>
+                                </button>
+                                <button class="privacy-level-btn" data-level="1">
+                                    <span class="privacy-icon">🥷</span>
+                                    <span class="privacy-name">Stealth</span>
+                                    <span class="privacy-desc">Semi-transparent</span>
+                                </button>
+                                <button class="privacy-level-btn" data-level="2">
+                                    <span class="privacy-icon">👻</span>
+                                    <span class="privacy-name">Ghost</span>
+                                    <span class="privacy-desc">Nearly invisible</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="privacy-actions">
+                            <button class="privacy-action-btn" id="panicHideBtn">
+                                🚨 Panic Hide
+                            </button>
+                            <button class="privacy-action-btn secondary" id="resetPrivacyBtn">
+                                ✨ Reset All
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Tab -->
+                    <div id="advanced-tab" class="privacy-tab-content">
+                        <div class="privacy-control-group">
+                            <h4>Transparency</h4>
+                            <div class="opacity-control">
+                                <label>Window Opacity: <span id="opacityValue">100%</span></label>
+                                <input type="range" id="opacitySlider" min="10" max="100" value="100" class="opacity-slider">
+                            </div>
+                        </div>
+                        
+                        <div class="privacy-control-group">
+                            <h4>Content Protection</h4>
+                            <div class="privacy-toggles">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="contentProtection" checked>
+                                    <span class="toggle-slider"></span>
+                                    Screen Capture Protection
+                                </label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="workspaceVisibility" checked>
+                                    <span class="toggle-slider"></span>
+                                    All Workspaces Visible
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="privacy-control-group">
+                            <h4>Window Theme</h4>
+                            <div class="theme-selector">
+                                <button class="theme-btn active" data-theme="transparent">
+                                    <span class="theme-preview transparent"></span>
+                                    Transparent
+                                </button>
+                                <button class="theme-btn" data-theme="black">
+                                    <span class="theme-preview black"></span>
+                                    Black
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Presets Tab -->
+                    <div id="presets-tab" class="privacy-tab-content">
+                        <div class="privacy-presets">
+                            <div class="preset-card" data-preset="meeting">
+                                <h5>🤝 Meeting Mode</h5>
+                                <p>Moderate transparency, content protection enabled</p>
+                                <div class="preset-settings">Opacity: 70% • Protection: On</div>
+                            </div>
+                            <div class="preset-card" data-preset="presentation">
+                                <h5>📺 Presentation Mode</h5>
+                                <p>Low opacity, invisible from screen capture</p>
+                                <div class="preset-settings">Opacity: 30% • Hidden from capture</div>
+                            </div>
+                            <div class="preset-card" data-preset="focus">
+                                <h5>🎯 Focus Mode</h5>
+                                <p>Minimal distraction, semi-transparent overlay</p>
+                                <div class="preset-settings">Opacity: 50% • Click-through enabled</div>
+                            </div>
+                            <div class="preset-card" data-preset="stealth">
+                                <h5>🕵️ Stealth Mode</h5>
+                                <p>Maximum privacy, nearly invisible operation</p>
+                                <div class="preset-settings">Opacity: 15% • All protections enabled</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -344,17 +849,17 @@
             },
             {
                 id: 'customize',
-                name: 'Customize',
+                name: 'profiles',
                 icon: 'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
                 category: 'Settings',
-                description: 'Customize appearance and settings'
+                description: 'personalize profiles'
             },
             {
                 id: 'help',
                 name: 'Help',
                 icon: 'M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0 -20 0 M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3 M12 17h.01',
                 category: 'Support',
-                description: 'Get help and shortcuts'
+                description: 'shortcuts'
             },
             /* {
                 id: 'audio-window',
@@ -389,9 +894,9 @@
                 name: 'Invisible/Visible',
                 icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
                 category: 'Privacy',
-                description: 'Toggle content protection and visibility'
+                description: 'invisible/visible'
             },
-            {
+            /*{
                 id: 'workspace-visibility',
                 name: 'All Workspaces Invisible/Visible',
                 icon: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
@@ -425,7 +930,7 @@
                 icon: 'M12 1l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z M12 6v6l4 2',
                 category: 'Privacy',
                 description: 'Open comprehensive privacy controls with presets'
-            },
+            },*/
             /* {
                 id: 'search-window',
                 name: 'Search Window',
@@ -604,6 +1109,363 @@
                 document.body.classList.remove('dragging');
             });
         }
+
+        // Privacy Control System
+        let privacyState = {
+            level: 0,
+            opacity: 1.0,
+            theme: 'transparent',
+            contentProtection: true,
+            workspaceVisibility: true
+        };
+
+        // Privacy Modal Functions
+        function showPrivacyModal() {
+            const modal = document.getElementById('privacyModal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+
+        function hidePrivacyModal() {
+            const modal = document.getElementById('privacyModal');
+            modal.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        function switchPrivacyTab(tabName) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.privacy-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.privacy-tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Add active class to selected tab
+            document.querySelector(`.privacy-tab[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        async function setPrivacyLevel(level) {
+            privacyState.level = level;
+            
+            // Update UI
+            document.querySelectorAll('.privacy-level-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (parseInt(btn.dataset.level) === level) {
+                    btn.classList.add('active');
+                }
+            });
+
+            try {
+                if (isElectron && window.require) {
+                    const { ipcRenderer } = window.require('electron');
+                    
+                    switch (level) {
+                        case 0: // Normal mode
+                            await Promise.all([
+                                ipcRenderer.invoke('toggle-content-protection', true),
+                                ipcRenderer.invoke('toggle-complete-window-hiding', false),
+                                ipcRenderer.invoke('toggle-opacity-hiding', false),
+                                ipcRenderer.invoke('toggle-advanced-privacy', false),
+                                ipcRenderer.invoke('set-window-opacity', {
+                                    windowId: 'main',
+                                    opacity: 1.0
+                                })
+                            ]);
+                            privacyState.opacity = 1.0;
+                            break;
+                        case 1: // Stealth mode
+                            await Promise.all([
+                                ipcRenderer.invoke('toggle-content-protection', true),
+                                ipcRenderer.invoke('toggle-advanced-privacy', true),
+                                ipcRenderer.invoke('set-window-opacity', {
+                                    windowId: 'main',
+                                    opacity: 0.3
+                                })
+                            ]);
+                            privacyState.opacity = 0.3;
+                            break;
+                        case 2: // Ghost mode
+                            await Promise.all([
+                                ipcRenderer.invoke('toggle-complete-window-hiding', true),
+                                ipcRenderer.invoke('toggle-opacity-hiding', true),
+                                ipcRenderer.invoke('toggle-advanced-privacy', true),
+                                ipcRenderer.invoke('set-window-opacity', {
+                                    windowId: 'main',
+                                    opacity: 0.05
+                                })
+                            ]);
+                            privacyState.opacity = 0.05;
+                            break;
+                    }
+                    console.log(`Privacy level set to ${level}`);
+                }
+            } catch (error) {
+                console.error('Failed to set privacy level:', error);
+            }
+
+            updateOpacitySlider();
+        }
+
+        async function setWindowOpacity(opacity) {
+            privacyState.opacity = opacity;
+            document.getElementById('opacityValue').textContent = `${Math.round(opacity * 100)}%`;
+            
+            try {
+                if (isElectron && window.require) {
+                    const { ipcRenderer } = window.require('electron');
+                    await ipcRenderer.invoke('set-window-opacity', {
+                        windowId: 'main',
+                        opacity: opacity
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to set opacity:', error);
+            }
+        }
+
+        async function toggleContentProtection() {
+            privacyState.contentProtection = !privacyState.contentProtection;
+            
+            try {
+                if (isElectron && window.require) {
+                    const { ipcRenderer } = window.require('electron');
+                    await ipcRenderer.invoke('toggle-content-protection', privacyState.contentProtection);
+                    console.log(`Content protection ${privacyState.contentProtection ? 'enabled' : 'disabled'}`);
+                }
+            } catch (error) {
+                console.error('Failed to toggle content protection:', error);
+            }
+        }
+
+        async function toggleWorkspaceVisibility() {
+            privacyState.workspaceVisibility = !privacyState.workspaceVisibility;
+            
+            try {
+                if (isElectron && window.require) {
+                    const { ipcRenderer } = window.require('electron');
+                    await ipcRenderer.invoke('toggle-workspace-visibility', privacyState.workspaceVisibility);
+                    console.log(`Workspace visibility ${privacyState.workspaceVisibility ? 'enabled' : 'disabled'}`);
+                }
+            } catch (error) {
+                console.error('Failed to toggle workspace visibility:', error);
+            }
+        }
+
+        async function setWindowTheme(theme) {
+            privacyState.theme = theme;
+            
+            // Update UI
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.theme === theme) {
+                    btn.classList.add('active');
+                }
+            });
+
+            try {
+                if (isElectron && window.require) {
+                    const { ipcRenderer } = window.require('electron');
+                    await ipcRenderer.invoke('set-simple-window-theme', {
+                        windowId: 'main',
+                        theme: theme
+                    });
+                    console.log(`Window theme set to ${theme}`);
+                }
+            } catch (error) {
+                console.error('Failed to set window theme:', error);
+            }
+        }
+
+        async function applyPreset(presetName) {
+            const presets = {
+                meeting: { level: 1, opacity: 0.7, theme: 'transparent' },
+                presentation: { level: 2, opacity: 0.3, theme: 'transparent' },
+                focus: { level: 1, opacity: 0.5, theme: 'transparent' },
+                stealth: { level: 2, opacity: 0.15, theme: 'black' }
+            };
+
+            const preset = presets[presetName];
+            if (preset) {
+                await setPrivacyLevel(preset.level);
+                await setWindowOpacity(preset.opacity);
+                await setWindowTheme(preset.theme);
+                
+                // Update preset UI
+                document.querySelectorAll('.preset-card').forEach(card => {
+                    card.classList.remove('active');
+                });
+                document.querySelector(`.preset-card[data-preset="${presetName}"]`).classList.add('active');
+                
+                console.log(`Applied ${presetName} preset`);
+            }
+        }
+
+        async function panicHide() {
+            try {
+                if (isElectron && window.require) {
+                    const { ipcRenderer } = window.require('electron');
+                    
+                    // Enable all hiding mechanisms
+                    await Promise.all([
+                        ipcRenderer.invoke('toggle-advanced-privacy', true),
+                        ipcRenderer.invoke('toggle-complete-window-hiding', true),
+                        ipcRenderer.invoke('toggle-opacity-hiding', true),
+                        ipcRenderer.invoke('set-window-opacity', {
+                            windowId: 'main',
+                            opacity: 0.01
+                        })
+                    ]);
+                    
+                    privacyState.level = 2;
+                    privacyState.opacity = 0.01;
+                    updatePrivacyUI();
+                    
+                    console.log('🚨 PANIC MODE ACTIVATED');
+                    alert('🚨 Panic mode activated! All hiding enabled.');
+                }
+            } catch (error) {
+                console.error('Failed to activate panic mode:', error);
+            }
+        }
+
+        async function resetPrivacySettings() {
+            try {
+                if (isElectron && window.require) {
+                    const { ipcRenderer } = window.require('electron');
+                    
+                    // Reset to safe defaults
+                    await Promise.all([
+                        ipcRenderer.invoke('toggle-content-protection', true),
+                        ipcRenderer.invoke('toggle-complete-window-hiding', false),
+                        ipcRenderer.invoke('toggle-opacity-hiding', false),
+                        ipcRenderer.invoke('toggle-advanced-privacy', false),
+                        ipcRenderer.invoke('toggle-workspace-visibility', true),
+                        ipcRenderer.invoke('set-window-opacity', {
+                            windowId: 'main',
+                            opacity: 1.0
+                        }),
+                        ipcRenderer.invoke('set-simple-window-theme', {
+                            windowId: 'main',
+                            theme: 'transparent'
+                        })
+                    ]);
+                    
+                    // Reset state
+                    privacyState = {
+                        level: 0,
+                        opacity: 1.0,
+                        theme: 'transparent',
+                        contentProtection: true,
+                        workspaceVisibility: true
+                    };
+                    
+                    updatePrivacyUI();
+                    console.log('✅ Privacy settings reset to defaults');
+                    alert('✅ Privacy settings reset to defaults');
+                }
+            } catch (error) {
+                console.error('Failed to reset privacy settings:', error);
+            }
+        }
+
+        function updateOpacitySlider() {
+            const slider = document.getElementById('opacitySlider');
+            const value = document.getElementById('opacityValue');
+            slider.value = Math.round(privacyState.opacity * 100);
+            value.textContent = `${Math.round(privacyState.opacity * 100)}%`;
+        }
+
+        function updatePrivacyUI() {
+            // Update privacy level buttons
+            document.querySelectorAll('.privacy-level-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (parseInt(btn.dataset.level) === privacyState.level) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Update theme buttons
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.theme === privacyState.theme) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Update toggles
+            document.getElementById('contentProtection').checked = privacyState.contentProtection;
+            document.getElementById('workspaceVisibility').checked = privacyState.workspaceVisibility;
+
+            updateOpacitySlider();
+        }
+
+        // Set up privacy control event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Privacy modal events
+            document.getElementById('privacyCloseBtn').addEventListener('click', hidePrivacyModal);
+            
+            // Close modal when clicking outside
+            document.getElementById('privacyModal').addEventListener('click', (e) => {
+                if (e.target.id === 'privacyModal') {
+                    hidePrivacyModal();
+                }
+            });
+
+            // Tab switching
+            document.querySelectorAll('.privacy-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    switchPrivacyTab(tab.dataset.tab);
+                });
+            });
+
+            // Privacy level buttons
+            document.querySelectorAll('.privacy-level-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setPrivacyLevel(parseInt(btn.dataset.level));
+                });
+            });
+
+            // Panic and reset buttons
+            document.getElementById('panicHideBtn').addEventListener('click', panicHide);
+            document.getElementById('resetPrivacyBtn').addEventListener('click', resetPrivacySettings);
+
+            // Opacity slider
+            document.getElementById('opacitySlider').addEventListener('input', (e) => {
+                const opacity = parseFloat(e.target.value) / 100;
+                setWindowOpacity(opacity);
+            });
+
+            // Content protection and workspace visibility toggles
+            document.getElementById('contentProtection').addEventListener('change', toggleContentProtection);
+            document.getElementById('workspaceVisibility').addEventListener('change', toggleWorkspaceVisibility);
+
+            // Theme buttons
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setWindowTheme(btn.dataset.theme);
+                });
+            });
+
+            // Preset cards
+            document.querySelectorAll('.preset-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    applyPreset(card.dataset.preset);
+                });
+            });
+
+            // Check if privacy control button was clicked
+            document.querySelectorAll('.button-card').forEach(card => {
+                if (card.dataset.id === 'privacy-controls') {
+                    card.addEventListener('dblclick', () => {
+                        showPrivacyModal();
+                    });
+                }
+            });
+
+            updatePrivacyUI();
+        });
 
         // Initial render
         renderButtons();

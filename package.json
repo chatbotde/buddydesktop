@@ -16,6 +16,10 @@
         "manual-release": "node scripts/manual-release.js",
         "check-distribution": "node scripts/check-distribution.js",
         "build-windows": "npm run make",
+        "build-portable": "electron-builder --win portable",
+        "build-installer": "electron-builder --win nsis",
+        "build-all": "electron-builder --win",
+        "dist": "electron-builder",
         "lint": "echo \"No linting configured\""
     },
     "keywords": [
@@ -53,6 +57,7 @@
         "@electron-forge/plugin-fuses": "^7.8.1",
         "@electron-forge/publisher-github": "^7.8.3",
         "@electron/fuses": "^1.8.0",
-        "electron": "^30.5.1"
+        "electron": "^30.5.1",
+        "electron-builder": "^26.0.12"
     }
 }
