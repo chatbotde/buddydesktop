@@ -91,6 +91,7 @@ typings/
 
 # Electron-Forge - PROTECTED: Compiled packages only
 out/
+dist/
 .specstory
 .specstory/
 
