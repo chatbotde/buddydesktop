@@ -94,6 +94,10 @@ window.buddy = {
     createConsistentWindow: (...args) => windowService.createConsistentWindow(...args),
     openExternal: (url) => windowService.openExternal(url),
     testWindowCreation: () => windowService.testWindowCreation(),
+    testNativeScreenshot: () => windowService.testNativeScreenshot(),
+
+    // Testing functions
+    testScreenshotCapture: () => captureService.testScreenshotCapture(),
 
     // Authentication
     startGoogleAuth: () => authServiceRenderer.startGoogleAuth(),

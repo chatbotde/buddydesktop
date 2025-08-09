@@ -399,6 +399,34 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
                 console.log('🚪 Close application shortcut triggered');
                 await this.handleWindowClose();
             });
+            
+            // Listen for screenshot capture shortcut (Alt+A)
+            ipcRenderer.on('capture-and-send-screenshot', async () => {
+                console.log('📸 Screenshot capture shortcut triggered');
+                try {
+                    // Auto-start session if not active
+                    if (!this.sessionActive) {
+                        const success = await this.autoStartSession();
+                        if (!success) {
+                            console.error('Failed to start session for screenshot capture');
+                            return;
+                        }
+                    }
+                    
+                    // Capture screenshot and send it
+                    const result = await window.buddy.captureAndSendScreenshot();
+                    if (result && result.success) {
+                        console.log('✅ Screenshot captured and sent successfully');
+                        this.setStatus('Screenshot captured and analyzing...');
+                    } else {
+                        console.error('❌ Failed to capture screenshot:', result?.error);
+                        this.setStatus('Failed to capture screenshot');
+                    }
+                } catch (error) {
+                    console.error('Error handling screenshot capture:', error);
+                    this.setStatus('Error capturing screenshot: ' + error.message);
+                }
+            });
         }
     }
 
@@ -431,6 +459,7 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
             ipcRenderer.removeAllListeners('clear-chat-shortcut');
             ipcRenderer.removeAllListeners('reset-theme-opacity');
             ipcRenderer.removeAllListeners('close-application-shortcut');
+            ipcRenderer.removeAllListeners('capture-and-send-screenshot');
         }
     }
 

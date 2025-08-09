@@ -156,21 +156,35 @@ class VideoService {
         console.log('Capturing manual screenshot...');
         
         try {
-            // If we don't have an active media stream, request one for screenshot
-            let screenshotStream = this.mediaStream;
-            let shouldStopStream = false;
-            
-            if (!screenshotStream) {
-                screenshotStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: {
-                        frameRate: 1,
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 },
-                    },
-                    audio: false,
-                });
-                shouldStopStream = true;
+            // If we have an active media stream and video element, use it directly
+            if (this.mediaStream && this.isVideoReady()) {
+                console.log('Using existing media stream for screenshot');
+                
+                // Draw current frame to canvas
+                this.offscreenContext.drawImage(this.hiddenVideo, 0, 0, this.offscreenCanvas.width, this.offscreenCanvas.height);
+                
+                // Check if image was drawn properly
+                const imageData = this.offscreenContext.getImageData(0, 0, 1, 1);
+                if (this.isImageBlank(imageData)) {
+                    console.warn('Screenshot appears to be blank/black, trying with new stream');
+                } else {
+                    // Convert to base64 and return
+                    const base64Data = this.offscreenCanvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+                    console.log('Screenshot captured successfully from existing stream');
+                    return base64Data;
+                }
             }
+
+            // If no active stream or blank image, request a new one for screenshot
+            console.log('Requesting new display media for screenshot');
+            const screenshotStream = await navigator.mediaDevices.getDisplayMedia({
+                video: {
+                    frameRate: 1,
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 },
+                },
+                audio: false,
+            });
 
             // Create a temporary video element for the screenshot
             const tempVideo = document.createElement('video');
@@ -201,17 +215,22 @@ class VideoService {
             // Clean up
             tempVideo.pause();
             tempVideo.srcObject = null;
+            screenshotStream.getTracks().forEach(track => track.stop());
             
-            if (shouldStopStream) {
-                screenshotStream.getTracks().forEach(track => track.stop());
-            }
-            
-            console.log('Screenshot captured successfully');
+            console.log('Screenshot captured successfully from new stream');
             return base64Data;
             
         } catch (error) {
             console.error('Error capturing screenshot:', error);
-            throw error;
+            
+            // If user cancels or permission denied, provide helpful error
+            if (error.name === 'NotAllowedError') {
+                throw new Error('Screen capture permission denied. Please allow screen sharing.');
+            } else if (error.name === 'AbortError') {
+                throw new Error('Screen capture was cancelled.');
+            } else {
+                throw new Error(`Failed to capture screenshot: ${error.message}`);
+            }
         }
     }
 

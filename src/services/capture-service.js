@@ -177,7 +177,28 @@ class CaptureService {
 
     // Screenshot methods
     async captureScreenshot() {
-        return await this.videoService.captureManualScreenshot();
+        try {
+            // First try the video service method (if capture is active)
+            return await this.videoService.captureManualScreenshot();
+        } catch (error) {
+            console.warn('Video service screenshot failed, trying native capture:', error);
+            
+            // Fallback to native Electron screenshot
+            try {
+                const { ipcRenderer } = require('electron');
+                const result = await ipcRenderer.invoke('capture-native-screenshot');
+                
+                if (result.success) {
+                    console.log('Native screenshot captured successfully');
+                    return result.data;
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (nativeError) {
+                console.error('Native screenshot also failed:', nativeError);
+                throw new Error(`All screenshot methods failed. Last error: ${nativeError.message}`);
+            }
+        }
     }
 
     // Getters for services
@@ -187,6 +208,81 @@ class CaptureService {
 
     getVideoService() {
         return this.videoService;
+    }
+
+    // Test function for screenshot capture
+    async testScreenshotCapture() {
+        console.log('Testing screenshot capture methods...');
+        
+        const results = {
+            videoService: null,
+            nativeCapture: null,
+            finalResult: null
+        };
+
+        // Test 1: Video service method
+        try {
+            console.log('Testing video service screenshot...');
+            const videoData = await this.videoService.captureManualScreenshot();
+            results.videoService = {
+                success: true,
+                hasData: !!videoData,
+                dataSize: videoData ? `${Math.round(videoData.length / 1000)}KB` : 'N/A'
+            };
+            console.log('Video service screenshot result:', results.videoService);
+        } catch (error) {
+            results.videoService = {
+                success: false,
+                error: error.message
+            };
+            console.log('Video service screenshot failed:', error.message);
+        }
+
+        // Test 2: Native capture method
+        try {
+            console.log('Testing native screenshot capture...');
+            const { ipcRenderer } = require('electron');
+            const nativeResult = await ipcRenderer.invoke('capture-native-screenshot');
+            results.nativeCapture = {
+                success: nativeResult.success,
+                hasData: !!nativeResult.data,
+                dataSize: nativeResult.data ? `${Math.round(nativeResult.data.length / 1000)}KB` : 'N/A',
+                error: nativeResult.error
+            };
+            console.log('Native screenshot result:', results.nativeCapture);
+        } catch (error) {
+            results.nativeCapture = {
+                success: false,
+                error: error.message
+            };
+            console.log('Native screenshot failed:', error.message);
+        }
+
+        // Test 3: Main capture method (with fallback)
+        try {
+            console.log('Testing main captureScreenshot method...');
+            const finalData = await this.captureScreenshot();
+            results.finalResult = {
+                success: true,
+                hasData: !!finalData,
+                dataSize: finalData ? `${Math.round(finalData.length / 1000)}KB` : 'N/A'
+            };
+            console.log('Main capture method result:', results.finalResult);
+
+            // If successful, try to display the screenshot
+            if (finalData && window.buddy?.windowService) {
+                await window.buddy.windowService.createImageWindow(finalData, 'Screenshot Test');
+            }
+        } catch (error) {
+            results.finalResult = {
+                success: false,
+                error: error.message
+            };
+            console.log('Main capture method failed:', error.message);
+        }
+
+        console.log('Screenshot test complete. Summary:', results);
+        return results;
     }
 }
 

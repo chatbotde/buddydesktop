@@ -3,7 +3,7 @@
  * Handles window creation, management, and controls
  */
 
-const { ipcMain, BrowserWindow } = require('electron');
+const { ipcMain, BrowserWindow, desktopCapturer } = require('electron');
 const { 
     createImageWindow, 
     createAudioWindow, 
@@ -19,6 +19,45 @@ const { AppState } = require('../app-config');
  * Register all window-related IPC handlers
  */
 function registerWindowHandlers() {
+    // Native screenshot capture using Electron's desktopCapturer
+    ipcMain.handle('capture-native-screenshot', async (event) => {
+        try {
+            console.log('Capturing native screenshot using desktopCapturer...');
+            
+            // Get available sources (screens and windows)
+            const sources = await desktopCapturer.getSources({
+                types: ['screen'],
+                thumbnailSize: { width: 1920, height: 1080 },
+                fetchWindowIcons: false
+            });
+
+            if (sources.length === 0) {
+                throw new Error('No screen sources available');
+            }
+
+            // Use the first screen (primary display)
+            const primaryScreen = sources[0];
+            
+            // Convert the thumbnail to base64 (using JPEG for smaller size)
+            const thumbnail = primaryScreen.thumbnail;
+            
+            // Convert to JPEG for better compression
+            const jpegBuffer = thumbnail.toJPEG(80); // 80% quality
+            const base64Data = jpegBuffer.toString('base64');
+            
+            console.log('Native screenshot captured successfully', {
+                size: `${thumbnail.getSize().width}x${thumbnail.getSize().height}`,
+                dataSize: `${Math.round(base64Data.length / 1024)}KB`
+            });
+            
+            return { success: true, data: base64Data };
+            
+        } catch (error) {
+            console.error('Error capturing native screenshot:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
     // Window minimize
     ipcMain.handle('window-minimize', () => {
         const windows = BrowserWindow.getAllWindows();

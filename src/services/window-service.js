@@ -97,6 +97,31 @@ class WindowService {
         
         return { imageResult, windowResult };
     }
+
+    // Test function for native screenshot capture
+    async testNativeScreenshot() {
+        console.log('Testing native screenshot capture...');
+        
+        try {
+            const result = await ipcRenderer.invoke('capture-native-screenshot');
+            console.log('Native screenshot result:', {
+                success: result.success,
+                hasData: !!result.data,
+                dataSize: result.data ? `${Math.round(result.data.length / 1024)}KB` : 'N/A',
+                error: result.error
+            });
+            
+            // If successful, show the screenshot in a new window
+            if (result.success && result.data) {
+                await this.createImageWindow(result.data, 'Native Screenshot Test');
+            }
+            
+            return result;
+        } catch (error) {
+            console.error('Error testing native screenshot:', error);
+            return { success: false, error: error.message };
+        }
+    }
 }
 
 module.exports = WindowService;

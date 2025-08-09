@@ -224,16 +224,32 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
         }
 
         try {
+            // Show capturing feedback
+            this._showNotification('Capturing screenshot...', 'info');
+            
             // Request screenshot from renderer
             const screenshotData = await window.buddy.captureScreenshot();
             if (screenshotData) {
                 this.attachedScreenshots = [...this.attachedScreenshots, screenshotData];
                 this.requestUpdate();
                 this._showNotification('Screenshot captured successfully!', 'success');
+            } else {
+                this._showNotification('Failed to capture screenshot - no data returned', 'error');
             }
         } catch (error) {
             console.error('Failed to capture screenshot:', error);
-            this._showNotification('Failed to capture screenshot', 'error');
+            
+            // Provide more specific error messages
+            let errorMessage = 'Failed to capture screenshot';
+            if (error.message.includes('permission denied')) {
+                errorMessage = 'Screen capture permission denied. Please allow screen sharing.';
+            } else if (error.message.includes('cancelled')) {
+                errorMessage = 'Screenshot capture was cancelled.';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            this._showNotification(errorMessage, 'error');
         }
     }
 
@@ -247,10 +263,14 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
             if (screenshotData) {
                 this.attachedScreenshots = [...this.attachedScreenshots, screenshotData];
                 this.requestUpdate();
-                console.log('auto-screenshot');
+                console.log('Auto-screenshot captured successfully');
+            } else {
+                console.warn('Auto-screenshot returned no data');
             }
         } catch (error) {
-            console.error('auto-screenshot-error');
+            console.error('Auto-screenshot error:', error);
+            // Don't show notification for auto-screenshot errors to avoid annoying the user
+            // But log them for debugging
         }
     }
 
