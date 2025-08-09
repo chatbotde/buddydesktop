@@ -22,7 +22,7 @@ class BuddyCustomModelForm extends LitElement {
             apiKey: '',
             modelId: '',
             description: '',
-            capabilities: ['text'], // Always include text capability
+            capabilities: ['text'],
             contextWindow: 4096,
             maxTokens: 1024,
         };
@@ -319,6 +319,37 @@ class BuddyCustomModelForm extends LitElement {
              gap: 16px;
          }
 
+        .capabilities-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .capability-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-color);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .capability-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #4ade80;
+        }
+
+        .capability-label input[type="checkbox"]:disabled {
+            cursor: not-allowed;
+            accent-color: #9ca3af;
+        }
+
          @media (max-width: 600px) {
              .form-row {
                  grid-template-columns: 1fr;
@@ -329,7 +360,10 @@ class BuddyCustomModelForm extends LitElement {
     open(editingModel = null) {
         this.editingModel = editingModel;
         if (editingModel) {
-            this.formData = { ...editingModel };
+            this.formData = { 
+                ...editingModel,
+                capabilities: editingModel.capabilities || ['text'],
+            };
         } else {
             this.formData = {
                 name: '',
@@ -338,7 +372,7 @@ class BuddyCustomModelForm extends LitElement {
                 apiKey: '',
                 modelId: '',
                 description: '',
-                capabilities: ['text'], // Always include text capability
+                capabilities: ['text'],
                 contextWindow: 4096,
                 maxTokens: 1024,
             };
@@ -359,7 +393,7 @@ class BuddyCustomModelForm extends LitElement {
             apiKey: '',
             modelId: '',
             description: '',
-            capabilities: ['text'], // Always include text capability
+            capabilities: ['text'],
             contextWindow: 4096,
             maxTokens: 1024,
         };
@@ -382,6 +416,19 @@ class BuddyCustomModelForm extends LitElement {
         if (this.errors[field]) {
             this.errors = { ...this.errors, [field]: null };
         }
+        this.requestUpdate();
+    }
+
+    _onCapabilityChange(capability, isChecked) {
+        let capabilities = [...this.formData.capabilities];
+        if (isChecked) {
+            if (!capabilities.includes(capability)) {
+                capabilities.push(capability);
+            }
+        } else {
+            capabilities = capabilities.filter(c => c !== capability);
+        }
+        this.formData = { ...this.formData, capabilities };
         this.requestUpdate();
     }
 
@@ -642,6 +689,25 @@ class BuddyCustomModelForm extends LitElement {
                                 : 'Custom API endpoint (leave empty to use provider default)'}
                         </div>
                         ${this.errors.baseUrl ? html`<div class="form-error">${this.errors.baseUrl}</div>` : ''}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Capabilities</label>
+                        <div class="capabilities-group">
+                            <label class="capability-label">
+                                <input type="checkbox" .checked=${this.formData.capabilities.includes('text')} disabled> Text
+                            </label>
+                            <label class="capability-label">
+                                <input type="checkbox" .checked=${this.formData.capabilities.includes('vision')} @change=${e => this._onCapabilityChange('vision', e.target.checked)}> Vision
+                            </label>
+                            <label class="capability-label">
+                                <input type="checkbox" .checked=${this.formData.capabilities.includes('audio')} @change=${e => this._onCapabilityChange('audio', e.target.checked)}> Audio
+                            </label>
+                            <label class="capability-label">
+                                <input type="checkbox" .checked=${this.formData.capabilities.includes('video')} @change=${e => this._onCapabilityChange('video', e.target.checked)}> Video
+                            </label>
+                        </div>
+                        <div class="help-text">Select the capabilities of this model. Text is always enabled.</div>
                     </div>
 
                                          <div class="form-group">
