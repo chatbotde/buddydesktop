@@ -818,7 +818,7 @@ class BuddyModelsView extends LitElement {
                                                                 ></div>
                                                                 <span class="api-key-text">
                                                                     ${this._getApiKeyStatus(model)
-                                                                        ? 'API Key Configured'
+                                                                        ? ' '
                                                                         : `${this._getEnvironmentKeyName(model.provider)} Required`}
                                                                 </span>
                                                             </div>
@@ -876,7 +876,7 @@ class BuddyModelsView extends LitElement {
                                                                 ></div>
                                                                 <span class="api-key-text">
                                                                     ${this._getApiKeyStatus(model)
-                                                                        ? 'API Key Configured'
+                                                                        ? ' '
                                                                         : `${this._getEnvironmentKeyName(model.provider)} Required`}
                                                                 </span>
                                                             </div>

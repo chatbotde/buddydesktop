@@ -22,6 +22,7 @@ class EnhancedThemeSelector extends LitElement {
         this.searchQuery = '';
         this.selectedCategory = 'all';
         this.marketplaceWindow = null;
+        this._boundResizeHandler = this._handleWindowResize.bind(this);
     }
 
     static styles = css`
@@ -57,15 +58,17 @@ class EnhancedThemeSelector extends LitElement {
             border: 1px solid #333;
             border-radius: 12px;
             padding: 16px;
-            min-width: 280px;
-            max-width: min(400px, 90vw);
-            width: min(400px, 90vw);
+            min-width: 300px;
+            max-width: min(450px, calc(100vw - 40px));
+            width: min(450px, calc(100vw - 40px));
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(16px);
-            z-index: 1000;
+            z-index: 10000;
             opacity: 0;
             visibility: hidden;
-            transform: translateY(-10px);
+            transform: translateY(-10px) translateX(0);
             transition: all 0.3s ease;
         }
 
@@ -458,6 +461,7 @@ class EnhancedThemeSelector extends LitElement {
     _toggleDropdown() {
         this.isOpen = !this.isOpen;
         if (this.isOpen) {
+            this._positionDropdown();
             // Add click outside listener
             setTimeout(() => {
                 document.addEventListener('click', this._handleOutsideClick.bind(this));
@@ -465,6 +469,62 @@ class EnhancedThemeSelector extends LitElement {
         } else {
             document.removeEventListener('click', this._handleOutsideClick.bind(this));
         }
+    }
+
+    _positionDropdown() {
+        const dropdown = this.shadowRoot.querySelector('.theme-dropdown');
+        const button = this.shadowRoot.querySelector('.theme-selector-btn');
+        
+        if (!dropdown || !button) return;
+
+        // Get button position relative to viewport
+        const buttonRect = button.getBoundingClientRect();
+        const dropdownRect = dropdown.getBoundingClientRect();
+        
+        // Get window dimensions
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        
+        // Calculate optimal position
+        let top = buttonRect.bottom + 8;
+        let left = buttonRect.right - dropdownRect.width;
+        
+        // If dropdown would go outside right edge, align to left of button
+        if (left < 10) {
+            left = buttonRect.left;
+        }
+        
+        // If dropdown would go outside left edge, push it right
+        if (left < 10) {
+            left = 10;
+        }
+        
+        // If dropdown would go outside right edge, constrain it
+        if (left + dropdownRect.width > windowWidth - 10) {
+            left = windowWidth - dropdownRect.width - 10;
+        }
+        
+        // If dropdown would go below viewport, show it above the button
+        if (top + dropdownRect.height > windowHeight - 10) {
+            top = buttonRect.top - dropdownRect.height - 8;
+        }
+        
+        // If it would go above viewport, position at top
+        if (top < 10) {
+            top = 10;
+            // Also reduce height to fit
+            dropdown.style.maxHeight = `${windowHeight - 20}px`;
+        }
+        
+        // Apply position using CSS custom properties
+        dropdown.style.setProperty('--dropdown-top', `${top}px`);
+        dropdown.style.setProperty('--dropdown-left', `${left}px`);
+        
+        // Use fixed positioning
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = 'var(--dropdown-top)';
+        dropdown.style.left = 'var(--dropdown-left)';
+        dropdown.style.right = 'auto';
     }
 
     _handleOutsideClick(e) {
@@ -525,6 +585,23 @@ class EnhancedThemeSelector extends LitElement {
             bubbles: true,
             composed: true
         }));
+    }
+
+    _handleWindowResize() {
+        if (this.isOpen) {
+            this._positionDropdown();
+        }
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        window.addEventListener('resize', this._boundResizeHandler);
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener('resize', this._boundResizeHandler);
+        document.removeEventListener('click', this._handleOutsideClick.bind(this));
     }
 
     render() {

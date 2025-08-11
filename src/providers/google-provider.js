@@ -31,16 +31,31 @@ class GoogleAIProvider extends BaseAIProvider {
                         },
                         onmessage: function (message) {
                             let newTextReceived = false;
+                            let chunkText = '';
+                            
                             if (message.serverContent?.modelTurn?.parts) {
                                 for (const part of message.serverContent.modelTurn.parts) {
                                     if (part.text) {
+                                        chunkText = part.text;
                                         global.messageBuffer += part.text;
                                         newTextReceived = true;
                                     }
                                 }
                             }
 
+                            // Send real-time response chunks for better UX
                             if (newTextReceived && !message.serverContent?.generationComplete) {
+                                // Send chunk for real-time streaming
+                                if (global.sendRealtimeResponseChunk && chunkText) {
+                                    global.sendRealtimeResponseChunk({
+                                        text: chunkText,
+                                        timestamp: Date.now(),
+                                        isComplete: false,
+                                        modelId: this.model
+                                    });
+                                }
+                                
+                                // Also send traditional response for compatibility
                                 global.sendToRenderer('update-response', {
                                     text: global.messageBuffer,
                                     isStreaming: true,
@@ -49,6 +64,17 @@ class GoogleAIProvider extends BaseAIProvider {
                             }
 
                             if (message.serverContent?.generationComplete) {
+                                // Send final real-time response
+                                if (global.sendRealtimeResponseComplete) {
+                                    global.sendRealtimeResponseComplete({
+                                        text: global.messageBuffer,
+                                        timestamp: Date.now(),
+                                        isComplete: true,
+                                        modelId: this.model
+                                    });
+                                }
+                                
+                                // Also send traditional response for compatibility
                                 global.sendToRenderer('update-response', {
                                     text: global.messageBuffer,
                                     isStreaming: true,

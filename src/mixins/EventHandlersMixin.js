@@ -427,6 +427,7 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
                     this.setStatus('Error capturing screenshot: ' + error.message);
                 }
             });
+
         }
     }
 

@@ -273,6 +273,44 @@ function registerAIHandlers() {
         }
     });
 
+    // Handle multimodal input with capability validation
+    ipcMain.handle('send-multimodal-input', async (event, data) => {
+        try {
+            const { modelId, inputData } = data;
+            const currentAIProvider = AppState.get('currentAIProvider');
+            
+            if (!currentAIProvider) {
+                return { success: false, error: 'No AI session active' };
+            }
+
+            // Import capability service for validation
+            const { capabilityService } = require('../capability-service');
+            
+            // Validate input against model capabilities
+            const validation = capabilityService.validateInputForModel(modelId, inputData);
+            if (!validation.success) {
+                console.warn('❌ Multimodal input validation failed:', validation.errors);
+                return {
+                    success: false,
+                    error: validation.errors.join(', '),
+                    supportedTypes: validation.supportedTypes
+                };
+            }
+
+            console.log('📤 Sending multimodal input for model:', modelId);
+            
+            // Send input to AI provider
+            await currentAIProvider.sendRealtimeInput(inputData);
+            
+            console.log('✅ Multimodal input sent successfully');
+            return { success: true };
+            
+        } catch (error) {
+            console.error('❌ Error sending multimodal input:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
     // Close AI session
     ipcMain.handle('close-session', async (event) => {
         try {

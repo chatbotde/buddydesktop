@@ -45,6 +45,8 @@ const { registerAudioHandlers } = require('./main/handlers/audio-handlers');
 const { registerAuthHandlers } = require('./main/handlers/auth-handlers');
 const { registerWindowHandlers } = require('./main/handlers/window-handlers');
 const { registerMarketplaceHandlers } = require('./main/handlers/marketplace-handlers');
+const { registerRealtimeHandlers } = require('./main/handlers/realtime-handlers');
+const { enhancedAudioManager } = require('./main/enhanced-audio-manager');
 
 /**
  * Initialize the application
@@ -63,6 +65,7 @@ function initializeApp() {
     registerAuthHandlers();
     registerWindowHandlers();
     registerMarketplaceHandlers();
+    registerRealtimeHandlers();
 
     console.log('✅ All IPC handlers registered');
 }
@@ -77,6 +80,9 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
     stopMacOSAudioCapture();
+    if (enhancedAudioManager.getStatus().isCapturing) {
+        enhancedAudioManager.stopCapture();
+    }
     if (process.platform !== 'darwin') {
         app.quit();
     }
@@ -84,6 +90,9 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
     stopMacOSAudioCapture();
+    if (enhancedAudioManager.getStatus().isCapturing) {
+        enhancedAudioManager.stopCapture();
+    }
 });
 
 app.on('activate', () => {

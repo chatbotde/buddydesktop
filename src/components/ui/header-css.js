@@ -1818,10 +1818,11 @@ export const headerStyles = css`
     /* Horizontal responsive design for theme control dropdown */
     @media (max-width: 768px) {
         .theme-control-dropdown {
-            min-width: min(180px, calc(100vw - 60px));
-            width: min(250px, calc(100vw - 40px));
-            max-width: min(250px, calc(100vw - 40px));
-            right: -5px;
+            min-width: min(180px, calc(100vw - 40px));
+            width: min(250px, calc(100vw - 20px));
+            max-width: min(250px, calc(100vw - 20px));
+            right: max(-5px, calc(-50vw + 50%));
+            left: auto;
         }
 
         .theme-control-btn {
@@ -1838,10 +1839,11 @@ export const headerStyles = css`
 
     @media (max-width: 480px) {
         .theme-control-dropdown {
-            min-width: min(160px, calc(100vw - 80px));
-            width: min(220px, calc(100vw - 60px));
-            max-width: min(220px, calc(100vw - 60px));
-            right: -10px;
+            min-width: min(160px, calc(100vw - 30px));
+            width: min(220px, calc(100vw - 20px));
+            max-width: min(220px, calc(100vw - 20px));
+            right: max(-10px, calc(-100vw + 90%));
+            left: auto;
             border-radius: 10px;
         }
 
@@ -1866,10 +1868,11 @@ export const headerStyles = css`
 
     @media (max-width: 360px) {
         .theme-control-dropdown {
-            min-width: min(140px, calc(100vw - 100px));
-            width: min(200px, calc(100vw - 80px));
-            max-width: min(200px, calc(100vw - 80px));
-            right: -15px;
+            min-width: min(140px, calc(100vw - 25px));
+            width: min(200px, calc(100vw - 15px));
+            max-width: min(200px, calc(100vw - 15px));
+            right: max(-15px, calc(-100vw + 85%));
+            left: auto;
         }
 
         .theme-control-btn {
@@ -1882,6 +1885,51 @@ export const headerStyles = css`
         .opacity-percentage {
             font-size: 8px;
             min-width: 18px;
+        }
+    }
+
+    /* Ultra-small viewport handling for theme dropdown */
+    @media (max-width: 320px) {
+        .theme-control-dropdown {
+            min-width: min(130px, calc(100vw - 20px));
+            width: min(180px, calc(100vw - 10px));
+            max-width: min(180px, calc(100vw - 10px));
+            right: max(-20px, calc(-100vw + 80%));
+            left: auto;
+        }
+
+        .theme-control-btn {
+            min-width: 40px;
+            padding: 0 3px;
+            font-size: 8px;
+            height: 30px;
+        }
+
+        .opacity-percentage {
+            font-size: 7px;
+            min-width: 16px;
+        }
+    }
+
+    @media (max-width: 280px) {
+        .theme-control-dropdown {
+            min-width: min(120px, calc(100vw - 15px));
+            width: min(160px, calc(100vw - 5px));
+            max-width: min(160px, calc(100vw - 5px));
+            right: max(-25px, calc(-100vw + 75%));
+            left: auto;
+        }
+
+        .theme-control-btn {
+            min-width: 35px;
+            padding: 0 2px;
+            font-size: 7px;
+            height: 28px;
+        }
+
+        .opacity-percentage {
+            font-size: 6px;
+            min-width: 14px;
         }
     }
 
@@ -2693,10 +2741,11 @@ export const headerStyles = css`
         }
         
         .models-dropdown {
-            min-width: 220px;
-            width: 240px;
-            max-width: 280px;
-            right: -10px;
+            min-width: min(220px, calc(100vw - 30px));
+            width: min(240px, calc(100vw - 20px));
+            max-width: min(280px, calc(100vw - 20px));
+            right: max(-10px, calc(-50vw + 50%));
+            left: auto;
             max-height: 350px;
         }
 
@@ -2744,10 +2793,11 @@ export const headerStyles = css`
         }
         
         .models-dropdown {
-            min-width: 200px;
-            width: 220px;
-            max-width: 260px;
-            right: -15px;
+            min-width: min(200px, calc(100vw - 25px));
+            width: min(220px, calc(100vw - 15px));
+            max-width: min(260px, calc(100vw - 15px));
+            right: max(-15px, calc(-100vw + 85%));
+            left: auto;
             max-height: 320px;
             border-radius: 14px;
         }
@@ -2799,9 +2849,11 @@ export const headerStyles = css`
         }
         
         .models-dropdown {
-            min-width: 180px;
-            width: 200px;
-            right: -20px;
+            min-width: min(180px, calc(100vw - 20px));
+            width: min(200px, calc(100vw - 10px));
+            max-width: min(200px, calc(100vw - 10px));
+            right: max(-20px, calc(-100vw + 80%));
+            left: auto;
             max-height: 300px;
         }
 
@@ -2817,6 +2869,89 @@ export const headerStyles = css`
 
         .model-dropdown-item .model-name {
             font-size: 11px;
+        }
+    }
+
+    /* Ultra-small viewport handling for models dropdown */
+    @media (max-width: 320px) {
+        .models-dropdown-btn {
+            max-width: 85px;
+            padding: 4px 5px;
+            font-size: 10px;
+            gap: 4px;
+        }
+        
+        .models-dropdown-text {
+            max-width: 55px;
+            font-size: 9px;
+        }
+        
+        .models-dropdown {
+            min-width: min(160px, calc(100vw - 15px));
+            width: min(180px, calc(100vw - 5px));
+            max-width: min(180px, calc(100vw - 5px));
+            right: max(-25px, calc(-100vw + 75%));
+            left: auto;
+            max-height: 280px;
+        }
+
+        .models-dropdown-content {
+            max-height: 220px;
+        }
+
+        .model-dropdown-item {
+            padding: 6px 8px;
+            font-size: 10px;
+            gap: 5px;
+        }
+
+        .model-dropdown-item .model-name {
+            font-size: 10px;
+        }
+
+        .model-dropdown-item .model-badge {
+            font-size: 8px;
+        }
+    }
+
+    @media (max-width: 280px) {
+        .models-dropdown-btn {
+            max-width: 75px;
+            padding: 3px 4px;
+            font-size: 9px;
+            gap: 3px;
+        }
+        
+        .models-dropdown-text {
+            max-width: 50px;
+            font-size: 8px;
+        }
+        
+        .models-dropdown {
+            min-width: min(140px, calc(100vw - 10px));
+            width: min(160px, calc(100vw - 2px));
+            max-width: min(160px, calc(100vw - 2px));
+            right: max(-30px, calc(-100vw + 70%));
+            left: auto;
+            max-height: 260px;
+        }
+
+        .models-dropdown-content {
+            max-height: 200px;
+        }
+
+        .model-dropdown-item {
+            padding: 5px 6px;
+            font-size: 9px;
+            gap: 4px;
+        }
+
+        .model-dropdown-item .model-name {
+            font-size: 9px;
+        }
+
+        .model-dropdown-item .model-badge {
+            font-size: 7px;
         }
     }
 
@@ -3222,9 +3357,12 @@ export const headerStyles = css`
     @media (max-width: 768px) {
         .main-menu-dropdown {
             width: min(260px, calc(100vw - 20px));
+            max-width: min(260px, calc(100vw - 20px));
+            min-width: min(240px, calc(100vw - 40px));
             max-height: min(350px, calc(100vh - 80px));
             top: calc(100% + 8px);
-            right: -10px;
+            right: max(-10px, calc(-50vw + 50%));
+            left: auto;
         }
 
         .menu-item {
@@ -3246,8 +3384,11 @@ export const headerStyles = css`
     @media (max-width: 480px) {
         .main-menu-dropdown {
             width: min(240px, calc(100vw - 16px));
+            max-width: min(240px, calc(100vw - 16px));
+            min-width: min(220px, calc(100vw - 20px));
             max-height: min(300px, calc(100vh - 60px));
-            right: -8px;
+            right: max(-8px, calc(-100vw + 85%));
+            left: auto;
         }
 
         .menu-item {
@@ -3259,6 +3400,92 @@ export const headerStyles = css`
         .menu-item svg {
             width: 18px;
             height: 18px;
+        }
+    }
+
+    /* Ultra-small viewport handling for main menu dropdown */
+    @media (max-width: 360px) {
+        .main-menu-dropdown {
+            width: min(220px, calc(100vw - 12px));
+            max-width: min(220px, calc(100vw - 12px));
+            min-width: min(200px, calc(100vw - 16px));
+            max-height: min(280px, calc(100vh - 50px));
+            right: max(-12px, calc(-100vw + 80%));
+            left: auto;
+        }
+
+        .menu-item {
+            padding: 10px 12px;
+            font-size: 13px;
+            gap: 8px;
+        }
+
+        .menu-item svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .menu-item-status {
+            font-size: 9px;
+            padding: 2px 6px;
+        }
+    }
+
+    @media (max-width: 320px) {
+        .main-menu-dropdown {
+            width: min(200px, calc(100vw - 8px));
+            max-width: min(200px, calc(100vw - 8px));
+            min-width: min(180px, calc(100vw - 12px));
+            max-height: min(260px, calc(100vh - 40px));
+            right: max(-15px, calc(-100vw + 75%));
+            left: auto;
+        }
+
+        .menu-item {
+            padding: 8px 10px;
+            font-size: 12px;
+            gap: 6px;
+        }
+
+        .menu-item svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .menu-item-status {
+            font-size: 8px;
+            padding: 2px 5px;
+        }
+    }
+
+    @media (max-width: 280px) {
+        .main-menu-dropdown {
+            width: min(180px, calc(100vw - 5px));
+            max-width: min(180px, calc(100vw - 5px));
+            min-width: min(160px, calc(100vw - 8px));
+            max-height: min(240px, calc(100vh - 35px));
+            right: max(-20px, calc(-100vw + 70%));
+            left: auto;
+        }
+
+        .menu-item {
+            padding: 7px 8px;
+            font-size: 11px;
+            gap: 5px;
+        }
+
+        .menu-item svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        .menu-item-status {
+            font-size: 7px;
+            padding: 1px 4px;
+        }
+
+        .menu-divider {
+            margin: 3px 5px;
         }
     }
 

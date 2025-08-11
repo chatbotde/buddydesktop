@@ -40,11 +40,23 @@ function loadShortcutSettings() {
  */
 function registerShortcutIfEnabled(shortcutId, accelerator, callback) {
     if (shortcutsEnabled[shortcutId]) {
-        globalShortcut.register(accelerator, callback);
-        registeredShortcuts.push({ id: shortcutId, accelerator });
-        console.log(`Registered shortcut: ${shortcutId} (${accelerator})`);
+        try {
+            const success = globalShortcut.register(accelerator, () => {
+                console.log(`🎯 Shortcut triggered: ${shortcutId} (${accelerator})`);
+                callback();
+            });
+            
+            if (success) {
+                registeredShortcuts.push({ id: shortcutId, accelerator });
+                console.log(`✅ Registered shortcut: ${shortcutId} (${accelerator})`);
+            } else {
+                console.error(`❌ Failed to register shortcut: ${shortcutId} (${accelerator}) - may be in use by another application`);
+            }
+        } catch (error) {
+            console.error(`❌ Error registering shortcut ${shortcutId} (${accelerator}):`, error);
+        }
     } else {
-        console.log(`Shortcut disabled: ${shortcutId} (${accelerator})`);
+        console.log(`🚫 Shortcut disabled: ${shortcutId} (${accelerator})`);
     }
 }
 
@@ -198,6 +210,7 @@ function setupGlobalShortcuts(mainWindow) {
             console.error('Error triggering close application:', error);
         }
     });
+
 }
 
 /**
