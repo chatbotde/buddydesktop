@@ -21,7 +21,8 @@ let shortcutsEnabled = {
     'screen-analysis': true,
     'clear-chat': true,
     'theme-opacity-reset': true,
-    'close-application': true
+    'close-application': true,
+    'toggle-header': true
 };
 
 let registeredShortcuts = [];
@@ -208,6 +209,20 @@ function setupGlobalShortcuts(mainWindow) {
             }
         } catch (error) {
             console.error('Error triggering close application:', error);
+        }
+    });
+
+    // Toggle header shortcut (Ctrl+Alt+H)
+    registerShortcutIfEnabled('toggle-header', 'CommandOrControl+Alt+H', async () => {
+        console.log('Toggle header shortcut triggered');
+        try {
+            // Send command to renderer to toggle header
+            const windows = BrowserWindow.getAllWindows();
+            if (windows.length > 0) {
+                windows[0].webContents.send('toggle-header-shortcut');
+            }
+        } catch (error) {
+            console.error('Error triggering toggle header:', error);
         }
     });
 

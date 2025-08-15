@@ -26,6 +26,7 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         streamChunkSize: { type: Number },
         enableTextAnimation: { type: Boolean },
         // Theme properties are now handled by ThemeMixin
+        showHeaderToggle: { type: Boolean }, // Show header toggle button
     };
 
     constructor() {
@@ -34,6 +35,7 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         this.isEditing = false;
         this.editableContent = '';
         this._processedContentCache = new Map(); // Cache for processed content
+        this.showHeaderToggle = false; // Default to not showing header toggle
         
         // Text stream animation defaults
         this.streamMode = 'typewriter';
@@ -718,6 +720,13 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         }));
     }
 
+    _onToggleHeader() {
+        this.dispatchEvent(new CustomEvent('toggle-header', {
+            bubbles: true,
+            composed: true
+        }));
+    }
+
     updated(changedProperties) {
         super.updated(changedProperties);
 
@@ -941,6 +950,26 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h1"></path>
                     </svg>
                 </button>
+                <!-- Header toggle button -->
+                ${this.showHeaderToggle ? html`
+                    <button class="header-toggle-btn" @click=${this._onToggleHeader} title="Toggle Header">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                ` : ''}
                 <div class="message-bubble ${this.sender} ${backgroundClass}">
                     ${shouldShowScreenshots
                         ? html`

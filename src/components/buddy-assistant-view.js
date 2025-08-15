@@ -752,6 +752,7 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                                       .screenshots=${message.screenshots}
                                       .autoScreenshotEnabled=${this.autoScreenshotEnabled}
                                       .isViewingHistory=${this.isViewingHistory}
+                                      .showHeaderToggle=${message.sender === 'assistant'}
                                       @delete-message=${e => this._onDelete(e)}
                                       @copy-message=${() => this._onCopy(message)}
                                       @message-content-updated=${this._onMessageContentUpdated}

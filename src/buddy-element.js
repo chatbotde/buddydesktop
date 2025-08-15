@@ -145,29 +145,31 @@ class BuddyApp extends AuthInitializationMixin(
         return html`
             <div class="window-container">
                 <div class="container">
-                    <buddy-header
-                        .currentView=${this.currentView}
-                        .selectedModel=${this.selectedModel}
-                        .selectedProvider=${this.selectedProvider}
-                        .sessionActive=${this.sessionActive}
-                        .statusText=${this.statusText}
-                        .startTime=${this.startTime}
-                        .isAudioActive=${this.isAudioActive}
-                        .isSearchActive=${this.isSearchActive}
-                        .isScreenActive=${this.isScreenActive}
-                        .modelsByProvider=${this.getModelsByProviderForHeader()}
-                        .user=${this.user}
-                        .isAuthenticated=${this.isAuthenticated}
-                        .isGuest=${this.isGuest}
-                        .enabledModels=${this.enabledModels}
-                        .customMenuButtons=${this.customMenuButtons}
-                        .windowOpacity=${this.windowOpacity}
-                        .isOpacityControlActive=${this.isOpacityControlActive}
-                        .currentWindowTheme=${this.currentWindowTheme}
-                        .availableThemes=${this.availableThemes}
-                        .isAudioWindowOpen=${this.isAudioWindowOpen}
-                        .isSearchWindowOpen=${this.isSearchWindowOpen}
-                    ></buddy-header>
+                    ${this.isHeaderVisible ? html`
+                        <buddy-header
+                            .currentView=${this.currentView}
+                            .selectedModel=${this.selectedModel}
+                            .selectedProvider=${this.selectedProvider}
+                            .sessionActive=${this.sessionActive}
+                            .statusText=${this.statusText}
+                            .startTime=${this.startTime}
+                            .isAudioActive=${this.isAudioActive}
+                            .isSearchActive=${this.isSearchActive}
+                            .isScreenActive=${this.isScreenActive}
+                            .modelsByProvider=${this.getModelsByProviderForHeader()}
+                            .user=${this.user}
+                            .isAuthenticated=${this.isAuthenticated}
+                            .isGuest=${this.isGuest}
+                            .enabledModels=${this.enabledModels}
+                            .customMenuButtons=${this.customMenuButtons}
+                            .windowOpacity=${this.windowOpacity}
+                            .isOpacityControlActive=${this.isOpacityControlActive}
+                            .currentWindowTheme=${this.currentWindowTheme}
+                            .availableThemes=${this.availableThemes}
+                            .isAudioWindowOpen=${this.isAudioWindowOpen}
+                            .isSearchWindowOpen=${this.isSearchWindowOpen}
+                        ></buddy-header>
+                    ` : ''}
                     <div class="main-content">${views[this.currentView]}</div>
                 </div>
             </div>

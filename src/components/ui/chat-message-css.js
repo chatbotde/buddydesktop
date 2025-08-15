@@ -112,6 +112,50 @@ export const chatMessageStyles = css`
             background: rgba(34, 197, 94, 0.25);
             border-color: rgba(34, 197, 94, 0.4);
         }
+
+        /* Header toggle button */
+        .header-toggle-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            position: absolute;
+            right: 60px; /* Position to the left of copy button */
+            top: 8px;
+            z-index: 10;
+        }
+
+        .message-wrapper:hover .header-toggle-btn {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .header-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .header-toggle-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .header-toggle-btn svg {
+            width: 16px;
+            height: 16px;
+        }
         
         .message-bubble {
             max-width: 100%;

@@ -37,6 +37,7 @@ export const StateManagementMixin = (superClass) => class extends superClass {
         isOpacityControlActive: { type: Boolean },
         currentWindowTheme: { type: String },
         availableThemes: { type: Object },
+        isHeaderVisible: { type: Boolean },
     };
 
     initializeState() {
@@ -78,6 +79,7 @@ export const StateManagementMixin = (superClass) => class extends superClass {
         this.isOpacityControlActive = false;
         this.currentWindowTheme = 'transparent';
         this.availableThemes = {};
+        this.isHeaderVisible = true; // Header is visible by default
     }
 
     getDefaultModelForProvider(provider) {

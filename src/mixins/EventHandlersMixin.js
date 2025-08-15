@@ -266,6 +266,10 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
         this.addEventListener('window-theme-change', async (e) => {
             await this.setWindowTheme(e.detail.theme);
         });
+        this.addEventListener('toggle-header', () => {
+            this.isHeaderVisible = !this.isHeaderVisible;
+            this.requestUpdate();
+        });
         this.addEventListener('delete-session', (e) => {
             this.deleteSession(e.detail.index);
         });
@@ -388,6 +392,13 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
                 await this.handleNewChat();
             });
 
+            // Listen for toggle header shortcut
+            ipcRenderer.on('toggle-header-shortcut', () => {
+                console.log('🎛️ Toggle header shortcut triggered');
+                this.isHeaderVisible = !this.isHeaderVisible;
+                this.requestUpdate();
+            });
+
             // Listen for theme opacity reset shortcut
             ipcRenderer.on('reset-theme-opacity', async () => {
                 console.log('🎨 Theme opacity reset shortcut triggered');
@@ -458,6 +469,7 @@ export const EventHandlersMixin = (superClass) => class extends superClass {
             ipcRenderer.removeAllListeners('update-status');
             ipcRenderer.removeAllListeners('marketplace-buttons-updated');
             ipcRenderer.removeAllListeners('clear-chat-shortcut');
+            ipcRenderer.removeAllListeners('toggle-header-shortcut');
             ipcRenderer.removeAllListeners('reset-theme-opacity');
             ipcRenderer.removeAllListeners('close-application-shortcut');
             ipcRenderer.removeAllListeners('capture-and-send-screenshot');
