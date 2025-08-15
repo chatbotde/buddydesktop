@@ -381,10 +381,27 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
             .writeText(textToCopy)
             .then(() => {
                 console.log('Message copied to clipboard');
-                // Optional: Show a brief success indicator
+                this._showCopyFeedback('Message copied!');
             })
             .catch(err => {
                 console.error('Failed to copy message:', err);
+                // Fallback for older browsers
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    this._showCopyFeedback('Message copied!');
+                } catch (fallbackErr) {
+                    console.error('Fallback copy also failed:', fallbackErr);
+                    this._showCopyFeedback('Failed to copy message', true);
+                }
             });
     }
 
@@ -397,7 +414,7 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
             .then(() => {
                 console.log('Message copied to clipboard');
                 
-                // Show success feedback
+                // Show success feedback on button
                 if (copyBtn) {
                     copyBtn.classList.add('copied');
                     const originalHTML = copyBtn.innerHTML;
@@ -423,9 +440,57 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
                         copyBtn.innerHTML = originalHTML;
                     }, 2000);
                 }
+                
+                // Also show global feedback
+                this._showCopyFeedback('Message copied!');
             })
             .catch(err => {
                 console.error('Failed to copy message:', err);
+                // Fallback for older browsers
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    // Show success feedback on fallback
+                    if (copyBtn) {
+                        copyBtn.classList.add('copied');
+                        const originalHTML = copyBtn.innerHTML;
+                        
+                        copyBtn.innerHTML = `
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <polyline points="20,6 9,17 4,12"></polyline>
+                            </svg>
+                        `;
+                        
+                        setTimeout(() => {
+                            copyBtn.classList.remove('copied');
+                            copyBtn.innerHTML = originalHTML;
+                        }, 2000);
+                    }
+                    
+                    this._showCopyFeedback('Message copied!');
+                } catch (fallbackErr) {
+                    console.error('Fallback copy also failed:', fallbackErr);
+                    this._showCopyFeedback('Failed to copy message', true);
+                }
             });
     }
 
@@ -787,9 +852,15 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
     disconnectedCallback() {
         super.disconnectedCallback();
         document.removeEventListener('click', this._onClickOutside.bind(this));
+        
+        // Clean up selection handling
         if (this._selectionCleanup) {
             this._selectionCleanup();
         }
+        
+        // Clean up copy feedback
+        this._hideCopyFeedback();
+        this._hideSelectionCopyButton();
     }
 
     _showSelectionCopyButton(selection) {
@@ -813,7 +884,7 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         `;
 
         // Position the button above the selection, centered
-        const buttonWidth = 60; // Approximate width of the button
+        const buttonWidth = 70; // Approximate width of the button
         let leftPosition = rect.left + rect.width / 2 - buttonWidth / 2;
 
         // Ensure button stays within viewport
@@ -821,16 +892,29 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         if (leftPosition < 10) leftPosition = 10;
         if (leftPosition + buttonWidth > viewportWidth - 10) leftPosition = viewportWidth - buttonWidth - 10;
 
+        // Position above selection, with some buffer
+        let topPosition = rect.top - 45;
+        // If there's not enough space above, position below
+        if (topPosition < 10) {
+            topPosition = rect.bottom + 10;
+        }
+
         copyBtn.style.left = `${leftPosition}px`;
-        copyBtn.style.top = `${rect.top - 40}px`;
+        copyBtn.style.top = `${topPosition}px`;
         copyBtn.style.position = 'fixed';
-        copyBtn.style.zIndex = '1000';
+        copyBtn.style.zIndex = '10000';
 
         copyBtn.addEventListener('click', e => {
             e.preventDefault();
             e.stopPropagation();
             this._copySelectedText();
             this._hideSelectionCopyButton();
+        });
+
+        // Prevent the button from interfering with other interactions
+        copyBtn.addEventListener('mousedown', e => {
+            e.preventDefault();
+            e.stopPropagation();
         });
 
         document.body.appendChild(copyBtn);
@@ -841,10 +925,10 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
             copyBtn.classList.add('show');
         });
 
-        // Auto-hide after 3 seconds
+        // Auto-hide after 4 seconds (bit longer for better UX)
         setTimeout(() => {
             this._hideSelectionCopyButton();
-        }, 3000);
+        }, 4000);
     }
 
     _hideSelectionCopyButton() {
@@ -868,6 +952,8 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
                 .writeText(selectedText)
                 .then(() => {
                     console.log('Selected text copied to clipboard:', selectedText);
+                    // Show success feedback
+                    this._showCopyFeedback('Selected text copied!');
                     // Clear the selection after copying
                     selection.removeAllRanges();
                 })
@@ -877,14 +963,78 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
                     try {
                         const textArea = document.createElement('textarea');
                         textArea.value = selectedText;
+                        textArea.style.position = 'fixed';
+                        textArea.style.left = '-999999px';
+                        textArea.style.top = '-999999px';
                         document.body.appendChild(textArea);
+                        textArea.focus();
                         textArea.select();
                         document.execCommand('copy');
                         document.body.removeChild(textArea);
+                        this._showCopyFeedback('Selected text copied!');
+                        selection.removeAllRanges();
                     } catch (fallbackErr) {
                         console.error('Fallback copy also failed:', fallbackErr);
+                        this._showCopyFeedback('Failed to copy text', true);
                     }
                 });
+        }
+    }
+
+    _showCopyFeedback(message, isError = false) {
+        // Remove any existing feedback
+        this._hideCopyFeedback();
+
+        const feedback = document.createElement('div');
+        feedback.className = `copy-feedback ${isError ? 'error' : 'success'}`;
+        feedback.textContent = message;
+        
+        // Position it near the cursor or center of screen
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        feedback.style.left = `${viewportWidth / 2 - 100}px`;
+        feedback.style.top = `${viewportHeight / 2}px`;
+        feedback.style.position = 'fixed';
+        feedback.style.zIndex = '10000';
+        feedback.style.background = isError ? 'rgba(239, 68, 68, 0.9)' : 'rgba(34, 197, 94, 0.9)';
+        feedback.style.color = 'white';
+        feedback.style.padding = '8px 16px';
+        feedback.style.borderRadius = '8px';
+        feedback.style.fontSize = '14px';
+        feedback.style.fontWeight = '500';
+        feedback.style.backdropFilter = 'blur(10px)';
+        feedback.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+        feedback.style.opacity = '0';
+        feedback.style.transform = 'translateY(10px) scale(0.9)';
+        feedback.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        feedback.style.pointerEvents = 'none';
+
+        document.body.appendChild(feedback);
+        this._copyFeedback = feedback;
+
+        // Show with animation
+        requestAnimationFrame(() => {
+            feedback.style.opacity = '1';
+            feedback.style.transform = 'translateY(0) scale(1)';
+        });
+
+        // Auto-hide after 2 seconds
+        setTimeout(() => {
+            this._hideCopyFeedback();
+        }, 2000);
+    }
+
+    _hideCopyFeedback() {
+        if (this._copyFeedback) {
+            this._copyFeedback.style.opacity = '0';
+            this._copyFeedback.style.transform = 'translateY(-10px) scale(0.9)';
+            setTimeout(() => {
+                if (this._copyFeedback) {
+                    this._copyFeedback.remove();
+                    this._copyFeedback = null;
+                }
+            }, 300);
         }
     }
 
@@ -934,7 +1084,7 @@ class BuddyChatMessage extends ThemeMixin(LitElement) {
         return html`
             <div class="message-wrapper ${this.sender}">
                 <!-- Copy button that appears on hover -->
-                <button class="message-copy-btn" @click=${this._onCopyMessage} title=" ">
+                <button class="message-copy-btn" @click=${this._onCopyMessage} title="Copy message">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="16"
