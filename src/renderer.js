@@ -95,6 +95,7 @@ window.buddy = {
     openExternal: (url) => windowService.openExternal(url),
     testWindowCreation: () => windowService.testWindowCreation(),
     testNativeScreenshot: () => windowService.testNativeScreenshot(),
+    testDesktopCapture: () => windowService.testDesktopCapture(),
 
     // Testing functions
     testScreenshotCapture: () => captureService.testScreenshotCapture(),

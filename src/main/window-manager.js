@@ -156,17 +156,18 @@ function setupGlobalShortcuts(mainWindow) {
         }
     });
 
-    // Screenshot analysis shortcut
+    // Desktop capture and AI analysis shortcut
     registerShortcutIfEnabled('screen-analysis', shortcuts.screenshot, async () => {
-        console.log('Screen analysis shortcut triggered');
+        console.log('Desktop capture shortcut triggered (Alt+A)');
         try {
-            // Send command to renderer to capture screenshot and analyze it
+            // Use native desktop capture instead of web-based capture
             const windows = BrowserWindow.getAllWindows();
             if (windows.length > 0) {
-                windows[0].webContents.send('capture-and-send-screenshot');
+                // Trigger desktop capture and send to AI
+                windows[0].webContents.send('capture-desktop-and-send-screenshot');
             }
         } catch (error) {
-            console.error('Error triggering screen analysis:', error);
+            console.error('Error triggering desktop capture:', error);
         }
     });
 

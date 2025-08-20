@@ -80,7 +80,7 @@ function getShortcutsConfig() {
             toggleVisibility: isMac ? 'Cmd+\\' : 'Ctrl+\\',
             toggleMouseEvents: isMac ? 'Cmd+M' : 'Ctrl+M',
             nextStep: isMac ? 'Cmd+Enter' : 'Ctrl+Enter',
-            screenshot: 'Alt+A',
+            screenshot: 'Alt+A', // Desktop capture and AI analysis
             clearChat: isMac ? 'Cmd+K' : 'Ctrl+K'
         }
     };
