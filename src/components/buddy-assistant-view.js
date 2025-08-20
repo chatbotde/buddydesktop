@@ -35,6 +35,9 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
         this.boundGlobalKeydownHandler = this._handleGlobalKeydown.bind(this);
         // Simple auto-scroll for input/output visibility
         this.isUserScrolledUp = false;
+
+    // New: Track input area visibility
+    this.showInputArea = true;
     }
 
     connectedCallback() {
@@ -722,357 +725,389 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
     render() {
         const isAtLimit = this.attachedScreenshots.length >= 3;
 
-        return html`
+        // Add a property to control visibility
+        if (typeof this.showAssistantView === 'undefined') {
+            this.showAssistantView = false;
+        }
+
+        // Add a button to toggle input area visibility
+        const toggleInputButton = html`
+            <div style="text-align: right; margin-bottom: 8px;">
+                <button @click=${() => { this.showInputArea = !this.showInputArea; this.requestUpdate(); }}>
+                    ${this.showInputArea ? 'Hide Input Area' : 'Show Input Area'}
+                </button>
+            </div>
+        `;
+
+        // Button to toggle assistant view (shown in message output area)
+        const toggleButton = html`
+            <div style="text-align: right; margin-bottom: 8px;">
+            <button @click=${() => { this.showAssistantView = !this.showAssistantView; this.requestUpdate(); }}>
+                ${this.showAssistantView ? 'Hide Assistant' : 'Show Assistant'}
+            </button>
+            </div>
+        `;
+
+        // The main assistant view content
+        const assistantViewContent = html`
             <div class="assistant-view-root">
-                <input type="file" id="fileInput" hidden accept="image/*" @change=${this._handleFileSelect} />
-                <div class="chat-container">
-                    ${!this.chatMessages || this.chatMessages.length === 0
-                        ? html`
-                              <div class="welcome-message">
-                                  <p>Hi! How can I help you today?</p>
+            <input type="file" id="fileInput" hidden accept="image/*" @change=${this._handleFileSelect} />
+            <div class="chat-container">
+                ${!this.chatMessages || this.chatMessages.length === 0
+                ? html`
+                      <div class="welcome-message">
+                      ${this.autoScreenshotEnabled
+                          ? html`
+                            <p style="font-size: 12px; opacity: 0.6; margin-top: 8px;">
+                            Auto-screen info on
+                            </p>
+                        `
+                          : ''}
+                      </div>
+                  `
+                : this.chatMessages.map(
+                      message => html`
+                      <buddy-chat-message
+                          key=${message.id}
+                          .id=${message.id}
+                          .text=${message.text}
+                          .sender=${message.sender}
+                          .timestamp=${message.timestamp}
+                          .isStreaming=${message.isStreaming}
+                          .screenshots=${message.screenshots}
+                          .autoScreenshotEnabled=${this.autoScreenshotEnabled}
+                          .isViewingHistory=${this.isViewingHistory}
+                          .showHeaderToggle=${message.sender === 'assistant'}
+                          @delete-message=${e => this._onDelete(e)}
+                          @copy-message=${() => this._onCopy(message)}
+                          @message-content-updated=${this._onMessageContentUpdated}
+                      ></buddy-chat-message>
+                      `
+                  )}
+                ${this.isWaitingForResponse
+                ? html`
+                      <div class="loading-indicator ${this.isStopping ? 'stopping' : ''}">
+                      <div class="loading-dots">
+                          <div class="loading-dot"></div>
+                          <div class="loading-dot"></div>
+                          <div class="loading-dot"></div>
+                      </div>
+                      </div>
+                  `
+                : ''}
+            </div>
+            
+            ${this.showLiveMediaInput ? html`
+                <buddy-live-media-input
+                .selectedModel=${this.selectedModel}
+                @media-processed=${this._handleMediaProcessed}
+                @media-error=${this._handleMediaError}
+                ></buddy-live-media-input>
+            ` : ''}
 
-                                  ${this.autoScreenshotEnabled
-                                      ? html`
-                                            <p style="font-size: 12px; opacity: 0.6; margin-top: 8px;">
-                                                Auto-screen info on
-                                            </p>
-                                        `
-                                      : ''}
+            ${this.showInputArea ? html`
+            <div
+                class="text-input-container ${this.isFeatureEnabled('image-drag-drop') ? 'drag-enabled' : 'drag-disabled'}"
+                @dragover=${this.autoScreenshotEnabled ? null : this._handleDragOver}
+                @dragleave=${this.autoScreenshotEnabled ? null : this._handleDragLeave}
+                @drop=${this.autoScreenshotEnabled ? null : this._handleDrop}
+            >
+                ${this.attachedScreenshots.length > 0 && !this.autoScreenshotEnabled
+                ? html`
+                      <div class="screenshots-preview">
+                      <div class="screenshots-header">
+                          <span class="screenshot-count">${this.attachedScreenshots.length}/3 images</span>
+                          <div class="tooltip-container">
+                          <button class="clear-all-btn" @click=${this._onClearAllScreenshots}>Clear all</button>
+                          <span class="tooltip">Clear all images</span>
+                          </div>
+                      </div>
+                      <div class="screenshots-grid">
+                          ${this.attachedScreenshots.map(
+                          (screenshot, index) => html`
+                              <div class="screenshot-item">
+                              <div class="tooltip-container">
+                                  <img
+                                  src="data:image/jpeg;base64,${screenshot}"
+                                  alt="Attached image ${index + 1}"
+                                  @click=${() => this._onViewScreenshot(screenshot)}
+                                  />
+                                  <span class="tooltip">Click to view full size</span>
+                              </div>
+                              <div class="tooltip-container">
+                                  <button
+                                  class="screenshot-remove"
+                                  @click=${() => this._onRemoveScreenshot(index)}
+                                  >
+                                  ×
+                                  </button>
+                                  <span class="tooltip">Remove image</span>
+                              </div>
+                              <div class="screenshot-number">#${index + 1}</div>
                               </div>
                           `
-                        : this.chatMessages.map(
-                              message => html`
-                                  <buddy-chat-message
-                                      key=${message.id}
-                                      .id=${message.id}
-                                      .text=${message.text}
-                                      .sender=${message.sender}
-                                      .timestamp=${message.timestamp}
-                                      .isStreaming=${message.isStreaming}
-                                      .screenshots=${message.screenshots}
-                                      .autoScreenshotEnabled=${this.autoScreenshotEnabled}
-                                      .isViewingHistory=${this.isViewingHistory}
-                                      .showHeaderToggle=${message.sender === 'assistant'}
-                                      @delete-message=${e => this._onDelete(e)}
-                                      @copy-message=${() => this._onCopy(message)}
-                                      @message-content-updated=${this._onMessageContentUpdated}
-                                  ></buddy-chat-message>
-                              `
                           )}
-                    ${this.isWaitingForResponse
-                        ? html`
-                              <div class="loading-indicator ${this.isStopping ? 'stopping' : ''}">
-                                  <div class="loading-dots">
-                                      <div class="loading-dot"></div>
-                                      <div class="loading-dot"></div>
-                                      <div class="loading-dot"></div>
-                                  </div>
-                              </div>
-                          `
-                        : ''}
+                      </div>
+                      </div>
+                  `
+                : ''}
+                <div class="input-row">
+                <div class="textarea-container">
+                    <textarea
+                    id="textInput"
+                    rows="1"
+                    placeholder="${this.autoScreenshotEnabled
+                        ? 'Ask me anything...'
+                        : 'Ask me anything...'}"
+                    @keydown=${this._onKeydown}
+                    @input=${this._onTextInput}
+                    @paste=${this.autoScreenshotEnabled || !this.isFeatureEnabled('image-paste') ? null : this._handlePaste}
+                    ></textarea>
                 </div>
-                
-                ${this.showLiveMediaInput ? html`
-                    <buddy-live-media-input
-                        .selectedModel=${this.selectedModel}
-                        @media-processed=${this._handleMediaProcessed}
-                        @media-error=${this._handleMediaError}
-                    ></buddy-live-media-input>
-                ` : ''}
-                <div
-                    class="text-input-container ${this.isFeatureEnabled('image-drag-drop') ? 'drag-enabled' : 'drag-disabled'}"
-                    @dragover=${this.autoScreenshotEnabled ? null : this._handleDragOver}
-                    @dragleave=${this.autoScreenshotEnabled ? null : this._handleDragLeave}
-                    @drop=${this.autoScreenshotEnabled ? null : this._handleDrop}
-                >
-                    ${this.attachedScreenshots.length > 0 && !this.autoScreenshotEnabled
+                <div class="action-buttons">
+                    <div class="action-buttons-left">
+                    <!-- Left side buttons can be added here if needed -->
+                    </div>
+                    <div class="action-buttons-right">
+                    <div class="actions-dropdown-container">
+                        <div class="tooltip-container">
+                        <button class="action-btn" @click=${this._toggleActionsMenu}>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <circle cx="12" cy="12" r="1"></circle>
+                            <circle cx="12" cy="5" r="1"></circle>
+                            <circle cx="12" cy="19" r="1"></circle>
+                        </svg>
+                        ${this.attachedScreenshots.length > 0 && !this.autoScreenshotEnabled
+                            ? html` <span class="screenshot-count-badge">${this.attachedScreenshots.length}</span> `
+                            : ''}
+                        </button>
+                        <span class="tooltip"> </span>
+                    </div>
+
+                        ${this.isActionsMenuOpen
                         ? html`
-                              <div class="screenshots-preview">
-                                  <div class="screenshots-header">
-                                      <span class="screenshot-count">${this.attachedScreenshots.length}/3 images</span>
-                                      <div class="tooltip-container">
-                                          <button class="clear-all-btn" @click=${this._onClearAllScreenshots}>Clear all</button>
-                                          <span class="tooltip">Clear all images</span>
-                                      </div>
+                              <div class="actions-dropdown">
+                              <!-- Model Capability Status -->
+                              ${this.capabilityStatus ? html`
+                                  <div class="capability-status">
+                                  <div class="capability-model-name">${this.capabilityStatus.modelName}</div>
+                                  <div class="capability-summary">${this.getCapabilitySummary()}</div>
                                   </div>
-                                  <div class="screenshots-grid">
-                                      ${this.attachedScreenshots.map(
-                                          (screenshot, index) => html`
-                                              <div class="screenshot-item">
-                                                  <div class="tooltip-container">
-                                                      <img
-                                                          src="data:image/jpeg;base64,${screenshot}"
-                                                          alt="Attached image ${index + 1}"
-                                                          @click=${() => this._onViewScreenshot(screenshot)}
-                                                      />
-                                                      <span class="tooltip">Click to view full size</span>
-                                                  </div>
-                                                  <div class="tooltip-container">
-                                                      <button
-                                                          class="screenshot-remove"
-                                                          @click=${() => this._onRemoveScreenshot(index)}
-                                                      >
-                                                          ×
-                                                      </button>
-                                                      <span class="tooltip">Remove image</span>
-                                                  </div>
-                                                  <div class="screenshot-number">#${index + 1}</div>
-                                              </div>
-                                          `
-                                      )}
-                                  </div>
+                                  <div class="dropdown-divider"></div>
+                              ` : ''}
+                              
+                              <!-- Live Streaming Toggle -->
+                              ${this.renderIfCapable(
+                                  'live-streaming',
+                                  CAPABILITY_TYPES.REALTIME,
+                                  html`
+                                  <button class="dropdown-item ${this.isLiveStreamingActive ? 'active' : ''}" @click=${this._toggleLiveStreaming}>
+                                      <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="18"
+                                      height="18"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      >
+                                      <circle cx="12" cy="12" r="3"/>
+                                      <path d="M21 12c-1.2-4.1-5.2-7-9-7s-7.8 2.9-9 7c1.2 4.1 5.2 7 9 7s7.8-2.9 9-7z"/>
+                                      </svg>
+                                      <span class="dropdown-item-label">Live Streaming</span>
+                                      <span class="dropdown-item-value">${this.isLiveStreamingActive ? 'LIVE' : 'OFF'}</span>
+                                  </button>
+                                  `
+                              )}
+
+                              <!-- Live Media Input Toggle -->
+                              ${this.renderIfCapable(
+                                  'live-audio-input',
+                                  CAPABILITY_TYPES.AUDIO_INPUT,
+                                  html`
+                                  <button class="dropdown-item" @click=${this._toggleLiveMediaInput}>
+                                      <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="18"
+                                      height="18"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      >
+                                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                                      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                      <line x1="12" x2="12" y1="19" y2="22"/>
+                                      <line x1="8" x2="16" y1="22" y2="22"/>
+                                      </svg>
+                                      <span class="dropdown-item-label">Live Media</span>
+                                      <span class="dropdown-item-value">${this.showLiveMediaInput ? 'ON' : 'OFF'}</span>
+                                  </button>
+                                  `
+                              )}
+
+                              <!-- Auto Screenshot Toggle (Vision-dependent) -->
+                              ${this.renderIfCapable(
+                                  'screenshot-capture',
+                                  CAPABILITY_TYPES.VISION,
+                                  html`
+                                  <button class="dropdown-item" @click=${this._toggleAutoScreenshot}>
+                                      <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="24"
+                                      height="24"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      >
+                                      <path
+                                          d="M12 4.5v3m0 9v3m4.5-10.5l-2.12 2.12M6.62 17.38l-2.12 2.12M19.5 12h-3m-9 0H4.5m10.5 2.12-2.12 2.12M6.62 6.62 4.5 4.5"
+                                      />
+                                      </svg>
+                                      <span class="dropdown-item-label">add screen info</span>
+                                      <span class="dropdown-item-value">${this.autoScreenshotEnabled ? 'ON' : 'OFF'}</span>
+                                  </button>
+                                  `
+                              )}
+                              
+                              <!-- Image Upload (Vision-dependent) -->
+                              ${!this.autoScreenshotEnabled ? this.renderIfCapable(
+                                  'image-upload',
+                                  CAPABILITY_TYPES.VISION,
+                                  html`
+                                  <button
+                                      class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
+                                      @click=${this._onUploadImageClick}
+                                      ?disabled=${this.isStreamingActive || isAtLimit}
+                                  >
+                                      <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="18"
+                                      height="18"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      >
+                                      <path
+                                          d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
+                                      ></path>
+                                      </svg>
+                                      <span class="dropdown-item-label">Attach image</span>
+                                  </button>
+                                  `
+                              ) : ''}
+                              
+                              <!-- Screenshot Capture (Vision-dependent) -->
+                              ${!this.autoScreenshotEnabled ? this.renderIfCapable(
+                                  'screenshot-capture',
+                                  CAPABILITY_TYPES.VISION,
+                                  html`
+                                  <button
+                                      class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
+                                      @click=${this._onCaptureScreenshot}
+                                      ?disabled=${this.isStreamingActive || isAtLimit}
+                                  >
+                                      <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="18"
+                                      height="18"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      >
+                                      <path
+                                          d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"
+                                      ></path>
+                                      <circle cx="12" cy="13" r="3"></circle>
+                                      </svg>
+                                      <span class="dropdown-item-label">Capture screenshot</span>
+                                  </button>
+                                  `
+                              ) : ''}
                               </div>
                           `
                         : ''}
-                    <div class="input-row">
-                        <div class="textarea-container">
-                            <textarea
-                                id="textInput"
-                                rows="1"
-                                placeholder="${this.autoScreenshotEnabled
-                                    ? 'Ask me anything...'
-                                    : 'Ask me anything...'}"
-                                @keydown=${this._onKeydown}
-                                @input=${this._onTextInput}
-                                @paste=${this.autoScreenshotEnabled || !this.isFeatureEnabled('image-paste') ? null : this._handlePaste}
-                            ></textarea>
-                        </div>
-                        <div class="action-buttons">
-                            <div class="action-buttons-left">
-                                <!-- Left side buttons can be added here if needed -->
-                            </div>
-                            <div class="action-buttons-right">
-                                <div class="actions-dropdown-container">
-                                    <div class="tooltip-container">
-                                        <button class="action-btn" @click=${this._toggleActionsMenu}>
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="18"
-                                            height="18"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        >
-                                            <circle cx="12" cy="12" r="1"></circle>
-                                            <circle cx="12" cy="5" r="1"></circle>
-                                            <circle cx="12" cy="19" r="1"></circle>
-                                        </svg>
-                                        ${this.attachedScreenshots.length > 0 && !this.autoScreenshotEnabled
-                                            ? html` <span class="screenshot-count-badge">${this.attachedScreenshots.length}</span> `
-                                            : ''}
-                                    </button>
-                                    <span class="tooltip"> </span>
-                                </div>
+                    </div>
 
-                                    ${this.isActionsMenuOpen
-                                        ? html`
-                                              <div class="actions-dropdown">
-                                                  <!-- Model Capability Status -->
-                                                  ${this.capabilityStatus ? html`
-                                                      <div class="capability-status">
-                                                          <div class="capability-model-name">${this.capabilityStatus.modelName}</div>
-                                                          <div class="capability-summary">${this.getCapabilitySummary()}</div>
-                                                      </div>
-                                                      <div class="dropdown-divider"></div>
-                                                  ` : ''}
-                                                  
-                                                  <!-- Live Streaming Toggle -->
-                                                  ${this.renderIfCapable(
-                                                      'live-streaming',
-                                                      CAPABILITY_TYPES.REALTIME,
-                                                      html`
-                                                          <button class="dropdown-item ${this.isLiveStreamingActive ? 'active' : ''}" @click=${this._toggleLiveStreaming}>
-                                                              <svg
-                                                                  xmlns="http://www.w3.org/2000/svg"
-                                                                  width="18"
-                                                                  height="18"
-                                                                  viewBox="0 0 24 24"
-                                                                  fill="none"
-                                                                  stroke="currentColor"
-                                                                  stroke-width="2"
-                                                                  stroke-linecap="round"
-                                                                  stroke-linejoin="round"
-                                                              >
-                                                                  <circle cx="12" cy="12" r="3"/>
-                                                                  <path d="M21 12c-1.2-4.1-5.2-7-9-7s-7.8 2.9-9 7c1.2 4.1 5.2 7 9 7s7.8-2.9 9-7z"/>
-                                                              </svg>
-                                                              <span class="dropdown-item-label">Live Streaming</span>
-                                                              <span class="dropdown-item-value">${this.isLiveStreamingActive ? 'LIVE' : 'OFF'}</span>
-                                                          </button>
-                                                      `
-                                                  )}
-
-                                                  <!-- Live Media Input Toggle -->
-                                                  ${this.renderIfCapable(
-                                                      'live-audio-input',
-                                                      CAPABILITY_TYPES.AUDIO_INPUT,
-                                                      html`
-                                                          <button class="dropdown-item" @click=${this._toggleLiveMediaInput}>
-                                                              <svg
-                                                                  xmlns="http://www.w3.org/2000/svg"
-                                                                  width="18"
-                                                                  height="18"
-                                                                  viewBox="0 0 24 24"
-                                                                  fill="none"
-                                                                  stroke="currentColor"
-                                                                  stroke-width="2"
-                                                                  stroke-linecap="round"
-                                                                  stroke-linejoin="round"
-                                                              >
-                                                                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                                                                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                                                                  <line x1="12" x2="12" y1="19" y2="22"/>
-                                                                  <line x1="8" x2="16" y1="22" y2="22"/>
-                                                              </svg>
-                                                              <span class="dropdown-item-label">Live Media</span>
-                                                              <span class="dropdown-item-value">${this.showLiveMediaInput ? 'ON' : 'OFF'}</span>
-                                                          </button>
-                                                      `
-                                                  )}
-
-                                                  <!-- Auto Screenshot Toggle (Vision-dependent) -->
-                                                  ${this.renderIfCapable(
-                                                      'screenshot-capture',
-                                                      CAPABILITY_TYPES.VISION,
-                                                      html`
-                                                          <button class="dropdown-item" @click=${this._toggleAutoScreenshot}>
-                                                              <svg
-                                                                  xmlns="http://www.w3.org/2000/svg"
-                                                                  width="24"
-                                                                  height="24"
-                                                                  viewBox="0 0 24 24"
-                                                                  fill="none"
-                                                                  stroke="currentColor"
-                                                                  stroke-width="2"
-                                                                  stroke-linecap="round"
-                                                                  stroke-linejoin="round"
-                                                              >
-                                                                  <path
-                                                                      d="M12 4.5v3m0 9v3m4.5-10.5l-2.12 2.12M6.62 17.38l-2.12 2.12M19.5 12h-3m-9 0H4.5m10.5 2.12-2.12 2.12M6.62 6.62 4.5 4.5"
-                                                                  />
-                                                              </svg>
-                                                              <span class="dropdown-item-label">add screen info</span>
-                                                              <span class="dropdown-item-value">${this.autoScreenshotEnabled ? 'ON' : 'OFF'}</span>
-                                                          </button>
-                                                      `
-                                                  )}
-                                                  
-                                                  <!-- Image Upload (Vision-dependent) -->
-                                                  ${!this.autoScreenshotEnabled ? this.renderIfCapable(
-                                                      'image-upload',
-                                                      CAPABILITY_TYPES.VISION,
-                                                      html`
-                                                          <button
-                                                              class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
-                                                              @click=${this._onUploadImageClick}
-                                                              ?disabled=${this.isStreamingActive || isAtLimit}
-                                                          >
-                                                              <svg
-                                                                  xmlns="http://www.w3.org/2000/svg"
-                                                                  width="18"
-                                                                  height="18"
-                                                                  viewBox="0 0 24 24"
-                                                                  fill="none"
-                                                                  stroke="currentColor"
-                                                                  stroke-width="2"
-                                                                  stroke-linecap="round"
-                                                                  stroke-linejoin="round"
-                                                              >
-                                                                  <path
-                                                                      d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
-                                                                  ></path>
-                                                              </svg>
-                                                              <span class="dropdown-item-label">Attach image</span>
-                                                          </button>
-                                                      `
-                                                  ) : ''}
-                                                  
-                                                  <!-- Screenshot Capture (Vision-dependent) -->
-                                                  ${!this.autoScreenshotEnabled ? this.renderIfCapable(
-                                                      'screenshot-capture',
-                                                      CAPABILITY_TYPES.VISION,
-                                                      html`
-                                                          <button
-                                                              class="dropdown-item ${isAtLimit ? 'at-limit' : ''}"
-                                                              @click=${this._onCaptureScreenshot}
-                                                              ?disabled=${this.isStreamingActive || isAtLimit}
-                                                          >
-                                                              <svg
-                                                                  xmlns="http://www.w3.org/2000/svg"
-                                                                  width="18"
-                                                                  height="18"
-                                                                  viewBox="0 0 24 24"
-                                                                  fill="none"
-                                                                  stroke="currentColor"
-                                                                  stroke-width="2"
-                                                                  stroke-linecap="round"
-                                                                  stroke-linejoin="round"
-                                                              >
-                                                                  <path
-                                                                      d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"
-                                                                  ></path>
-                                                                  <circle cx="12" cy="13" r="3"></circle>
-                                                              </svg>
-                                                              <span class="dropdown-item-label">Capture screenshot</span>
-                                                          </button>
-                                                      `
-                                                  ) : ''}
-                                              </div>
-                                          `
-                                        : ''}
-                                </div>
-
-                                ${(this.isStreamingActive || this.isWaitingForResponse)
-                                    ? html`
-                                          <div class="tooltip-container">
-                                              <button class="stop-btn" @click=${this._onStop}>
-                                              <svg
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  width="20"
-                                                  height="20"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                  stroke="currentColor"
-                                                  stroke-width="2"
-                                                  stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                              >
-                                                  <rect x="6" y="6" width="12" height="12" rx="2" />
-                                              </svg>
-                                          </button>
-                                          <span class="tooltip">${this.isStreamingActive ? 'Stop streaming' : 'Stop response'}</span>
-                                      </div>
-                                      `
-                                    : html`
-                                          <div class="tooltip-container">
-                                              <button class="send-btn" @click=${this._onSend}>
-                                              <svg
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  width="24"
-                                                  height="24"
-                                                  viewBox="0 0 24 24"
-                                                  fill="none"
-                                                  stroke="currentColor"
-                                                  stroke-width="2"
-                                                  stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  class="lucide lucide-arrow-up-icon lucide-arrow-up"
-                                              >
-                                                  <path d="m5 12 7-7 7 7" />
-                                                  <path d="M12 19V5" />
-                                              </svg>
-                                          </button>
-                                          <span class="tooltip"></span>
-                                      </div>
-                                      `}
-                            </div>
-                        </div>
+                    ${(this.isStreamingActive || this.isWaitingForResponse)
+                        ? html`
+                          <div class="tooltip-container">
+                              <button class="stop-btn" @click=${this._onStop}>
+                              <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              >
+                              <rect x="6" y="6" width="12" height="12" rx="2" />
+                              </svg>
+                          </button>
+                          <span class="tooltip">${this.isStreamingActive ? 'Stop streaming' : 'Stop response'}</span>
+                          </div>
+                          `
+                        : html`
+                          <div class="tooltip-container">
+                              <button class="send-btn" @click=${this._onSend}>
+                              <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="lucide lucide-arrow-up-icon lucide-arrow-up"
+                              >
+                              <path d="m5 12 7-7 7 7" />
+                              <path d="M12 19V5" />
+                              </svg>
+                          </button>
+                          <span class="tooltip"></span>
+                          </div>
+                          `}
                     </div>
                 </div>
+                </div>
             </div>
+            ` : ''}
+            </div>
+        `;
+
+        // Render toggle button above the assistant view, and conditionally render the view
+        return html`
+            ${toggleButton}
+            ${this.showAssistantView ? toggleInputButton : ''}
+            ${this.showAssistantView ? assistantViewContent : ''}
         `;
     }
 }

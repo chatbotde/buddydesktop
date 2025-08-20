@@ -23,6 +23,7 @@ class WindowManager {
             resizable: true,
             minimizable: true,
             maximizable: true,
+            focusable: true,
             closable: true,
             titleBarStyle: process.platform === 'darwin' ? 'hidden' : undefined, // Hide title bar completely
             webPreferences: {

@@ -219,10 +219,12 @@ class WindowService {
                 return { success: false, error: 'Unable to send message to AI' };
             }
             
-            const result = await sendTextMessage(
-                '🔍 **SCREEN ANALYZER**: Analyze this desktop screenshot and provide concise, actionable insights.\n\n📋 **Format**:\n- 🎯 **What I see**: Brief summary\n- 💡 **Key Issue/Opportunity**: Main point\n- 🚀 **Solution**: Specific action to take\n- ⚡ **Next Step**: Immediate action\n\n💡 **Be concise, practical, and immediately actionable.**', 
-                [screenshotData]
-            );
+                const { getSystemPrompt } = require('../prompts');
+                const systemPrompt = getSystemPrompt('default');
+                const result = await sendTextMessage(
+                    systemPrompt,
+                    [screenshotData]
+                );
             
             if (result.success) {
                 console.log('Desktop screenshot analyzed and sent to AI');
