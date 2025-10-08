@@ -14,6 +14,7 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
         isActionsMenuOpen: { type: Boolean },
         isWaitingForResponse: { type: Boolean }, // New property for loading state
         isStopping: { type: Boolean }, // New property for stopping animation
+        isInputVisible: { type: Boolean }, // New property for input visibility toggle
     };
 
     constructor() {
@@ -24,6 +25,7 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
         this.isActionsMenuOpen = false;
         this.isWaitingForResponse = false; // Initialize loading state
         this.isStopping = false; // Initialize stopping state
+        this.isInputVisible = true; // Input is visible by default
         this.boundOutsideClickHandler = this._handleOutsideClick.bind(this);
         this.boundGlobalKeydownHandler = this._handleGlobalKeydown.bind(this);
         // Simple auto-scroll for input/output visibility
@@ -410,6 +412,11 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
         this._closeActionsMenu();
     }
 
+    _toggleInputVisibility() {
+        this.isInputVisible = !this.isInputVisible;
+        this.requestUpdate();
+    }
+
     _onUploadImageClick() {
         // Check if vision capability is available
         if (!this.isFeatureEnabled('image-upload')) {
@@ -622,7 +629,7 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                     ${!this.chatMessages || this.chatMessages.length === 0
                         ? html`
                               <div class="welcome-message">
-                                  <p>Hi! How can I help you today?</p>
+                                  
 
                                   ${this.autoScreenshotEnabled
                                       ? html`
@@ -662,6 +669,49 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                           `
                         : ''}
                 </div>
+                
+                <!-- Toggle Input Button -->
+                <div class="toggle-input-container">
+                    <div class="tooltip-container">
+                        <button class="toggle-input-btn" @click=${this._toggleInputVisibility}>
+                            ${this.isInputVisible
+                                ? html`
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <polyline points="18 15 12 9 6 15"></polyline>
+                                    </svg>
+                                `
+                                : html`
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                `}
+                        </button>
+                        <span class="tooltip">${this.isInputVisible ? 'Hide input' : 'Show input'}</span>
+                    </div>
+                </div>
+
+                <!-- Chat Input Container -->
+                ${this.isInputVisible ? html`
                 <div
                     class="text-input-container ${this.isFeatureEnabled('image-drag-drop') ? 'drag-enabled' : 'drag-disabled'}"
                     @dragover=${this.autoScreenshotEnabled ? null : this._handleDragOver}
@@ -901,6 +951,7 @@ class BuddyAssistantView extends CapabilityAwareMixin(LitElement) {
                         </div>
                     </div>
                 </div>
+                ` : ''}
             </div>
         `;
     }

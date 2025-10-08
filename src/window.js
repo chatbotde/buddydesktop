@@ -15,6 +15,7 @@ class WindowManager {
             hasShadow: false,
             alwaysOnTop: true,
             skipTaskbar: true,
+            focusable: false,
             hiddenInMissionControl: true,
             roundedCorners: true,
             vibrancy: 'ultra-dark',

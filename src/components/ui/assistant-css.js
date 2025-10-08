@@ -1073,4 +1073,81 @@ export const assistantStyles = css`
     .capability-notification.show {
         transform: translateX(0);
     }
+
+    /* Toggle Input Button Styles */
+    .toggle-input-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: var(--spacing-xs) 0;
+        margin: 0 var(--spacing-lg);
+        position: sticky;
+        bottom: 0;
+        z-index: 11;
+        background: transparent;
+    }
+
+    .toggle-input-btn {
+        background: var(--white-alpha-10);
+        border: 1px solid var(--white-alpha-15);
+        color: var(--text-color);
+        cursor: default;
+        padding: 8px 16px;
+        border-radius: var(--border-radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-xs);
+        transition: all var(--transition-normal);
+        backdrop-filter: var(--blur-medium);
+        -webkit-backdrop-filter: var(--blur-medium);
+        box-shadow: 0 2px 8px var(--black-alpha-20);
+        min-width: 120px;
+    }
+
+    .toggle-input-btn:hover {
+        background: var(--white-alpha-15);
+        border-color: var(--white-alpha-20);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px var(--black-alpha-25);
+    }
+
+    .toggle-input-btn:active {
+        transform: translateY(-1px);
+        transition: all 0.1s ease;
+    }
+
+    .toggle-input-btn svg {
+        transition: transform var(--transition-normal);
+    }
+
+    .toggle-input-btn:hover svg {
+        transform: scale(1.1);
+    }
+
+    /* When input is hidden, adjust chat container */
+    .assistant-view-root:has(.text-input-container:not([style*="display: none"])) .chat-container {
+        margin-bottom: 0;
+    }
+
+    /* Responsive styles for toggle button */
+    @media (max-width: 768px) {
+        .toggle-input-btn {
+            min-width: 100px;
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .toggle-input-btn {
+            min-width: 80px;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .toggle-input-container {
+            padding: 4px 0;
+        }
+    }
 `;

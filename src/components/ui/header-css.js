@@ -1364,7 +1364,7 @@ export const headerStyles = css`
         background: rgba(255, 255, 255, 0.15);
         border: 1px solid rgba(255, 255, 255, 0.2);
         color: #fff;
-        cursor: pointer;
+        cursor: default;
         border-radius: 12px;
         height: 40px;
         padding: 0 12px;
@@ -1503,7 +1503,7 @@ export const headerStyles = css`
         outline: none;
         -webkit-appearance: none;
         appearance: none;
-        cursor: pointer;
+        cursor: default;
     }
 
     .opacity-slider::-webkit-slider-thumb {
@@ -1513,7 +1513,7 @@ export const headerStyles = css`
         height: 18px;
         background: #007aff;
         border-radius: 50%;
-        cursor: pointer;
+        cursor: default;
         border: 2px solid rgba(255, 255, 255, 0.9);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         transition: all 0.2s ease;
@@ -1529,7 +1529,7 @@ export const headerStyles = css`
         height: 18px;
         background: #007aff;
         border-radius: 50%;
-        cursor: pointer;
+        cursor: default;
         border: 2px solid rgba(255, 255, 255, 0.9);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         transition: all 0.2s ease;
@@ -1600,7 +1600,7 @@ export const headerStyles = css`
         color: #fff;
         padding: 8px 12px;
         font-size: 11px;
-        cursor: pointer;
+        cursor: default;
         transition: all 0.2s ease;
         display: flex;
         justify-content: space-between;
@@ -1632,7 +1632,7 @@ export const headerStyles = css`
         color: #fff;
         padding: 8px 12px;
         font-size: 11px;
-        cursor: pointer;
+        cursor: default;
         transition: all 0.2s ease;
         display: flex;
         align-items: center;
@@ -1851,7 +1851,7 @@ export const headerStyles = css`
         border-radius: 8px;
         color: #fff;
         padding: 10px 12px;
-        cursor: pointer;
+        cursor: default;
         transition: all 0.2s ease;
         display: flex;
         align-items: center;
@@ -2338,7 +2338,7 @@ export const headerStyles = css`
         color: var(--text-color);
         font-size: 13px;
         font-weight: 500;
-        cursor: pointer;
+        cursor: default;
         transition: all 0.2s ease;
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
@@ -2445,7 +2445,7 @@ export const headerStyles = css`
         border: none;
         color: var(--text-color);
         font-size: 14px;
-        cursor: pointer;
+        cursor: default;
         transition: all 0.2s ease;
         width: 100%;
         text-align: left;
@@ -2787,7 +2787,7 @@ export const headerStyles = css`
         background: rgba(255, 255, 255, 0.12);
         border: 1px solid rgba(255, 255, 255, 0.2);
         color: #fff;
-        cursor: pointer;
+        cursor: default;
         border-radius: 12px;
         width: 40px;
         height: 40px;
@@ -2893,7 +2893,7 @@ export const headerStyles = css`
         background: rgba(255, 255, 255, 0.06);
         border: 1px solid rgba(255, 255, 255, 0.08);
         color: rgba(255, 255, 255, 0.95);
-        cursor: pointer;
+        cursor: default;
         padding: 12px 16px;
         border-radius: 12px;
         font-size: 14px;
