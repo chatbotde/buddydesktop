@@ -237,7 +237,7 @@ class AICommunicationService {
             }
             
             // Send the screenshot to AI with a concise screen analysis prompt
-            const result = await this.sendTextMessage('🔍 **SCREEN ANALYZER**: Analyze this screenshot and provide concise, actionable insights.\n\n📋 **Format**:\n- 🎯 **What I see**: Brief summary\n- 💡 **Key Issue/Opportunity**: Main point\n- 🚀 **Solution**: Specific action to take\n- ⚡ **Next Step**: Immediate action\n\n💡 **Be concise, practical, and immediately actionable.**', [screenshotData]);
+            const result = await this.sendTextMessage('', [screenshotData]);
             
             if (result.success) {
                 console.log('Screenshot analyzed and sent to AI');
